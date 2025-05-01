@@ -7,7 +7,7 @@ const fs = require('fs');
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST || 'mysql.railway.internal',
+  host: process.env.MYSQL_HOST || 'trolley.proxy.rlwy.net',
   user: process.env.MYSQL_USER || 'root',
   password: process.env.MYSQL_PASSWORD || 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
   database: process.env.MYSQL_DATABASE || 'railway'
