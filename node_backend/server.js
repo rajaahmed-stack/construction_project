@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
@@ -37,10 +38,10 @@ app.use(cors({
 
 // MySQL connection
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'mmcmadina_constructiondatabase2',
-  password: '123Ahmed@',
-  database: 'mmcmadina_constructiondata2'
+  host: 'mysql.railway.internal',
+  user: 'root',
+  password: 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
+  database: 'railway'
 });
 
 db.connect((err) => {
