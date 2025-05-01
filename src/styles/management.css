@@ -1,0 +1,152 @@
+.management-container {
+  text-align: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.management-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+.management-table th,
+.management-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.management-table th {
+  background-color: #3684b8;
+  color: white;
+}
+
+.download-button,
+.search-button,
+.dropdown-button {
+  background-color: #333;
+  color: white;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+.download-button:hover {
+  background-color: #218838;
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  padding: 10px;
+  width: 250px;
+  margin-right: 10px;
+}
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+  text-align: center;
+}
+
+.dropdown-button {
+  background-color: #1e3a8a; /* Indigo-800 */
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 200px; /* consistent width */
+  text-align: center;
+}
+
+.dropdown-menu {
+  position: absolute;
+  background-color: white;
+  min-width: 200px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  z-index: 1;
+}
+
+.dropdown-item {
+  padding: 10px 15px;
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: #333;
+  display: block;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6; /* Tailwind gray-100 */
+}
+
+.dropdown-item.active {
+  background-color: #e0f2fe; /* Tailwind sky-100 */
+  font-weight: bold;
+  color: #0c4a6e; /* Tailwind sky-900 */
+}
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  padding: 20px;
+  background: linear-gradient(to right, #a200ff, #10f248);
+  width: 100%;
+  text-align: center;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.home-header h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Dark mode styling */
+body.dark-mode {
+  background-color: #121212;
+  color: white;
+}
+
+body.dark-mode .management-table th {
+  background-color: #444;
+}
+
+body.dark-mode .management-table td {
+  background-color: #1e1e1e;
+  color: white;
+}
+
+body.dark-mode .dropdown-menu {
+  background-color: #333;
+  color: white;
+}
+
+body.dark-mode .dropdown-item {
+  background-color: #333;
+  color: white;
+}
+
+body.dark-mode .dropdown-item:hover {
+  background-color: #444;
+}

@@ -1,0 +1,210 @@
+/* Container for the department, including the permission sections */
+.department-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 40px auto;
+    overflow-y: auto;
+  }
+  
+  /* Permission Sections layout */
+  .permission-sections {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 20px;
+    flex-wrap: wrap;  /* Ensure they wrap in smaller screens */
+  }
+  
+  /* Upper Section (Incoming Data) */
+  .upper-section {
+    flex: 1;
+    padding: 15px;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+    margin-right: 20px;
+  }
+  
+  /* Lower Section (Permission Data) */
+  .lower-section {
+    flex: 1;
+    padding: 15px;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  /* Header and other text styles */
+  h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  h4 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+  
+  .permission-record {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .permission-record div {
+    margin-bottom: 10px;
+  }
+  
+  .permission-record button {
+    margin-top: 10px;
+  }
+  
+  /* Adjusted Permission Form styling */
+  .permission-form {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    width: 100%;
+    overflow-y: auto;
+    max-width: 900px;
+    margin: 20px auto;
+  }
+  
+  .permission-form h4 {
+    margin-bottom: 15px;
+  }
+  
+  .permission-form button {
+    margin-right: 10px;
+  }
+  
+  /* Modal Dialog Styling */
+  .modal-dialog {
+    max-width: 600px;
+    margin: 30px auto;
+    height: auto;
+  }
+  
+  .modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+    color: #333;
+  }
+  
+  /* Form Input styling */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-control {
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  
+  .form-control:focus {
+    border-color: #aa00b3;
+    box-shadow: 0 0 5px rgba(200, 0, 255, 0.5);
+  }
+  
+  /* General Button Styles */
+  button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  button:focus {
+    outline: none;
+  }
+  
+  button:hover {
+    background-color: #9bb300;
+    color: #fff;
+  }
+  
+  button:active {
+    background-color: #9bb300;
+  }
+  
+  /* Custom Styles for Specific Buttons */
+  .cancel-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+  }
+  
+  .cancel-button:hover {
+    background-color: #d32f2f;
+  }
+  
+  .save-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+  }
+  
+  .save-button:hover {
+    background-color: #388e3c;
+  }
+  
+  .send-button {
+    background-color: #b821f3;
+    color: white;
+    border: none;
+  }
+  
+  .send-button:hover {
+    background-color: #19d2b0;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .permission-sections {
+      flex-direction: column;
+    }
+  
+    .upper-section,
+    .lower-section {
+      width: 100%;
+      margin-right: 0;
+    }
+  
+    .modal-dialog {
+      max-width: 100%;
+      margin: 20px;
+    }
+  }
+  

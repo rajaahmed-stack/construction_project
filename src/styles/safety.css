@@ -1,0 +1,152 @@
+/* Main container with flexbox to arrange sections side by side */
+.department-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    flex-wrap: wrap; /* To ensure responsiveness */
+  }
+  
+  /* Style for each section */
+  .safety-sections {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .upper-section, .lower-section {
+    width: 48%; /* Adjusted to fit the layout */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  /* Style for each safety record */
+  .safety-record {
+    margin-bottom: 15px;
+  }
+  
+  .safety-record div {
+    margin-bottom: 5px;
+  }
+  
+  /* Adjust Button styling */
+  button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Style for Modal and Form */
+  .modal-body {
+    padding: 20px;
+  }
+  
+  /* Progress Bar styling */
+  .progress-container {
+    margin-top: 20px;
+    width: 100%;
+  }
+  .safety-fields {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .safety-item {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  .safety-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .safety-item input[type="file"] {
+    margin-top: 10px;
+  }
+  
+  .safety-item label {
+    display: block;
+    margin-top: 5px;
+  }
+  
+  .send-button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .send-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  /* Timer Section Styling */
+.timer {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #db8234;
+    color: white;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .timer h5 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .lower-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  .work-order-details, .safety-checkboxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .safety-fields, .additional-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .safety-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+  }
+
+  .timer h5 {
+    margin-bottom: 10px;
+  }
+
+  .additional-fields {
+    margin-top: 15px;
+  }
+
+ 

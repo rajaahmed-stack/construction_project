@@ -1,0 +1,81 @@
+/* General container styling */
+.department-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 1000px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Section headings */
+  .department-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .department-container h4 {
+    color: #555;
+    margin-bottom: 15px;
+  }
+  
+  /* Flex layout for data sections */
+  .data-sections {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  /* Individual columns for data */
+  .data-column {
+    flex: 1;
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    min-width: 300px;
+  }
+  
+  /* Individual record styling */
+  .record {
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #f0f8ff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .record p {
+    margin: 5px 0;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  /* Buttons */
+  button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  

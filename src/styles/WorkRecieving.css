@@ -1,0 +1,128 @@
+/* WorkReceiving.css */
+
+/* General container styling */
+.work-receiving-container {
+  font-family: 'Arial', sans-serif;
+  background-color: #f9f9f9;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 20px auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.work-receiving-form {
+  flex: 1;
+  margin-right: 30px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+h3 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+label {
+  font-weight: bold;
+  color: #34495e;
+  margin-bottom: 10px;
+  display: block;
+}
+
+select,
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+select:focus,
+input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+button {
+  background-color: #3498db;
+  color: white;
+  padding: 14px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-top: 20px;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #2980b9;
+  transform: scale(1.05);
+}
+
+button:active {
+  background-color: #1c5989;
+}
+
+.existing-data-container {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.existing-data-container h4 {
+  font-size: 18px;
+  color: #34495e;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.existing-data-item {
+  border: 1px solid #12abd1;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.existing-data-item div {
+  margin-bottom: 10px;
+}
+
+.existing-data-item div:last-child {
+  margin-bottom: 0;
+}
+
+.existing-data-item .current-department {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+button#send-button {
+  background-color: #e74c3c;
+  margin-top: 15px;
+  display: none;
+  transition: background-color 0.3s ease;
+}
+
+button#send-button.visible {
+  display: inline-block;
+}
