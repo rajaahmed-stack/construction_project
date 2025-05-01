@@ -9,7 +9,7 @@ const archiver = require('archiver');
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST || 'fb06fa8653c3',
+  host: process.env.MYSQL_HOST || 'mysql.railway.internal',
   user: process.env.MYSQL_USER || 'root',
   password: process.env.MYSQL_PASSWORD || 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
   database: process.env.MYSQL_DATABASE || 'railway'
