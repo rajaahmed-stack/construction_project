@@ -7,11 +7,10 @@ const fs = require('fs');
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'mmcmadina_constructiondatabase2',
-  password: '123Ahmed@',
-  database: 'mmcmadina_constructiondata2'
-
+  host: 'mysql.railway.internal',
+  user: 'root',
+  password: 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
+  database: 'railway'
 });
 
 db.connect((err) => {
