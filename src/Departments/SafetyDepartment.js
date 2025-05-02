@@ -429,7 +429,7 @@ const SafetyDepartment = () => {
   
       const dataToSend = {
         safety_boards: formData.safetyBoards ? `uploads/${formData.safetyBoards.filename}` : null,
-        safety_boards_completed: formData.safetyBoardsCompleted,
+        safety_board_completed: formData.safetyBoardCompleted,
         work_order_id: workOrderId,
       };
   
