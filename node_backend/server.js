@@ -38,10 +38,12 @@ app.use(cors({
 
 // MySQL connection
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST || 'mysql.railway.internal',
+  host: process.env.MYSQL_HOST || 'shinkansen.proxy.rlwy.net',
   user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
+  password: process.env.MYSQL_PASSWORD || 'XjSGGFPPsszznJyxanyHBVzUeppoFkKn',
   database: process.env.MYSQL_DATABASE || 'railway',
+  port: process.env.MYSQL_PORT || '44942'
+
 });
 
 
