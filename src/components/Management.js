@@ -159,7 +159,7 @@ const Management = () => {
       setSearchResult(data);
     } else {
       axios
-        .get(` https://mmcmadina.com/api/management/search-workorder/${searchTerm}`)
+        .get(` https://constructionproject-production.up.railway.app/api/management/search-workorder/${searchTerm}`)
         .then((response) => setSearchResult(response.data))
         .catch((error) => console.error("Search error:", error));
     }
@@ -168,7 +168,7 @@ const Management = () => {
   const handleDepartmentFilter = (dept) => {
     setSelectedDept(dept);
     axios
-      .get(` https://mmcmadina.com/api/management/search-filter?type=current_department&value=${dept}`)
+      .get(` https://constructionproject-production.up.railway.app/api/management/search-filter?type=current_department&value=${dept}`)
       .then((response) => setSearchResult(response.data))
       .catch((error) => console.error("Department filter error:", error));
   };

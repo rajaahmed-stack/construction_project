@@ -152,7 +152,7 @@ const WorkExecution = () => {
             const alertMessage = urgentOrders
               .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
               .join("\n");
-            alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+            // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
           }
         } catch (error) {
           console.error("Error fetching work execution data:", error);

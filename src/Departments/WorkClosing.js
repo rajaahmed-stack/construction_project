@@ -71,6 +71,79 @@ const WorkClosing = () => {
 
   //   fetchData();
   // }, []);
+  const handleSave = async (e) => {
+    e.preventDefault();
+  
+    // Validate required fields
+    const requiredFields = ['work_order_id', 'submission_date', 'resubmission_date', 'approval_date'];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(`Please fill all the fields. Missing: ${field}`);
+        return;
+      }
+    }
+  
+    // Prepare form data for submission
+    const formDataWithFile = new FormData();
+    formDataWithFile.append('work_order_id', formData.work_order_id);
+    formDataWithFile.append('submission_date', formData.submission_date);
+    formDataWithFile.append('resubmission_date', formData.resubmission_date);
+    formDataWithFile.append('approval_date', formData.approval_date);
+  
+    if (formData.mubahisa) {
+      formDataWithFile.append('mubahisa', formData.mubahisa);
+    }
+  
+    // Determine the URL based on whether it's an edit or a new record
+    const url = formData.isEditing
+      ? `https://constructionproject-production.up.railway.app/api/work-closing/edit-workclosing/${formData.work_order_id}`
+      : 'https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument';
+  
+    try {
+      const response = await axios.post(url, formDataWithFile, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  
+      if (response.data.success) {
+        alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
+        setShowForm(false);
+        setFormData({
+          work_order_id: "",
+          submission_date: "",
+          resubmission_date: "",
+          approval_date: "",
+          mubahisa: null,
+          isEditing: false,
+        });
+  
+        // Refresh data
+        const [comingResponse, workclosingResponse] = await Promise.all([
+          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
+        ]);
+        setUpperData(comingResponse.data || []);
+        setLowerData(workclosingResponse.data || []);
+      } else {
+        alert('Operation failed');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('An error occurred while saving data.');
+    }
+  };
+  
+  const handleEdit = (record) => {
+    setFormData({
+      work_order_id: record.work_order_id,
+      submission_date: record.submission_date || "", // Set existing submission date or empty if not available
+      resubmission_date: record.resubmission_date || "", // Set existing resubmission date or empty
+      approval_date: record.approval_date || "", // Set existing approval date or empty
+      mubahisa: null, // Reset file input for new upload
+      isEditing: true, // Set edit mode flag
+    });
+    setShowForm(true); // Open the form modal
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -137,7 +210,7 @@ const WorkClosing = () => {
             .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
             .join("\n");
   
-          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+          // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
         console.error("Error fetching work closing data:", error);
@@ -172,54 +245,54 @@ const WorkClosing = () => {
     }
   };
   
-  const handleSave = async (e) => {
-    e.preventDefault();
+  // const handleSave = async (e) => {
+  //   e.preventDefault();
   
-    if (!formData.mubahisa) {
-      alert("Please upload the required file.");
-      return;
-    }
+  //   if (!formData.mubahisa) {
+  //     alert("Please upload the required file.");
+  //     return;
+  //   }
   
-    try {
-      const formDataWithFile = new FormData();
-      formDataWithFile.append("mubahisa", formData.mubahisa);
-      formDataWithFile.append("work_order_id", formData.work_order_id);
-      formDataWithFile.append("submission_date", formData.submission_date);
-      formDataWithFile.append("resubmission_date", formData.resubmission_date);
-      formDataWithFile.append("approval_date", formData.approval_date);
+  //   try {
+  //     const formDataWithFile = new FormData();
+  //     formDataWithFile.append("mubahisa", formData.mubahisa);
+  //     formDataWithFile.append("work_order_id", formData.work_order_id);
+  //     formDataWithFile.append("submission_date", formData.submission_date);
+  //     formDataWithFile.append("resubmission_date", formData.resubmission_date);
+  //     formDataWithFile.append("approval_date", formData.approval_date);
   
-      const response = await axios.post(
-        "https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument",
-        formDataWithFile,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+  //     const response = await axios.post(
+  //       "https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument",
+  //       formDataWithFile,
+  //       { headers: { "Content-Type": "multipart/form-data" } }
+  //     );
   
-      if (response.data.success) {
-        alert("File uploaded and data saved successfully.");
-        setShowForm(false);
-        setFormData({
-          work_order_id: "",
-          submission_date: "",
-          resubmission_date: "",
-          approval_date: "",
-          mubahisa: "",
-        });
+  //     if (response.data.success) {
+  //       alert("File uploaded and data saved successfully.");
+  //       setShowForm(false);
+  //       setFormData({
+  //         work_order_id: "",
+  //         submission_date: "",
+  //         resubmission_date: "",
+  //         approval_date: "",
+  //         mubahisa: "",
+  //       });
   
-        // Refresh data
-        const [comingResponse, workclosingResponse] = await Promise.all([
-          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
-          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
-        ]);
-        setUpperData(comingResponse.data || []);
-        setLowerData(workclosingResponse.data || []);
-      } else {
-        alert("Failed to upload the file.");
-      }
-    } catch (error) {
-      console.error("Error uploading file and saving data:", error);
-      alert("Failed to upload file and save data. Please try again.");
-    }
-  };
+  //       // Refresh data
+  //       const [comingResponse, workclosingResponse] = await Promise.all([
+  //         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
+  //       ]);
+  //       setUpperData(comingResponse.data || []);
+  //       setLowerData(workclosingResponse.data || []);
+  //     } else {
+  //       alert("Failed to upload the file.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error uploading file and saving data:", error);
+  //     alert("Failed to upload file and save data. Please try again.");
+  //   }
+  // };
   
   
   
@@ -360,6 +433,14 @@ const WorkClosing = () => {
                       <TableCell>{new Date(record.resubmission_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(record.approval_date).toLocaleDateString()}</TableCell>
                       <TableCell> {record.mubahisa ? "✅" : "❌"}</TableCell>
+                        <TableCell>
+                                                                      <Button
+                                                                        onClick={() => handleEdit(record)}
+                                                                        sx={{ backgroundColor: '#6a11cb', color: 'white', '&:hover': { backgroundColor: 'black' } }}
+                                                                      >
+                                                                        Edit
+                                                                      </Button>
+                                                                    </TableCell>
                       {/* <TableCell>{record.remaining_days} days left</TableCell> */}
                       {/* <TableCell>
                         <Button variant="contained" color="secondary" onClick={() => alert('Send to next department')}>
