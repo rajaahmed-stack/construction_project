@@ -25,7 +25,7 @@ const WorkExecution = () => {
     milling: "",
     milling_completed: false,
     concrete: "",
-    Concrete_completed: false,
+    concrete_completed: false,
     deck3: "",
     deck3_completed: false,
     deck2: "",
@@ -354,22 +354,22 @@ const handleSaveRemainingData = async (workOrderId) => {
     }));
   };
    // Fetch saved data on page load (useEffect will run when the page is loaded)
-   useEffect(() => {
-    axios
-      .get(`https://constructionproject-production.up.railway.app/api/work-execution/get-work-execution/${workOrderId}`)
-      .then((response) => {
-        if (response.data) {
-          // If there's data, set it in formData state
-          setFormData({
-            asphalt: response.data.asphalt || "", // Use saved asphalt file name
-            asphalt_completed: response.data.asphalt_completed === 1, // Convert DB value to boolean
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching work execution data:", error);
-      });
-  }, [workOrderId]); // This useEffect runs only when workOrderId changes
+  //  useEffect(() => {
+  //   axios
+  //     .get(`https://constructionproject-production.up.railway.app/api/work-execution/get-work-execution/${workOrderId}`)
+  //     .then((response) => {
+  //       if (response.data) {
+  //         // If there's data, set it in formData state
+  //         setFormData({
+  //           asphalt: response.data.asphalt || "", // Use saved asphalt file name
+  //           asphalt_completed: response.data.asphalt_completed === 1, // Convert DB value to boolean
+  //         });
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching work execution data:", error);
+  //     });
+  // }, [workOrderId]); // This useEffect runs only when workOrderId changes
   
   const handleSaveAsphalt = async (field, workOrderId) => {
     try {
@@ -743,16 +743,16 @@ const handleSaveRemainingData = async (workOrderId) => {
                   <Typography variant="h6">Execution Status</Typography>
                 <Grid container direction="row" spacing={1}>
                   {[
-                    { label: "Asphalt", key: "asphalt_completed" },
-                    { label: "Milling", key: "milling_completed" },
-                    { label: "Concrete", key: "Concrete_completed" },
-                    { label: "Deck3", key: "deck3_completed" },
-                    { label: "Deck2", key: "deck2_completed" },
-                    { label: "Deck1", key: "deck1_completed" },
-                    { label: "Sand", key: "sand_completed" },
-                    { label: "Backfilling", key: "backfilling_completed" },
-                    { label: "Cable Lying", key: "cable_lying_completed" },
-                    { label: "Trench", key: "trench_completed" },
+                    { label: "Asphalt", key: "asphalt_completed" || "asphalt" },
+                    { label: "Milling", key: "milling_completed" || "milling" },
+                    { label: "Concrete", key: "concrete_completed" || "concrete"},
+                    { label: "Deck3", key: "deck3_completed" || "deck3"},
+                    { label: "Deck2", key: "deck2_completed" || "deck2"},
+                    { label: "Deck1", key: "deck1_completed" || "deck1"},
+                    { label: "Sand", key: "sand_completed" || "sand"},
+                    { label: "Backfilling", key: "backfilling_completed" || "backfilling" },
+                    { label: "Cable Lying", key: "cable_lying_completed" || "cable_lying"},
+                    { label: "Trench", key: "trench_completed" || "trench"},
                   ].map(({ label, key }) => (
                     <Grid item key={key}>
                       <Typography>
@@ -772,8 +772,8 @@ const handleSaveRemainingData = async (workOrderId) => {
                  ...(record.milling_completed !==1
                   ?[{ label: "Milling", handler: handleSaveMilling, key: "milling" , disabled: record.milling_completed}]
                   :[]),
-                ...(record.Concrete_completed !==1
-                  ?[{ label: "Concrete", handler: handleSaveConcrete, key: "concrete",  disabled: record.Concrete_completed }]
+                ...(record.concrete_completed !==1
+                  ?[{ label: "Concrete", handler: handleSaveConcrete, key: "concrete",  disabled: record.concrete_completed }]
                   :[]),
                 ...(record.deck3_completed !==1
                   ?[{ label: "Deck 3", handler: handleSaveDeck3, key: "deck3",  disabled: record.deck3_completed }]
