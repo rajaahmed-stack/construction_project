@@ -113,7 +113,7 @@ router.get('/store-data', (req, res) => {
   const query = `
     SELECT store.work_order_id,
            store.material_return, 
-           store.material_recieving, 
+           store.material_receiving, 
            store.material_pending,
            store.sstore_created_at,
            gis_department.g_created_at,

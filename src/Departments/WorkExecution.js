@@ -205,42 +205,50 @@ const WorkExecution = () => {
   const handleSaveData = async (e) => {
     e.preventDefault();
   
-    // Check required fields
     if (
       !formData.work_order_id ||
       !formData.receiving_date ||
       !formData.permission_number ||
       !formData.user_type ||
-      (formData.user_type !== "MMC" && !formData.contractorName) // If user is Contractor, contractorName is required
+      (formData.user_type !== "MMC" && !formData.contractorName)
     ) {
       alert("Please fill all required fields.");
       return;
     }
   
     setLoading(true);
+  
     const today = new Date();
     const deadline = new Date();
     deadline.setDate(deadline.getDate() + 2);
   
-    let deliveryStatus = 'on time';
+    let deliveryStatus = "on time";
     if (today > deadline) {
-      deliveryStatus = 'delayed';
+      deliveryStatus = "delayed";
     } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-      deliveryStatus = 'nearing deadline';
+      deliveryStatus = "nearing deadline";
     }
+  
     const updatedFormData = { ...formData, delivery_status: deliveryStatus };
+  
     try {
-      const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder", formData, updatedFormData);
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder",
+        updatedFormData
+      );
   
       if (response.status === 200) {
         alert("Data saved successfully!");
         setShowForm(false);
   
-        // Ensure 'record' is correctly assigned
-        const updatedRecord = upperData.find((item) => item.work_order_id === formData.work_order_id);
+        const updatedRecord = upperData.find(
+          (item) => item.work_order_id === formData.work_order_id
+        );
   
         if (updatedRecord) {
-          setUpperData((prev) => prev.filter((item) => item.work_order_id !== formData.work_order_id));
+          setUpperData((prev) =>
+            prev.filter((item) => item.work_order_id !== formData.work_order_id)
+          );
           setLowerData((prev) => [...prev, updatedRecord]);
         }
       }
@@ -251,7 +259,6 @@ const WorkExecution = () => {
       setLoading(false);
     }
   };
-  
 const handleSendToNext = async (workOrderId) => {
   try {
     await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/update-wedepartment", {
@@ -263,53 +270,49 @@ const handleSendToNext = async (workOrderId) => {
     console.error("Error updating department:", error);
   }
 };
-const handleSaveRemainingData = async () => {
+const handleSaveRemainingData = async (workOrderId) => {
   try {
-    // Ensure Work Order ID is available
-    const workOrderId = lowerData[0]?.work_order_id;
     if (!workOrderId) {
       alert("Work Order ID is missing!");
       return;
     }
 
-   
-    // Prepare the data to send
     const dataToSend = {
       remark: formData.remark,
       work_order_id: workOrderId,
     };
 
-    // Log the data being sent
-    console.log("Data being sent:", dataToSend);
+    const response = await axios.post(
+      "https://constructionproject-production.up.railway.app/api/work-execution/save-remainingdata",
+      dataToSend
+    );
 
-    // Send POST request to save data
-    const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-remainingdata", dataToSend);
-
-    // Check the response and inform the user
-    console.log("Server response:", response.data);
     alert("Data saved successfully!");
 
-    // Reset form data after successful submission
-    setFormData({
+    // Reset the remark field for the current record
+    setFormData((prevData) => ({
+      ...prevData,
       remark: "",
-    });
+    }));
 
+    // Update the local state to reflect the saved remark
+    setLowerData((prevData) =>
+      prevData.map((record) =>
+        record.work_order_id === workOrderId
+          ? { ...record, remark: formData.remark }
+          : record
+      )
+    );
   } catch (error) {
     console.error("Error saving data:", error);
     if (error.response) {
-      // Server responded with an error
       alert("Error from server: " + error.response.data);
     } else if (error.request) {
-      // No response from server
       alert("No response from server.");
     } else {
-      // Other errors
       alert("Error: " + error.message);
     }
   }
-  if (formData.remark) {
-    setIsRemarkUploaded(true);
-  }  
 };
 
   
@@ -823,18 +826,17 @@ const handleSaveRemainingData = async () => {
           name="remark"
           onChange={handleChange}
           value={formData.remark}
-          disabled={isRemarkUploaded}  // Disable if remark is uploaded
+          // disabled={isRemarkUploaded}  // Disable if remark is uploaded
         />
       </Grid>
 
       {/* Action Buttons */}
       <Grid container spacing={2} sx={{ marginTop: "10px" }}>
         <Grid item>
-          <Button
+        <Button
             variant="contained"
             color="success"
-            onClick={handleSaveRemainingData}
-            // disabled={isRemarkUploaded}  // Disable if remark is uploaded
+            onClick={() => handleSaveRemainingData(record.work_order_id)}
           >
             Save All Data
           </Button>
