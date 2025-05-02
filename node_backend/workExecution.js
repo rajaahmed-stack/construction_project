@@ -184,13 +184,13 @@ router.post('/save-asphalt', (req, res) => {
   console.log("Received asphalt:", asphalt); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET asphalt = ?, asphalt_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, asphalt, asphalt_completed) 
+    INSERT INTO work_execution (work_order_id, asphalt, asphalt_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -219,13 +219,13 @@ router.post('/save-milling', (req, res) => {
   console.log("Received milling:", milling); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET milling = ?, milling_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, milling, milling_completed) 
+    INSERT INTO work_execution (work_order_id, milling, milling_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -254,13 +254,13 @@ router.post('/save-concrete', (req, res) => {
   console.log("Received concrete:", concrete); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET concrete = ?, concrete_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, concrete, concrete_completed) 
+    INSERT INTO work_execution (work_order_id, concrete, concrete_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -289,13 +289,13 @@ router.post('/save-deck3', (req, res) => {
   console.log("Received deck3:", deck3); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET deck3 = ?, deck3_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, deck3, deck3_completed) 
+    INSERT INTO work_execution (work_order_id, deck3, deck3_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -325,13 +325,13 @@ router.post('/save-deck2', (req, res) => {
   console.log("Received deck2:", deck2); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET deck2 = ?, deck2_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, deck2, deck2_completed) 
+    INSERT INTO work_execution (work_order_id, deck2, deck2_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -360,13 +360,13 @@ router.post('/save-deck1', (req, res) => {
   console.log("Received deck1:", deck1); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET deck1 = ?, deck1_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, deck1, deck1_completed) 
+    INSERT INTO work_execution (work_order_id, deck1, deck1_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -396,13 +396,13 @@ router.post('/save-sand', (req, res) => {
   console.log("Received sand:", sand); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET sand = ?, sand_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, sand, sand_completed) 
+    INSERT INTO work_execution (work_order_id, sand, sand_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -431,13 +431,13 @@ router.post('/save-backfilling', (req, res) => {
   console.log("Received backfilling:", backfilling); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET backfilling = ?, backfilling_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, backfilling, backfilling_completed) 
+    INSERT INTO work_execution (work_order_id, backfilling, backfilling_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -466,13 +466,13 @@ router.post('/save-backfilling', (req, res) => {
   console.log("Received backfilling:", backfilling); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET backfilling = ?, backfilling_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, backfilling, backfilling_completed) 
+    INSERT INTO work_execution (work_order_id, backfilling, backfilling_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -502,13 +502,13 @@ router.post('/save-cable_lying', (req, res) => {
   console.log("Received cable_lying:", cable_lying); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET cable_lying = ?, cable_lying_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, cable_lying, cable_lying_completed) 
+    INSERT INTO work_execution (work_order_id, cable_lying, cable_lying_completed) 
     VALUES (?, ?, ?)
   `;
 
@@ -538,13 +538,13 @@ router.post('/save-trench', (req, res) => {
   console.log("Received trench:", trench); // Debug: log received file path
 
   const updateQuery = `
-    UPDATE safety_department 
+    UPDATE work_execution 
     SET trench = ?, trench_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, trench, trench_completed) 
+    INSERT INTO work_execution (work_order_id, trench, trench_completed) 
     VALUES (?, ?, ?)
   `;
 
