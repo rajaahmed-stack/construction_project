@@ -144,7 +144,7 @@ const Management = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    axios.get(" https://mmcmadina.com/api/management/management-data")
+    axios.get("https://constructionproject-production.up.railway.app/api/management/management-data")
       .then((response) => {
         setData(response.data);
         setSearchResult(response.data);

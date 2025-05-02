@@ -4,6 +4,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const archiver = require('archiver'); // Ensure archiver is imported
 
 // MySQL Database Connection
 const db = mysql.createConnection({
@@ -232,92 +233,7 @@ router.put("/update-pcdelivery-status", (req, res) => {
   });
 });
 
-router.get('/permissionclosing_download/:id', async (req, res) => {
-  console.log('Work Execution download API triggered');
 
-  const fileId = req.params.id;
-
-  // Query the database for the file paths
-  const query = `
-    SELECT file_path FROM work_receiving WHERE work_order_id = ?
-    UNION 
-    SELECT survey_file_path FROM survey WHERE work_order_id = ?
-    UNION 
-    SELECT Document FROM permissions WHERE work_order_id = ?
-    UNION 
-    SELECT safety_signs FROM safety_department WHERE work_order_id = ?
-    UNION 
-    SELECT safety_barriers FROM safety_department WHERE work_order_id = ?
-    UNION 
-    SELECT safety_lights FROM safety_department WHERE work_order_id = ?
-    UNION 
-    SELECT safety_boards FROM safety_department WHERE work_order_id = ?
-    UNION 
-    SELECT permissions FROM safety_department WHERE work_order_id = ?
-    UNION 
-    SELECT safety_documentation FROM safety_department WHERE work_order_id = ?
-    UNION 
-    SELECT asphalt FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT milling FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT concrete FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT deck3 FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT deck2 FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT deck1 FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT sand FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT backfilling FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT cable_lying FROM work_execution WHERE work_order_id = ?
-    UNION 
-    SELECT trench FROM work_execution WHERE work_order_id = ?
-  `;
-
-  const params = Array(19).fill(fileId); // Ensures that the same fileId is used for all placeholders
-
-  db.query(query, params, (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (!results.length) {
-      return res.status(404).send('File not found');
-    }
-
-    // Find the first non-null file path from the results
-    let filePath = results.find(row => {
-      return Object.values(row)[0] !== null;
-    })?.[Object.keys(results[0])[0]];
-
-    if (!filePath) {
-      return res.status(404).send('File not found');
-    }
-
-    // Check if the filePath is a Buffer, and convert it to a string if so
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-
-    // Resolve the full file path for downloading
-    const absolutePath = path.resolve(__dirname, '..', filePath);
-
-    console.log(`Downloading file from: ${absolutePath}`);
-
-    // Attempt to download the file
-    res.download(absolutePath, (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-        return res.status(500).send('Error downloading file');
-      }
-    });
-  });
-});
 router.get('/permissionclosing_download/:id', (req, res) => {
   const fileId = req.params.id;
 

@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
+const archiver = require('archiver'); // Ensure archiver is imported
 
 // MySQL Database Connection
 const db = mysql.createConnection({

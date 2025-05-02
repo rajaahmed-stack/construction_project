@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const archiver = require('archiver'); // Ensure archiver is imported
 const router = express.Router();
 
 // MySQL Database Connection
@@ -14,7 +15,6 @@ const db = mysql.createConnection({
   port: process.env.MYSQL_PORT || '44942'
 
 });
-
 
 db.connect((err) => {
   if (err) {

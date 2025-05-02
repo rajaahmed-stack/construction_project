@@ -23,7 +23,7 @@ const PasswordGate = () => {
     } else {
       // If not admin, check from users database
       try {
-        const response = await axios.get(`https://mmcmadina.com/api/users`);
+        const response = await axios.get(`https://constructionproject-production.up.railway.app/api/users`);
         const users = response.data;
 
         // Find matching user by username and password

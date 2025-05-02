@@ -20,8 +20,8 @@ const GisDepartment = () => {
   //   const fetchData = async () => {
   //     try {
   //       const [comingResponse, permissionResponse] = await Promise.all([
-  //         axios.get("https://mmcmadina.com/api/gis/gisdep-coming"),
-  //         axios.get("https://mmcmadina.com/api/gis/gis-data"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/gis/gisdep-coming"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
   //       ]);
   //       setUpperData(comingResponse.data || []);
   //       setLowerData(permissionResponse.data || []);
@@ -35,8 +35,8 @@ const GisDepartment = () => {
     const fetchData = async () => {
       try {
         const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/gis/gisdep-coming"),
-          axios.get("https://mmcmadina.com/api/gis/gis-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/gis/gisdep-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
         ]);
   
         const today = new Date();
@@ -77,7 +77,7 @@ const GisDepartment = () => {
           await Promise.all(updatedData.map(async (record) => {
             if (record.work_order_id && record.delivery_status) {
               try {
-                const response = await axios.put("https://mmcmadina.com/api/gis/update-gdelivery-status", {
+                const response = await axios.put("https://constructionproject-production.up.railway.app/api/gis/update-gdelivery-status", {
                   work_order_id: record.work_order_id,
                   delivery_status: record.delivery_status,
                 });
@@ -150,7 +150,7 @@ const handleSave = async (e) => {
     
 
     const response = await axios.post(
-      'https://mmcmadina.com/api/gis/upload-and-save-gisdocument',
+      'https://constructionproject-production.up.railway.app/api/gis/upload-and-save-gisdocument',
       formDataWithFile,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );
@@ -166,8 +166,8 @@ const handleSave = async (e) => {
 
       // Refresh data
       const [comingResponse, permissionResponse] = await Promise.all([
-        axios.get("https://mmcmadina.com/api/gis/gisdep-coming"),
-        axios.get("https://mmcmadina.com/api/gis/gis-data"),
+        axios.get("https://constructionproject-production.up.railway.app/api/gis/gisdep-coming"),
+        axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
       ]);
       setUpperData(comingResponse.data || []);
       setLowerData(permissionResponse.data || []);
@@ -228,7 +228,7 @@ const handleSave = async (e) => {
   
   const handleSendToNext = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/gis/update-gisdepartment", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/gis/update-gisdepartment", {
         workOrderId,
       });
       alert("Work Order moved to Store");
@@ -263,7 +263,7 @@ const handleSave = async (e) => {
                 </div> */}
                 <div>
                       {(record.file_path || record.survey_file_path || record.drawing) ? (
-                        <a href={`https://mmcmadina.com/api/gis/gis_download/${record.work_order_id}`} download>
+                        <a href={`https://constructionproject-production.up.railway.app/api/gis/gis_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (

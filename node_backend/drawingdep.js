@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
+const archiver = require('archiver'); // Ensure archiver is imported
 
 // MySQL Database Connection
 const db = mysql.createConnection({
@@ -217,91 +218,7 @@ router.put("/update-ddelivery-status", (req, res) => {
   });
 });
 
-router.get('/drawing_download/:id', async (req, res) => {
-  console.log('drawing download API triggered');
 
-  const fileId = req.params.id;
-
-  // Query the database for the file path
-  db.query(
-    `SELECT file_path FROM work_receiving WHERE work_order_id = ?
-     UNION 
-     SELECT survey_file_path FROM survey WHERE work_order_id = ?
-     UNION 
-     SELECT Document FROM permissions WHERE work_order_id = ?
-     UNION 
-     SELECT safety_signs FROM safety_department WHERE work_order_id = ?
-     UNION 
-     SELECT safety_barriers FROM safety_department WHERE work_order_id = ?
-     UNION 
-     SELECT safety_lights FROM safety_department WHERE work_order_id = ?
-     UNION 
-     SELECT safety_boards FROM safety_department WHERE work_order_id = ?
-     UNION 
-     SELECT permissions FROM safety_department WHERE work_order_id = ?
-     UNION 
-     SELECT safety_documentation FROM safety_department WHERE work_order_id = ?
-     UNION 
-     SELECT asphalt FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT milling FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT concrete FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT deck3 FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT deck2 FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT deck1 FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT sand FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT backfilling FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT cable_lying FROM work_execution WHERE work_order_id = ?
-     UNION 
-     SELECT trench FROM work_execution WHERE work_order_id = ?`,
-    Array(19).fill(fileId), // Correctly mapping parameters
-    (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send('Database error');
-      }
-
-      if (!results.length) {
-        return res.status(404).send('File not found');
-      }
-
-      // Finding the first non-null file path
-      let filePath = results.find(row => Object.values(row)[0])?.[Object.keys(results[0])[0]];
-
-      if (!filePath) {
-        return res.status(404).send('File not found');
-      }
-
-      // Convert Buffer to String if necessary
-      if (Buffer.isBuffer(filePath)) {
-        filePath = filePath.toString('utf8');
-      }
-
-      // Ensure the file path is correct
-      if (path.isAbsolute(filePath)) {
-        absolutePath = filePath;
-      } else {
-        absolutePath = path.resolve(__dirname, '..', filePath);
-      }
-      
-      console.log(`Downloading file from: ${absolutePath}`);
-
-      res.download(absolutePath, (err) => {
-        if (err) {
-          console.error('Error sending file:', err);
-          return res.status(500).send('Error downloading file');
-        }
-      });
-    }
-  );
-});
 router.get('/drawing_download/:id', (req, res) => {
   const fileId = req.params.id;
 

@@ -87,87 +87,83 @@ const WorkExecution = () => {
     }, [formData.remark]); // Re-check when formData.remark changes
   
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/work-execution/workExecution-coming"),
-          axios.get("https://mmcmadina.com/api/work-execution/workExecution-data"),
-        ]);
-  
-        const today = new Date();
-  
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.safety_created_at && record.workexe_created_at) {
-            const workCreatedAt = new Date(record.safety_created_at);
-            const surveyCreatedAt = new Date(record.workexe_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
-  
-        setLowerData(updatedData);
-        setUpperData(comingResponse.data || []);
-  
-        // ✅ Ensure `updatedData` is not empty before updating backend
-        if (updatedData.length > 0) {
-          console.log("Updating delivery statuses in backend...");
-  
-          await Promise.all(updatedData.map(async (record) => {
-            if (record.work_order_id && record.delivery_status) {
-              try {
-                const response = await axios.put("https://mmcmadina.com/api/work-execution/update-wedelivery-status", {
-                  work_order_id: record.work_order_id,
-                  delivery_status: record.delivery_status,
-                });
-                console.log("Update response:", response.data);
-              } catch (error) {
-                console.error("Error updating delivery status:", error.response?.data || error);
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const [comingResponse, permissionResponse] = await Promise.all([
+            axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-coming"),
+            axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-data"),
+          ]);
+    
+          const today = new Date();
+    
+          const updatedData = permissionResponse.data.map((record) => {
+            if (record.safety_created_at && record.workexe_created_at) {
+              const workCreatedAt = new Date(record.safety_created_at);
+              const surveyCreatedAt = new Date(record.workexe_created_at);
+              const deadline = new Date(workCreatedAt);
+              deadline.setDate(deadline.getDate() + 2);
+    
+              let statusColor = "";
+              let deliveryStatus = "On Time";
+    
+              if (surveyCreatedAt > deadline) {
+                statusColor = "red";
+                deliveryStatus = "Delayed";
+              } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+                statusColor = "yellow";
+                deliveryStatus = "Near Deadline";
+              } else {
+                statusColor = "green";
+                deliveryStatus = "On Time";
               }
+    
+              return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
             }
-          }));
-        } else {
-          console.warn("No records to update in the backend.");
+            return record;
+          });
+    
+          setLowerData(updatedData);
+          setUpperData(comingResponse.data || []);
+    
+          // Update delivery statuses in the backend
+          if (updatedData.length > 0) {
+            await Promise.all(
+              updatedData.map(async (record) => {
+                if (record.work_order_id && record.delivery_status) {
+                  try {
+                    await axios.put("https://constructionproject-production.up.railway.app/api/work-execution/update-wedelivery-status", {
+                      work_order_id: record.work_order_id,
+                      delivery_status: record.delivery_status,
+                    });
+                  } catch (error) {
+                    console.error("Error updating delivery status:", error.response?.data || error);
+                  }
+                }
+              })
+            );
+          }
+    
+          // Filter alerts for work orders nearing or past deadlines
+          const urgentOrders = updatedData.filter((record) => record.statusColor !== "");
+          setAlertData(urgentOrders);
+    
+          if (urgentOrders.length > 0) {
+            const alertMessage = urgentOrders
+              .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
+              .join("\n");
+            alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+          }
+        } catch (error) {
+          console.error("Error fetching work execution data:", error);
+        } finally {
+          setLoading(false);
         }
-  
-        // Filter alerts for work orders nearing or past deadlines
-        const urgentOrders = updatedData.filter((record) => record.statusColor !== "");
-        setAlertData(urgentOrders);
-  
-        if (urgentOrders.length > 0) {
-          const alertMessage = urgentOrders
-            .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
-            .join("\n");
-  
-          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
-        }
-      } catch (error) {
-        console.error("Error fetching survey data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchData();
-  }, []); // ✅ Keep dependency array empty to prevent infinite loops
-
+      };
+    
+      fetchData();
+    }, []); // Ensure dependency array is empty to prevent infinite loops
+    
 
 
   const handleAddData = (record) => {
@@ -234,7 +230,7 @@ const WorkExecution = () => {
     }
     const updatedFormData = { ...formData, delivery_status: deliveryStatus };
     try {
-      const response = await axios.post("https://mmcmadina.com/api/work-execution/save-workexecution-workorder", formData, updatedFormData);
+      const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder", formData, updatedFormData);
   
       if (response.status === 200) {
         alert("Data saved successfully!");
@@ -258,7 +254,7 @@ const WorkExecution = () => {
   
 const handleSendToNext = async (workOrderId) => {
   try {
-    await axios.post("https://mmcmadina.com/api/work-execution/update-wedepartment", {
+    await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/update-wedepartment", {
       workOrderId,
     });
     alert("Work Order moved to Permission Closing department.");
@@ -287,7 +283,7 @@ const handleSaveRemainingData = async () => {
     console.log("Data being sent:", dataToSend);
 
     // Send POST request to save data
-    const response = await axios.post("https://mmcmadina.com/api/work-execution/save-remainingdata", dataToSend);
+    const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-remainingdata", dataToSend);
 
     // Check the response and inform the user
     console.log("Server response:", response.data);
@@ -324,7 +320,7 @@ const handleSaveRemainingData = async () => {
     console.log("File to be uploaded:", file);  // Log the file being uploaded
   
     try {
-      const response = await axios.post(`https://mmcmadina.com/api/work-execution/upload-workExecution-file/${fieldName}`, formDataWithFile);
+      const response = await axios.post(`https://constructionproject-production.up.railway.app/api/work-execution/upload-workExecution-file/${fieldName}`, formDataWithFile);
       console.log("File upload response:", response.data); // Log the response from backend
       setFormData((prevData) => ({
         ...prevData,
@@ -357,7 +353,7 @@ const handleSaveRemainingData = async () => {
    // Fetch saved data on page load (useEffect will run when the page is loaded)
    useEffect(() => {
     axios
-      .get(`https://mmcmadina.com/api/work-execution/get-work-execution/${workOrderId}`)
+      .get(`https://constructionproject-production.up.railway.app/api/work-execution/get-work-execution/${workOrderId}`)
       .then((response) => {
         if (response.data) {
           // If there's data, set it in formData state
@@ -385,7 +381,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-asphalt", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-asphalt", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -414,7 +410,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-milling", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-milling", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -443,7 +439,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-concrete", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-concrete", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -473,7 +469,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-deck3", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck3", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -503,7 +499,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-deck2", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck2", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -533,7 +529,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-deck1", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck1", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -562,7 +558,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-sand", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-sand", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -591,7 +587,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-backfilling", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-backfilling", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -620,7 +616,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-cable_lying", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -649,7 +645,7 @@ const handleSaveRemainingData = async () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/work-execution/save-trench", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-trench", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -703,7 +699,7 @@ const handleSaveRemainingData = async () => {
               <TableCell sx={{ padding: "8px" }}>{record.permission_number}</TableCell>
               <TableCell sx={{ padding: "8px" }}>
                 {(record.file_path || record.survey_file_path) ? (
-                  <a href={`https://mmcmadina.com/api/work-execution/workexe_download/${record.work_order_id}`} download>
+                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (

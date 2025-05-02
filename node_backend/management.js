@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
+const archiver = require('archiver'); // Ensure archiver is imported
 
 // MySQL Database Connection
 const db = mysql.createConnection({
@@ -89,12 +90,33 @@ router.get('/search-workorder/:workOrderId', (req, res) => {
 });
 // Search filter by department
 router.get('/search-filter', (req, res) => {
-  const { type, value } = req.query;
+  const { value } = req.query;
 
-  let query = "";
-  
+  if (!value) {
+    return res.status(400).send('Missing department value');
+  }
+
+  const allowedValues = [
+    'Work Receiving',
+    'Survey',
+    'Permission',
+    'Safety',
+    'Work Execution',
+    'Permission Closing',
+    'Work Closing',
+    'Drawing',
+    'GIS',
+    'Store',
+  ];
+
+  if (!allowedValues.includes(value)) {
+    return res.status(400).send('Invalid department value');
+  }
+
+  let query = '';
+
   switch (value) {
-    case "Work Receiving":
+    case 'Work Receiving':
       query = `
         SELECT 
           work_order_id, 
@@ -106,115 +128,55 @@ router.get('/search-filter', (req, res) => {
       `;
       break;
 
-    case "Survey":
-      query = `
-        SELECT 
-          * 
-        FROM survey
-      `;
+    case 'Survey':
+      query = `SELECT * FROM survey`;
       break;
 
-    case "Permission":
-      query = `
-        SELECT 
-        * 
-        FROM permissions
-      `;
+    case 'Permission':
+      query = `SELECT * FROM permissions`;
       break;
 
-    case "Safety":
-      query = `
-        SELECT 
-        * 
-        FROM safety_department
-      `;
+    case 'Safety':
+      query = `SELECT * FROM safety_department`;
       break;
 
-    case "Work Execution":
-      query = `
-        SELECT 
-        * 
-        FROM work_execution
-      `;
+    case 'Work Execution':
+      query = `SELECT * FROM work_execution`;
       break;
 
-   
-
-    case "Permission Closing":
-      query = `
-        SELECT 
-        * 
-        FROM permission_closing
-      `;
+    case 'Permission Closing':
+      query = `SELECT * FROM permission_closing`;
       break;
 
-    case "Work Closing":
-      query = `
-        SELECT 
-        * 
-        FROM work_closing
-      `;
-      break;
-    case "Drawing":
-      query = `
-        SELECT 
-        * 
-        FROM drawing_department
-      `;
-      break;
-    case "GIS":
-      query = `
-        SELECT 
-        * 
-        FROM gis_department
-      `;
-      break;
-    case "Store":
-      query = `
-        SELECT 
-        * 
-        FROM store
-      `;
+    case 'Work Closing':
+      query = `SELECT * FROM work_closing`;
       break;
 
-    // case "Accounts":
-    //   query = `
-    //     SELECT 
-    //       work_order_id, 
-    //       current_department, 
-    //       invoice_status, 
-    //       payment_status 
-    //     FROM accounts
-    //   `;
-    //   break;
+    case 'Drawing':
+      query = `SELECT * FROM drawing_department`;
+      break;
 
-    // case "Invoicing":
-    //   query = `
-    //     SELECT 
-    //       work_order_id, 
-    //       current_department, 
-    //       invoicing_date, 
-    //       total_amount, 
-    //       payment_status 
-    //     FROM invoicing
-    //   `;
-    //   break;
+    case 'GIS':
+      query = `SELECT * FROM gis_department`;
+      break;
+
+    case 'Store':
+      query = `SELECT * FROM store`;
+      break;
 
     default:
-      return res.status(400).send("Invalid department");
+      return res.status(400).send('Invalid department');
   }
 
-  // Execute the query
   db.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching department data:", err);
-      res.status(500).send("Error fetching department data");
+      console.error('Error fetching department data:', err);
+      res.status(500).send('Error fetching department data');
     } else {
       res.json(results);
     }
   });
 });
-
 
 
 module.exports = router;

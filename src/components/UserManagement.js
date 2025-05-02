@@ -31,7 +31,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://mmcmadina.com/api/usermanagement/users");
+      const response = await axios.get("constructionproject-production.up.railway.app/api/usermanagement/users");
       console.log(response.data); // Check the response
       setUsers(response.data);
     } catch (error) {
@@ -54,7 +54,7 @@ const UserManagement = () => {
 
   const handleDeleteUser = async (userId) => {
     try {
-      await axios.delete(`https://mmcmadina.com/api/usermanagement/users/${userId}`);
+      await axios.delete(`constructionproject-production.up.railway.app/api/usermanagement/users/${userId}`);
       message.success("User deleted successfully");
       setUsers(users.filter((user) => user.id !== userId));
     } catch (error) {
@@ -68,10 +68,10 @@ const UserManagement = () => {
     try {
       let response;
       if (currentUser) {
-        response = await axios.put(`https://mmcmadina.com/api/users/${currentUser.id}`, values);
+        response = await axios.put(`constructionproject-production.up.railway.app/api/users/${currentUser.id}`, values);
         message.success("User updated successfully");
       } else {
-        response = await axios.post("https://mmcmadina.com/api/save_users", values);
+        response = await axios.post("constructionproject-production.up.railway.app/api/save_users", values);
         message.success("User added successfully");
   
         // Send email after adding user
@@ -90,7 +90,7 @@ const UserManagement = () => {
     setLoading(false);
   };
   const sendEmail = (to, subject, text) => {
-    axios.post("https://mmcmadina.com/api/send-email", { to, subject, text })
+    axios.post("constructionproject-production.up.railway.app/api/send-email", { to, subject, text })
       .then(() => {
         console.log("Email sent successfully");
       })

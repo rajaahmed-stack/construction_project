@@ -24,8 +24,8 @@ const WorkClosing = () => {
   //     setLoading(true); // Start loading
   //     try {
   //       const [comingResponse, workclosingResponse] = await Promise.all([
-  //         axios.get("https://mmcmadina.com/api/work-closing/workclosing-coming"),
-  //         axios.get("https://mmcmadina.com/api/work-closing/workClosing-data"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
   //       ]);
 
   //       const today = new Date();
@@ -74,14 +74,14 @@ const WorkClosing = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/work-closing/workclosing-coming"),
-          axios.get("https://mmcmadina.com/api/work-closing/workClosing-data"),
+        const [comingResponse, workclosingResponse] = await Promise.all([
+          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
         ]);
   
         const today = new Date();
   
-        const updatedData = permissionResponse.data.map((record) => {
+        const updatedData = workclosingResponse.data.map((record) => {
           if (record.pc_created_at && record.wc_created_at) {
             const workCreatedAt = new Date(record.pc_created_at);
             const surveyCreatedAt = new Date(record.wc_created_at);
@@ -94,12 +94,12 @@ const WorkClosing = () => {
             if (surveyCreatedAt > deadline) {
               statusColor = "red";
               deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
             } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
               statusColor = "yellow";
               deliveryStatus = "Near Deadline";
+            } else {
+              statusColor = "green";
+              deliveryStatus = "On Time";
             }
   
             return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
@@ -110,25 +110,22 @@ const WorkClosing = () => {
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
   
-        // ✅ Ensure `updatedData` is not empty before updating backend
+        // Update delivery statuses in the backend
         if (updatedData.length > 0) {
-          console.log("Updating delivery statuses in backend...");
-  
-          await Promise.all(updatedData.map(async (record) => {
-            if (record.work_order_id && record.delivery_status) {
-              try {
-                const response = await axios.put("https://mmcmadina.com/api/work-closing/update-wcdelivery-status", {
-                  work_order_id: record.work_order_id,
-                  delivery_status: record.delivery_status,
-                });
-                console.log("Update response:", response.data);
-              } catch (error) {
-                console.error("Error updating delivery status:", error.response?.data || error);
+          await Promise.all(
+            updatedData.map(async (record) => {
+              if (record.work_order_id && record.delivery_status) {
+                try {
+                  await axios.put("https://constructionproject-production.up.railway.app/api/work-closing/update-wcdelivery-status", {
+                    work_order_id: record.work_order_id,
+                    delivery_status: record.delivery_status,
+                  });
+                } catch (error) {
+                  console.error("Error updating delivery status:", error.response?.data || error);
+                }
               }
-            }
-          }));
-        } else {
-          console.warn("No records to update in the backend.");
+            })
+          );
         }
   
         // Filter alerts for work orders nearing or past deadlines
@@ -143,14 +140,15 @@ const WorkClosing = () => {
           alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
-        console.error("Error fetching survey data:", error);
+        console.error("Error fetching work closing data:", error);
       } finally {
         setLoading(false);
       }
     };
   
     fetchData();
-  }, []); // ✅ Keep dependency array empty to prevent infinite loops
+  }, []); // Ensure dependency array is empty to prevent infinite loops
+  
   const handleAddData = (record) => {
     console.log("Add Data Clicked:", record);
     setFormData({ ...formData, work_order_id: record.work_order_id });
@@ -174,68 +172,54 @@ const WorkClosing = () => {
     }
   };
   
-const handleSave = async (e) => {
-  e.preventDefault();
-
-  if (!formData.mubahisa ) {
-    alert('Please select both files to upload.');
-    return;
-  }
-  const today = new Date();
-  const deadline = new Date();
-  deadline.setDate(deadline.getDate() + 2);
-
-  let deliveryStatus = 'on time';
-  if (today > deadline) {       
-    deliveryStatus = 'delayed';
-  } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-    deliveryStatus = 'nearing deadline';
-  }
-  const updatedFormData = { ...formData, delivery_status: deliveryStatus };
-
-  try {
-    const formDataWithFile = new FormData();
-    formDataWithFile.append('mubahisa', formData.mubahisa);
-    formDataWithFile.append('work_order_id', formData.work_order_id);
-    formDataWithFile.append('submission_date', formData.submission_date);
-    formDataWithFile.append('resubmission_date', formData.resubmission_date);
-    formDataWithFile.append('approval_date', formData.approval_date);
-
-    const response = await axios.post(
-      'https://mmcmadina.com/api/work-closing/upload-and-save-wcdocument',
-      formDataWithFile,
-      { headers: { 'Content-Type': 'multipart/form-data' } }, updatedFormData
-    );
-
-    if (response.data.success) {
-      alert('File uploaded and data saved successfully');
-      setShowForm(false);
-      setFormData({
-        work_order_id: "",
-        submission_date: "",
-        resubmission_date: "",
-        approval_date: "",
-        mubahisa: "",
-    
-      });
-
-      // Refresh data
-      const [comingResponse, workclosingResponse] = await Promise.all([
-        axios.get("https://mmcmadina.com/api/work-closing/workclosing-coming"),
-        axios.get("https://mmcmadina.com/api/work-closing/workClosing-data"),
-      ]);
-      setUpperData(comingResponse.data || []);
-      setLowerData(workclosingResponse.data || []);
-    } else {
-      alert('Failed to upload the file');
-    }
-
-  } catch (error) {
-    console.error('Error uploading file and saving data:', error);
-    alert('Failed to upload file and save data. Please try again.');
-  }
-};
+  const handleSave = async (e) => {
+    e.preventDefault();
   
+    if (!formData.mubahisa) {
+      alert("Please upload the required file.");
+      return;
+    }
+  
+    try {
+      const formDataWithFile = new FormData();
+      formDataWithFile.append("mubahisa", formData.mubahisa);
+      formDataWithFile.append("work_order_id", formData.work_order_id);
+      formDataWithFile.append("submission_date", formData.submission_date);
+      formDataWithFile.append("resubmission_date", formData.resubmission_date);
+      formDataWithFile.append("approval_date", formData.approval_date);
+  
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument",
+        formDataWithFile,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+  
+      if (response.data.success) {
+        alert("File uploaded and data saved successfully.");
+        setShowForm(false);
+        setFormData({
+          work_order_id: "",
+          submission_date: "",
+          resubmission_date: "",
+          approval_date: "",
+          mubahisa: "",
+        });
+  
+        // Refresh data
+        const [comingResponse, workclosingResponse] = await Promise.all([
+          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
+        ]);
+        setUpperData(comingResponse.data || []);
+        setLowerData(workclosingResponse.data || []);
+      } else {
+        alert("Failed to upload the file.");
+      }
+    } catch (error) {
+      console.error("Error uploading file and saving data:", error);
+      alert("Failed to upload file and save data. Please try again.");
+    }
+  };
   
   
   
@@ -265,7 +249,7 @@ const handleSave = async (e) => {
 //   const handleSaveData = async (e) => {
 //     e.preventDefault();
 //     try {
-//       await axios.post("https://mmcmadina.com/api/work-closing/save-permission_closing", formData);
+//       await axios.post("https://constructionproject-production.up.railway.app/api/work-closing/save-permission_closing", formData);
 //       setShowForm(false);
 //       setFormData({
 //         work_order_id: "",
@@ -276,8 +260,8 @@ const handleSave = async (e) => {
 //       });
 
 //       const [comingResponse, workclosingResponse] = await Promise.all([
-//         axios.get("https://mmcmadina.com/api/work-closing/permissionclosing-coming"),
-//         axios.get("https://mmcmadina.com/api/work-closing/PermissionClosing-data"),
+//         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/permissionclosing-coming"),
+//         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/PermissionClosing-data"),
 //       ]);
 //       setUpperData(comingResponse.data || []);
 //       setLowerData(workclosingResponse.data || []);
@@ -305,7 +289,7 @@ const handleSave = async (e) => {
   
   const handleSendToNext = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/work-closing/update-wcdepartment", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/work-closing/update-wcdepartment", {
         workOrderId,
       });
       alert("Work Order moved to work Closing department.");
@@ -334,7 +318,7 @@ const handleSave = async (e) => {
                 <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
                 <Typography>
                       {(record.file_path || record.survey_file_path || record.Document) ? (
-                        <a href={`https://mmcmadina.com/api/work-closing/workclosing_download/${record.work_order_id}`} download>
+                        <a href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (
