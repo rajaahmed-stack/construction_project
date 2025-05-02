@@ -336,14 +336,8 @@ router.post('/save-safety-lights', (req, res) => {
   });
 });
 router.post('/save-safety-boards', (req, res) => {
-  const { safety_boards, safety_board_completed, work_order_id } = req.body;
-
-  if (!work_order_id) {
-    return res.status(400).send('Work Order ID is required');
-  }
-
-  console.log("Received safety_boards:", safety_boards); // Debugging log
-  console.log("Received safety_board_completed:", safety_board_completed); // Debugging log
+  const { safety_boards, safety_board_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_boards:", safety_boards); // Debug: log received file path
 
   const updateQuery = `
     UPDATE safety_department 
@@ -363,18 +357,20 @@ router.post('/save-safety-boards', (req, res) => {
     }
 
     if (result.affectedRows === 0) {
+      // No row updated – insert instead
       db.query(insertQuery, [work_order_id, safety_boards, safety_board_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
         }
-        return res.status(200).send("Safety Boards data saved successfully");
+        return res.status(200).send("Field inserted successfully");
       });
     } else {
-      return res.status(200).send("Safety Boards data updated successfully");
+      return res.status(200).send("Field updated successfully");
     }
   });
 });
+
 router.post('/save-safety-document', (req, res) => {
   const { safety_documentation, safety_documentation_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_documentation:", safety_documentation); // Debug: log received file path
@@ -410,18 +406,13 @@ router.post('/save-safety-document', (req, res) => {
     }
   });
 });
-router.post('/save-safety-permission', upload.fields([
-  { name: 'permissions', maxCount: 1 },
-]), (req, res) => {
-  const filePath = req.files?.permissions?.[0]?.path || 'uploads/undefined';
-
-  console.log("Received permissions:", filePath);
-  
-  const { permissions_completed, work_order_id } = req.body;
+router.post('/save-safety-permission', (req, res) => {
+  const { permissions, permissions_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received permissions:", permissions); // Debug: log received file path
 
   const updateQuery = `
     UPDATE safety_department 
-    SET permissions = ?, permissions_completed = ?
+    SET permissions = ?, permissions_completed = ? 
     WHERE work_order_id = ?
   `;
 
@@ -430,14 +421,15 @@ router.post('/save-safety-permission', upload.fields([
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [filePath, permissions_completed,  work_order_id], (err, result) => {
+  db.query(updateQuery, [permissions, permissions_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
 
     if (result.affectedRows === 0) {
-      db.query(insertQuery, [work_order_id, filePath, permissions_completed], (err2) => {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, permissions, permissions_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
@@ -449,6 +441,7 @@ router.post('/save-safety-permission', upload.fields([
     }
   });
 });
+
 
 
 
