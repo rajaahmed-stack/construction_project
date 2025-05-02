@@ -20,8 +20,8 @@ const DrawingDepartment = () => {
   //   const fetchData = async () => {
   //     try {
   //       const [comingResponse, permissionResponse] = await Promise.all([
-  //         axios.get("https://mmcmadina.com/api/drawing-department/drawingdep-coming"),
-  //         axios.get("https://mmcmadina.com/api/drawing-department/drawing-data"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawingdep-coming"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawing-data"),
   //       ]);
   //       setUpperData(comingResponse.data || []);
   //       setLowerData(permissionResponse.data || []);
@@ -35,8 +35,8 @@ const DrawingDepartment = () => {
     const fetchData = async () => {
       try {
         const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/drawing-department/drawingdep-coming"),
-          axios.get("https://mmcmadina.com/api/drawing-department/drawing-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawingdep-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawing-data"),
         ]);
   
         const today = new Date();
@@ -77,7 +77,7 @@ const DrawingDepartment = () => {
           await Promise.all(updatedData.map(async (record) => {
             if (record.work_order_id && record.delivery_status) {
               try {
-                const response = await axios.put("https://mmcmadina.com/api/drawing-department/update-ddelivery-status", {
+                const response = await axios.put("https://constructionproject-production.up.railway.app/api/drawing-department/update-ddelivery-status", {
                   work_order_id: record.work_order_id,
                   delivery_status: record.delivery_status,
                 });
@@ -149,7 +149,7 @@ const handleSave = async (e) => {
     
 
     const response = await axios.post(
-      'https://mmcmadina.com/api/drawing-department/upload-and-save-drawingdocument',
+      'https://constructionproject-production.up.railway.app/api/drawing-department/upload-and-save-drawingdocument',
       formDataWithFile,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );
@@ -165,8 +165,8 @@ const handleSave = async (e) => {
 
       // Refresh data
       const [comingResponse, permissionResponse] = await Promise.all([
-        axios.get("https://mmcmadina.com/api/drawing-department/drawingdep-coming"),
-        axios.get("https://mmcmadina.com/api/drawing-department/drawing-data"),
+        axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawingdep-coming"),
+        axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawing-data"),
       ]);
       setUpperData(comingResponse.data || []);
       setLowerData(permissionResponse.data || []);
@@ -227,7 +227,7 @@ const handleSave = async (e) => {
   
   const handleSendToNext = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/drawing-department/update-Ddepartment", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/drawing-department/update-Ddepartment", {
         workOrderId,
       });
       alert("Work Order moved to GIS Department.");
@@ -261,7 +261,7 @@ const handleSave = async (e) => {
                 </div>
                 <div>
                       {(record.file_path || record.survey_file_path) ? (
-                        <a href={`https://mmcmadina.com/api/drawing-department/drawing_download/${record.work_order_id}`} download>
+                        <a href={`https://constructionproject-production.up.railway.app/api/drawing-department/drawing_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (

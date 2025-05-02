@@ -26,61 +26,62 @@ const PermissionClosing = () => {
     const fetchData = async () => {
       try {
         const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/permission-closing/permissionclosing-coming"),
-          axios.get("https://mmcmadina.com/api/permission-closing/PermissionClosing-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
         ]);
-
+  
         const today = new Date();
-
+  
         const updatedData = permissionResponse.data.map((record) => {
           if (record.pc_created_at && record.workexe_created_at) {
             const workCreatedAt = new Date(record.workexe_created_at);
             const surveyCreatedAt = new Date(record.pc_created_at);
             const deadline = new Date(workCreatedAt);
             deadline.setDate(deadline.getDate() + 2);
-
+  
             let statusColor = "";
             let deliveryStatus = "On Time";
-
+  
             if (surveyCreatedAt > deadline) {
               statusColor = "red";
               deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
             } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
               statusColor = "yellow";
               deliveryStatus = "Near Deadline";
+            } else {
+              statusColor = "green";
+              deliveryStatus = "On Time";
             }
-
+  
             return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
           }
           return record;
         });
-
+  
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
-
+  
         // Filter alerts for work orders nearing or past deadlines
         const urgentOrders = updatedData.filter((record) => record.statusColor !== "");
         setAlertData(urgentOrders);
-
+  
         if (urgentOrders.length > 0) {
           const alertMessage = urgentOrders
             .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
             .join("\n");
-
+  
           alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
-        console.error("Error fetching survey data:", error);
+        console.error("Error fetching permission closing data:", error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, []);
+  }, []); // Ensure dependency array is empty to prevent infinite loops
+  
 
   const handleAddData = (record) => {
     setFormData({
@@ -94,89 +95,67 @@ const PermissionClosing = () => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) {
-      alert('Please select a file.');
+      alert("Please select a file.");
       return;
     }
-
-    // Ensure both certificates are set separately
-    if (e.target.name === 'Work_closing_certificate') {
-      setFormData((prevData) => ({
-        ...prevData,
-        Work_closing_certificate: file,
-      }));
-    } else if (e.target.name === 'final_closing_certificate') {
-      setFormData((prevData) => ({
-        ...prevData,
-        final_closing_certificate: file,
-      }));
-    }
+  
+    const { name } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: file,
+    }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-
+  
     if (!formData.Work_closing_certificate || !formData.final_closing_certificate) {
-      alert('Please select both files to upload.');
+      alert("Please upload both certificates.");
       return;
     }
-
+  
     try {
       const formDataWithFile = new FormData();
-      formDataWithFile.append('Work_closing_certificate', formData.Work_closing_certificate);
-      formDataWithFile.append('final_closing_certificate', formData.final_closing_certificate);
-      formDataWithFile.append('work_order_id', formData.work_order_id);
-      formDataWithFile.append('permission_number', formData.permission_number);
-      formDataWithFile.append('closing_date', formData.closing_date);
-      formDataWithFile.append('penalty_reason', formData.penalty_reason);
-      formDataWithFile.append('penalty_amount', formData.penalty_amount);
-
-      const today = new Date();
-      const deadline = new Date();
-      deadline.setDate(deadline.getDate() + 2);
-
-      let deliveryStatus = 'on time';
-      if (today > deadline) {
-        deliveryStatus = 'delayed';
-      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-        deliveryStatus = 'nearing deadline';
-      }
-      const updatedFormData = { ...formData, delivery_status: deliveryStatus };
-
+      formDataWithFile.append("Work_closing_certificate", formData.Work_closing_certificate);
+      formDataWithFile.append("final_closing_certificate", formData.final_closing_certificate);
+      formDataWithFile.append("work_order_id", formData.work_order_id);
+      formDataWithFile.append("permission_number", formData.permission_number);
+      formDataWithFile.append("closing_date", formData.closing_date);
+      formDataWithFile.append("penalty_reason", formData.penalty_reason);
+      formDataWithFile.append("penalty_amount", formData.penalty_amount);
+  
       const response = await axios.post(
-        'https://mmcmadina.com/api/permission-closing/upload-and-save-pcdocument',
+        "https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument",
         formDataWithFile,
-        { headers: { 'Content-Type': 'multipart/form-data' }, updatedFormData }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
-
+  
       if (response.data.success) {
-        alert('File uploaded and data saved successfully');
+        alert("File uploaded and data saved successfully.");
         setShowForm(false);
         setFormData({
           work_order_id: "",
           permission_number: "",
           Work_closing_certificate: null,
-          work_closing_certificate_completed: false,
           final_closing_certificate: null,
-          final_closing_certificate_completed: false,
           closing_date: "",
           penalty_reason: "",
           penalty_amount: "",
         });
-
+  
         // Refresh data
         const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/permission-closing/permissionclosing-coming"),
-          axios.get("https://mmcmadina.com/api/permission-closing/PermissionClosing-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
         ]);
         setUpperData(comingResponse.data || []);
         setLowerData(permissionResponse.data || []);
       } else {
-        alert('Failed to upload the file');
+        alert("Failed to upload the file.");
       }
-
     } catch (error) {
-      console.error('Error uploading file and saving data:', error);
-      alert('Failed to upload file and save data. Please try again.');
+      console.error("Error uploading file and saving data:", error);
+      alert("Failed to upload file and save data. Please try again.");
     }
   };
 
@@ -209,7 +188,7 @@ const PermissionClosing = () => {
   const handleSaveData = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://mmcmadina.com/api/permission-closing/save-permission_closing", formData);
+      await axios.post("https://constructionproject-production.up.railway.app/api/permission-closing/save-permission_closing", formData);
       setShowForm(false);
       setFormData({
         work_order_id: "",
@@ -220,8 +199,8 @@ const PermissionClosing = () => {
       });
 
       const [comingResponse, permissionResponse] = await Promise.all([
-        axios.get("https://mmcmadina.com/api/permission-closing/permissionclosing-coming"),
-        axios.get("https://mmcmadina.com/api/permission-closing/PermissionClosing-data"),
+        axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
+        axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
       ]);
       setUpperData(comingResponse.data || []);
       setLowerData(permissionResponse.data || []);
@@ -249,7 +228,7 @@ const PermissionClosing = () => {
   
   const handleSendToNext = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/permission-closing/update-pcdepartment", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/permission-closing/update-pcdepartment", {
         workOrderId,
       });
       alert("Work Order moved to work Closing department.");
@@ -279,7 +258,7 @@ const PermissionClosing = () => {
                 <Typography><strong>Permission No.:</strong> {record.permission_number}</Typography>
                 <Typography>
                       {(record.file_path || record.survey_file_path) ? (
-                        <a href={`https://mmcmadina.com/api/permission-closing/permissionclosing_download/${record.work_order_id}`} download>
+                        <a href={`https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (

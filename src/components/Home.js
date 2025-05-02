@@ -15,7 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get("https://mmcmadina.com/api/stats");
+        const response = await axios.get("https://constructionproject-production.up.railway.app/api/stats");
         setStats(response.data);
       } catch (error) {
         console.error("Error fetching stats", error);

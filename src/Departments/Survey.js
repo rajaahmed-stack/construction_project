@@ -16,8 +16,8 @@ const Survey = () => {
     const fetchData = async () => {
       try {
         const [comingResponse, surveyResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/survey/survey-coming"),
-          axios.get("https://mmcmadina.com/api/survey/survey-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data"),
         ]);
   
         const today = new Date();
@@ -56,7 +56,7 @@ const Survey = () => {
           if (record.delivery_status) {
             try {
               console.log("Sending update for:", record.work_order_id, record.delivery_status);
-              const response = await axios.put("https://mmcmadina.com/api/survey/update-delivery-status", {
+              const response = await axios.put("https://constructionproject-production.up.railway.app/api/survey/update-delivery-status", {
                 work_order_id: record.work_order_id,
                 delivery_status: record.delivery_status,
               });
@@ -123,12 +123,12 @@ const Survey = () => {
   //   const updatedFormData = { ...formData, delivery_status: deliveryStatus };
   
   //   try {
-  //     const response = await axios.post("https://mmcmadina.com/api/survey/save-survey", updatedFormData);
+  //     const response = await axios.post("https://constructionproject-production.up.railway.app/api/survey/save-survey", updatedFormData);
   //     if (response.status === 200) {
   //       alert("Data saved successfully!");
   //       setShowForm(false);
   //       setFormData({});
-  //       const updatedData = await axios.get("https://mmcmadina.com/api/survey/survey-data");
+  //       const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data");
   //       setLowerData(updatedData.data || []);
   //     } else {
   //       alert(`Failed to save data. Status Code: ${response.status}. ${response.data.message || 'Unknown error'}`);
@@ -141,9 +141,10 @@ const Survey = () => {
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
-      survey_file_path: e.target.files[0],  // Store actual file object
+      survey_file_path: e.target.files[0], // Store actual file object
     });
   };
+  
   const handleSaveData = async (e) => {
     e.preventDefault();
   
@@ -153,6 +154,11 @@ const Survey = () => {
         alert(`Please fill all the fields. Missing: ${field}`);
         return;
       }
+    }
+  
+    if (!formData.survey_file_path) {
+      alert("Please upload a file.");
+      return;
     }
   
     const formDataWithFile = new FormData();
@@ -165,21 +171,19 @@ const Survey = () => {
     });
   
     const url = formData.isEditing
-  ? `https://mmcmadina.com/api/survey/edit-survey/${formData.work_order_id}`  // Adjusted to PUT for editing
-  : 'https://mmcmadina.com/api/survey/save-survey';  // For new survey
-
+      ? `https://constructionproject-production.up.railway.app/api/survey/edit-survey/${formData.work_order_id}`
+      : 'https://constructionproject-production.up.railway.app/api/survey/save-survey';
+  
     try {
-      const response = await axios.put(url, formDataWithFile, { // Use PUT for editing
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
+      const response = formData.isEditing
+        ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
+  
       if (response.status === 200) {
         alert("Data saved successfully!");
         setFormData({});
         setShowForm(false);
-        const updatedData = await axios.get("https://mmcmadina.com/api/survey/survey-data");
+        const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data");
         setLowerData(updatedData.data || []);
       } else {
         alert(`Error: ${response.data.message || 'Failed to save data'}`);
@@ -189,8 +193,6 @@ const Survey = () => {
       alert("Error submitting data.");
     }
   };
-  
-  
   
   const handleEdit = (record) => {
     setFormData({
@@ -221,11 +223,11 @@ const Survey = () => {
 
   const handleSendToPermission = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/survey/update-department", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/survey/update-department", {
         workOrderId,
       });
       alert("Work Order moved to Permission department.");
-      const updatedData = await axios.get("https://mmcmadina.com/api/survey/survey-data");
+      const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data");
       setLowerData(updatedData.data || []);
     } catch (error) {
       console.error("Error updating department:", error);
@@ -254,7 +256,7 @@ const Survey = () => {
                   <Typography><strong>Send From W.R:</strong> {record.created_at}</Typography>
                   <Typography>
                       {record.file_path ? (
-                        <a href={`https://mmcmadina.com/api/survey/survey_download/${record.work_order_id}`} download>
+                        <a href={`https://constructionproject-production.up.railway.app/api/survey/survey_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (

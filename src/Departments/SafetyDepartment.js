@@ -69,8 +69,8 @@ const SafetyDepartment = () => {
     const fetchData = async () => {
       try {
         const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/safety/safety-coming"),
-          axios.get("https://mmcmadina.com/api/safety/safety-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-data"),
         ]);
   
         const today = new Date();
@@ -88,12 +88,12 @@ const SafetyDepartment = () => {
             if (surveyCreatedAt > deadline) {
               statusColor = "red";
               deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
             } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
               statusColor = "yellow";
               deliveryStatus = "Near Deadline";
+            } else {
+              statusColor = "green";
+              deliveryStatus = "On Time";
             }
   
             return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
@@ -104,25 +104,22 @@ const SafetyDepartment = () => {
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
   
-        // ✅ Ensure `updatedData` is not empty before updating backend
+        // Update delivery statuses in the backend
         if (updatedData.length > 0) {
-          console.log("Updating delivery statuses in backend...");
-  
-          await Promise.all(updatedData.map(async (record) => {
-            if (record.work_order_id && record.delivery_status) {
-              try {
-                const response = await axios.put("https://mmcmadina.com/api/safety/update-sdelivery-status", {
-                  work_order_id: record.work_order_id,
-                  delivery_status: record.delivery_status,
-                });
-                console.log("Update response:", response.data);
-              } catch (error) {
-                console.error("Error updating delivery status:", error.response?.data || error);
+          await Promise.all(
+            updatedData.map(async (record) => {
+              if (record.work_order_id && record.delivery_status) {
+                try {
+                  await axios.put("https://constructionproject-production.up.railway.app/api/safety/update-sdelivery-status", {
+                    work_order_id: record.work_order_id,
+                    delivery_status: record.delivery_status,
+                  });
+                } catch (error) {
+                  console.error("Error updating delivery status:", error.response?.data || error);
+                }
               }
-            }
-          }));
-        } else {
-          console.warn("No records to update in the backend.");
+            })
+          );
         }
   
         // Filter alerts for work orders nearing or past deadlines
@@ -133,28 +130,28 @@ const SafetyDepartment = () => {
           const alertMessage = urgentOrders
             .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
             .join("\n");
-  
-          // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
-        console.error("Error fetching survey data:", error);
+        console.error("Error fetching safety data:", error);
       } finally {
         setLoading(false);
       }
     };
   
     fetchData();
-  }, []); // ✅ Keep dependency array empty to prevent infinite loops
+  }, []); // Ensure dependency array is empty to prevent infinite loops
+  
 
   const handleSendToNext = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/safety/update-nextdepartment", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/update-nextdepartment", {
         workOrderId,
       });
       alert("Work Order moved to next department.");
   
       // Fetch updated data from the database
-      const updatedData = await axios.get("https://mmcmadina.com/api/safety/safety-data");
+      const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-data");
       
       // Filter out records that have moved to WorkExecution
       const filteredData = updatedData.data.filter(record => record.current_department !== "WorkExecution");
@@ -173,7 +170,7 @@ const SafetyDepartment = () => {
       formData.append('file', file);
   
       // Send the file to the server to be saved
-      axios.post("https://mmcmadina.com/api/safety/upload", formData)
+      axios.post("https://constructionproject-production.up.railway.app/api/safety/upload", formData)
         .then(response => {
           // Update formData with the file path returned from the server
           const { filename } = response.data; // Ensure server sends back the filename or file path
@@ -205,7 +202,7 @@ const SafetyDepartment = () => {
     const updatedFormData = { ...formData, delivery_status: deliveryStatus };
     try {
       // Sending a POST request to the backend with work_order_id in the request body
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-workorder", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-workorder", {
         work_order_id: record.work_order_id,
         permission_number: record.permission_number, // Pass permission_number if needed
         // Include document if needed, depending on how you're handling files
@@ -246,7 +243,7 @@ const SafetyDepartment = () => {
     console.log("File to be uploaded:", file);  // Log the file being uploaded
   
     try {
-      const response = await axios.post(`https://mmcmadina.com/api/safety/upload-safety-file/${fieldName}`, formDataWithFile);
+      const response = await axios.post(`https://constructionproject-production.up.railway.app/api/safety/upload-safety-file/${fieldName}`, formDataWithFile);
       console.log("File upload response:", response.data); // Log the response from backend
       setFormData((prevData) => ({
         ...prevData,
@@ -307,7 +304,7 @@ const SafetyDepartment = () => {
       console.log("Data being sent:", dataToSend);
   
       // Send POST request to save data
-      const response = await axios.post("https://mmcmadina.com/api/safety/save-safety", dataToSend);
+      const response = await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety", dataToSend);
   
       // Check the response and inform the user
       console.log("Server response:", response.data);
@@ -348,7 +345,7 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-signs", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-signs", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -377,7 +374,7 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-barriers", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -406,7 +403,7 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-lights", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -436,7 +433,7 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-boards", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-boards", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -465,7 +462,7 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-document", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-document", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -494,7 +491,7 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://mmcmadina.com/api/safety/save-safety-permission", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-permission", dataToSend);
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -545,7 +542,7 @@ return (
               <TableCell>{record.permission_number}</TableCell>
               <TableCell>
                 {record.Document ? (
-                  <a href={`https://mmcmadina.com/api/safety/Safety_download/${record.work_order_id}`} download>
+                  <a href={`https://constructionproject-production.up.railway.app/api/safety/Safety_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (

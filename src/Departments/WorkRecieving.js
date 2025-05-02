@@ -27,7 +27,7 @@ const WorkReceiving = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('https://mmcmadina.com/api/work_receiving');
+      const response = await fetch('https://constructionproject-production.up.railway.app/api/work_receiving');
       const results = await response.json();
       
       const today = new Date();
@@ -114,8 +114,8 @@ const WorkReceiving = () => {
 
     try {
         const url = formData.workOrderId 
-            ? `https://mmcmadina.com/api/edit-work-receiving/${formData.workOrderId}` 
-            : 'https://mmcmadina.com/api/save-work_receiving';
+            ? `https://constructionproject-production.up.railway.app/api/edit-work-receiving/${formData.workOrderId}` 
+            : 'https://constructionproject-production.up.railway.app/api/save-work_receiving';
 
         const method = formData.workOrderId ? 'PUT' : 'POST';  // If updating, use PUT, else POST
 
@@ -156,7 +156,7 @@ const handleDownload = async (workOrderId) => {
   }
 
   try {
-    const response = await fetch(`https://mmcmadina.com/api/download/${encodeURIComponent(workOrderId)}`);
+    const response = await fetch(`https://constructionproject-production.up.railway.app/api/download/${encodeURIComponent(workOrderId)}`);
 
     if (!response.ok) {
       throw new Error("Failed to download file");
@@ -194,7 +194,7 @@ const handleDelete = async (id) => {
   if (!confirmDelete) return;
 
   try {
-    await fetch(`https://mmcmadina.com/api/delete-work-receiving/${id}`, {
+    await fetch(`https://constructionproject-production.up.railway.app/api/delete-work-receiving/${id}`, {
       method: 'DELETE',
     });
     setSnackbarMessage('Work Receiving deleted successfully!');
@@ -317,7 +317,7 @@ const handleEdit = (item) => {
                       {/* <TableCell> {item.file_path ? "✅" : "❌"}</TableCell> */}
                       <TableCell>
                           {item.file_path ? (
-                            <a href={`https://mmcmadina.com/api/download/${item.work_order_id}`} download>
+                            <a href={`https://constructionproject-production.up.railway.app/api/download/${item.work_order_id}`} download>
                               ✅ 📂 Download
                             </a>
                           ) : (

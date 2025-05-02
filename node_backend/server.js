@@ -7,6 +7,7 @@ const fs = require('fs');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const router = express.Router();
+const archiver = require('archiver'); // Ensure archiver is imported
 
 const app = express();
 const port = 5000;

@@ -3,6 +3,7 @@ const router = express.Router();
 const mysql = require('mysql2');
 const path = require('path');
 const fs = require('fs');
+const archiver = require('archiver'); // Ensure archiver is imported
 
 // Database Connection
 const db = mysql.createConnection({
@@ -264,7 +265,7 @@ router.put('/edit-survey/:id', upload.single('survey_file_path'), (req, res) => 
     }
 
     // Send success response if query is successful
-    res.status(200).send('Work receiving updated successfully');
+    res.status(200).send('survey updated successfully');
   });
 });
 module.exports = router;

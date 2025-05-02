@@ -22,71 +22,13 @@ const Permission = () => {
   });
 
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const [comingResponse, permissionResponse] = await Promise.all([
-  //         axios.get("https://mmcmadina.com/api/permission/permission-coming"),
-  //         axios.get("https://mmcmadina.com/api/permission/permission-data"),
-  //       ]);
-  
-  //       const today = new Date();
-        
-  //       // Process permission data and add status colors
-  //       const updatedData = permissionResponse.data.map((record) => {
-  //         if (record.created_at) {
-  //           const createdAt = new Date(record.created_at);
-  //           const deadline = new Date(createdAt);
-  //           deadline.setDate(deadline.getDate() + 2); // Add 2 days
-  
-  //           let statusColor = ""; 
-  //           let deliveryStatus = 'on time'; // Default status
 
-  //           if (record.current_department === "Permission") {
-  //             if (today > deadline) {
-  //               statusColor = "red"; // Deadline Passed
-  //               deliveryStatus = 'delayed'; // Update status to delayed
-
-  //             } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-  //               statusColor = "yellow"; // Near Deadline
-  //             }
-  //           }
-  //           return { ...record, deadline, statusColor,delivery_status: deliveryStatus };
-  //         }
-  //         return record;
-  //       });
-  
-  //       // Calculate remaining days based on start and end dates
-  //       const updatedDataWithDays = updatedData.map((record) => ({
-  //         ...record,
-  //         remaining_days: calculateDays(record.start_date, record.end_date),
-  //       }));
-  
-  //       setLowerData(updatedDataWithDays);
-  //       setUpperData(comingResponse.data || []);
-  
-  //       // Filter alerts for work orders nearing or past deadlines
-  //       const urgentOrders = updatedData.filter((record) => record.statusColor !== "");
-  //       setAlertData(urgentOrders);
-  
-  //       if (urgentOrders.length > 0) {
-  //         alert("Warning: Some work orders are close to or past their deadline.");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching survey data:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  
-  //   fetchData();
-  // }, []);
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://mmcmadina.com/api/permission/permission-coming"),
-          axios.get("https://mmcmadina.com/api/permission/permission-data"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission/permission-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission/permission-data"),
         ]);
   
         const today = new Date();
@@ -127,7 +69,7 @@ const Permission = () => {
           await Promise.all(updatedData.map(async (record) => {
             if (record.work_order_id && record.delivery_status) {
               try {
-                const response = await axios.put("https://mmcmadina.com/api/permission/update-pdelivery-status", {
+                const response = await axios.put("https://constructionproject-production.up.railway.app/api/permission/update-pdelivery-status", {
                   work_order_id: record.work_order_id,
                   delivery_status: record.delivery_status,
                 });
@@ -177,9 +119,23 @@ const Permission = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    
+  
+    // Validate required fields
+    const requiredFields = ['work_order_id', 'permission_number', 'request_date', 'start_date', 'end_date'];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(`Please fill all the fields. Missing: ${field}`);
+        return;
+      }
+    }
+  
+    if (!formData.Document) {
+      alert("Please upload a file.");
+      return;
+    }
+  
     const formDataWithFile = new FormData();
-    formDataWithFile.append('Document', formData.Document);  
+    formDataWithFile.append('Document', formData.Document);
     formDataWithFile.append('work_order_id', formData.work_order_id);
     formDataWithFile.append('permission_number', formData.permission_number);
     formDataWithFile.append('request_date', formData.request_date);
@@ -201,37 +157,43 @@ const Permission = () => {
     formDataWithFile.append('delivery_status', deliveryStatus);
   
     const url = formData.isEditing
-    ? `https://mmcmadina.com/api/permission/edit-permission/${formData.work_order_id}`
-    : 'https://mmcmadina.com/api/permission/upload-and-save-pdocument';  // For new permission
+      ? `https://constructionproject-production.up.railway.app/api/permission/edit-permission/${formData.work_order_id}`
+      : 'https://constructionproject-production.up.railway.app/api/permission/upload-and-save-pdocument';
   
-      try {
-        const response = await axios.post(url, formDataWithFile, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+    try {
+      const response = await axios.post(url, formDataWithFile, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  
+      if (response.data.success) {
+        alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
+        setShowForm(false);
+        setFormData({
+          work_order_id: "",
+          permission_number: "",
+          Document: "",
+          request_date: "",
+          permission_renewal: "",
+          start_date: "",
+          end_date: "",
+          remaining_days: 0,
+          isEditing: false,
         });
-    
-        if (response.data.success) {
-          alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-          setShowForm(false);
-          setFormData({
-            work_order_id: "",
-            permission_number: "",
-            Document: "",
-            request_date: "",
-            permission_renewal: "",
-            start_date: "",
-            end_date: "",
-            remaining_days: 0,
-            isEditing: false
-          });
-        } else {
-          alert('Operation failed');
-        }
-      } catch (error) {
-        console.error('Save error:', error);
-        alert('An error occurred while saving data.');
+      } else {
+        alert('Operation failed');
       }
-    };
-    
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('An error occurred while saving data.');
+    }
+  };
+  const handleFileChange = (e) => {
+    setFormData({
+      ...formData,
+      Document: e.target.files[0], // Store actual file object
+    });
+  };
+  
     const handleEdit = (record) => {
       setFormData({
         work_order_id: record.work_order_id,
@@ -273,11 +235,11 @@ const Permission = () => {
   };
   const handleSendToSafety = async (workOrderId) => {
     try {
-      await axios.post("https://mmcmadina.com/api/permission/update-permissiondepartment", {
+      await axios.post("https://constructionproject-production.up.railway.app/api/permission/update-permissiondepartment", {
         workOrderId,
       });
       alert("Work Order moved to Safety department.");
-      const updatedData = await axios.get("https://mmcmadina.com/api/permission/permission-data");
+      const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/permission/permission-data");
       setLowerData(updatedData.data || []);
     } catch (error) {
       console.error("Error updating department:", error);
@@ -302,7 +264,7 @@ const Permission = () => {
                   <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
                   <Typography>
                       {record.file_path  || record.survey_file_path ? (
-                        <a href={`https://mmcmadina.com/api/permission/permission_download/${record.work_order_id}`} download>
+                        <a href={`https://constructionproject-production.up.railway.app/api/permission/permission_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (
