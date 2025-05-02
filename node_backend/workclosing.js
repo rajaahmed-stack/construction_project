@@ -278,6 +278,54 @@ router.get('/workclosing_download/:id', (req, res) => {
     });
   });
 });
+router.put('/edit-workclosing/:id', upload.fields([
+  { name: 'mubahisa', maxCount: 1 }
+]), (req, res) => {
+  const workOrderId = req.params.id;
+  const { submission_date, resubmission_date, approval_date } = req.body;
 
+  // Validate required fields
+  if (!workOrderId || !submission_date || !resubmission_date || !approval_date) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Handle file paths
+  const mubahisaFile = req.files['mubahisa']
+    ? req.files['mubahisa'][0].filename
+    : null;
+
+  // Update query
+  const query = `
+    UPDATE work_closing 
+    SET 
+      submission_date = ?, 
+      resubmission_date = ?, 
+      approval_date = ?, 
+      mubahisa = ?
+    WHERE work_order_id = ?
+  `;
+
+  const queryValues = [
+    submission_date,
+    resubmission_date,
+    approval_date,
+    mubahisaFile,
+    workOrderId
+  ];
+
+  db.query(query, queryValues, (err, results) => {
+    if (err) {
+      console.error('Error updating work closing:', err);
+      return res.status(500).json({ error: 'Database update failed' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Work order not found or no changes made' });
+    }
+
+    // Send success response
+    res.status(200).json({ message: 'Work closing updated successfully' });
+  });
+});
 
 module.exports = router;

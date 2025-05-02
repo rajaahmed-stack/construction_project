@@ -70,7 +70,7 @@ const PermissionClosing = () => {
             .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
             .join("\n");
   
-          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+          // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
         console.error("Error fetching permission closing data:", error);
@@ -106,41 +106,108 @@ const PermissionClosing = () => {
     }));
   };
 
+  // const handleSave = async (e) => {
+  //   e.preventDefault();
+  
+  //   if (!formData.Work_closing_certificate || !formData.final_closing_certificate) {
+  //     alert("Please upload both certificates.");
+  //     return;
+  //   }
+  
+  //   try {
+  //     const formDataWithFile = new FormData();
+  //     formDataWithFile.append("Work_closing_certificate", formData.Work_closing_certificate);
+  //     formDataWithFile.append("final_closing_certificate", formData.final_closing_certificate);
+  //     formDataWithFile.append("work_order_id", formData.work_order_id);
+  //     formDataWithFile.append("permission_number", formData.permission_number);
+  //     formDataWithFile.append("closing_date", formData.closing_date);
+  //     formDataWithFile.append("penalty_reason", formData.penalty_reason);
+  //     formDataWithFile.append("penalty_amount", formData.penalty_amount);
+  
+  //     const response = await axios.post(
+  //       "https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument",
+  //       formDataWithFile,
+  //       { headers: { "Content-Type": "multipart/form-data" } }
+  //     );
+  
+  //     if (response.data.success) {
+  //       alert("File uploaded and data saved successfully.");
+  //       setShowForm(false);
+  //       setFormData({
+  //         work_order_id: "",
+  //         permission_number: "",
+  //         Work_closing_certificate: null,
+  //         final_closing_certificate: null,
+  //         closing_date: "",
+  //         penalty_reason: "",
+  //         penalty_amount: "",
+  //       });
+  
+  //       // Refresh data
+  //       const [comingResponse, permissionResponse] = await Promise.all([
+  //         axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
+  //         axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
+  //       ]);
+  //       setUpperData(comingResponse.data || []);
+  //       setLowerData(permissionResponse.data || []);
+  //     } else {
+  //       alert("Failed to upload the file.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error uploading file and saving data:", error);
+  //     alert("Failed to upload file and save data. Please try again.");
+  //   }
+  // };
   const handleSave = async (e) => {
     e.preventDefault();
   
-    if (!formData.Work_closing_certificate || !formData.final_closing_certificate) {
-      alert("Please upload both certificates.");
-      return;
+    // Validate required fields
+    const requiredFields = ['work_order_id', 'permission_number', 'closing_date'];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(`Please fill all the fields. Missing: ${field}`);
+        return;
+      }
     }
   
-    try {
-      const formDataWithFile = new FormData();
-      formDataWithFile.append("Work_closing_certificate", formData.Work_closing_certificate);
-      formDataWithFile.append("final_closing_certificate", formData.final_closing_certificate);
-      formDataWithFile.append("work_order_id", formData.work_order_id);
-      formDataWithFile.append("permission_number", formData.permission_number);
-      formDataWithFile.append("closing_date", formData.closing_date);
-      formDataWithFile.append("penalty_reason", formData.penalty_reason);
-      formDataWithFile.append("penalty_amount", formData.penalty_amount);
+    // Prepare form data for submission
+    const formDataWithFile = new FormData();
+    formDataWithFile.append('work_order_id', formData.work_order_id);
+    formDataWithFile.append('permission_number', formData.permission_number);
+    formDataWithFile.append('closing_date', formData.closing_date);
+    formDataWithFile.append('penalty_reason', formData.penalty_reason || '');
+    formDataWithFile.append('penalty_amount', formData.penalty_amount || '');
   
-      const response = await axios.post(
-        "https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument",
-        formDataWithFile,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+    if (formData.Work_closing_certificate) {
+      formDataWithFile.append('Work_closing_certificate', formData.Work_closing_certificate);
+    }
+  
+    if (formData.final_closing_certificate) {
+      formDataWithFile.append('final_closing_certificate', formData.final_closing_certificate);
+    }
+  
+    // Determine the URL based on whether it's an edit or a new record
+    const url = formData.isEditing
+      ? `https://constructionproject-production.up.railway.app/api/permission-closing/edit-permissionclosing/${formData.work_order_id}`
+      : 'https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument';
+  
+    try {
+      const response = await axios.post(url, formDataWithFile, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
   
       if (response.data.success) {
-        alert("File uploaded and data saved successfully.");
+        alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
         setShowForm(false);
         setFormData({
           work_order_id: "",
           permission_number: "",
-          Work_closing_certificate: null,
-          final_closing_certificate: null,
           closing_date: "",
           penalty_reason: "",
           penalty_amount: "",
+          Work_closing_certificate: null,
+          final_closing_certificate: null,
+          isEditing: false,
         });
   
         // Refresh data
@@ -151,14 +218,29 @@ const PermissionClosing = () => {
         setUpperData(comingResponse.data || []);
         setLowerData(permissionResponse.data || []);
       } else {
-        alert("Failed to upload the file.");
+        alert('Operation failed');
       }
     } catch (error) {
-      console.error("Error uploading file and saving data:", error);
-      alert("Failed to upload file and save data. Please try again.");
+      console.error('Save error:', error);
+      alert('An error occurred while saving data.');
     }
   };
-
+  
+  const handleEdit = (record) => {
+    setFormData({
+      work_order_id: record.work_order_id,
+      permission_number: record.permission_number,
+      closing_date: record.closing_date || "", // Set existing closing date or empty if not available
+      penalty_reason: record.penalty_reason || "", // Set existing penalty reason or empty
+      penalty_amount: record.penalty_amount || "", // Set existing penalty amount or empty
+      Work_closing_certificate: null, // Reset file input for new upload
+      final_closing_certificate: null, // Reset file input for new upload
+      work_closing_certificate_completed: record.work_closing_certificate_completed || false, // Existing status
+      final_closing_certificate_completed: record.final_closing_certificate_completed || false, // Existing status
+      isEditing: true, // Set edit mode flag
+    });
+    setShowForm(true); // Open the form modal
+  };
   
   
   
@@ -283,7 +365,7 @@ const PermissionClosing = () => {
               <Table className="survey-table">
                 <TableHead>
                   <TableRow>
-                    {['Work Order ID', 'Job Type', 'Sub Section', 'Permission Number','Closing Date', 'Penalty Reason', 'Penalty Amount', 'Work Closing Certificate', 'Final Closing Certificate'].map((header) => (
+                    {['Work Order ID', 'Job Type', 'Sub Section', 'Permission Number','Closing Date', 'Penalty Reason', 'Penalty Amount', 'Work Closing Certificate', 'Final Closing Certificate', 'Action'].map((header) => (
                       <TableCell key={header} className="survey-table-header">
                         {header}
                       </TableCell>
@@ -302,6 +384,14 @@ const PermissionClosing = () => {
                       <TableCell>{record.penalty_amount}</TableCell>
                       <TableCell> {record.work_closing_certificate_completed ? "✅" : "❌"}</TableCell>
                       <TableCell> {record.final_closing_certificate_completed ? "✅" : "❌"}</TableCell>
+                      <TableCell>
+                                                <Button
+                                                  onClick={() => handleEdit(record)}
+                                                  sx={{ backgroundColor: '#6a11cb', color: 'white', '&:hover': { backgroundColor: 'black' } }}
+                                                >
+                                                  Edit
+                                                </Button>
+                                              </TableCell>
                       {/* <TableCell>{record.remaining_days} days left</TableCell> */}
                       <TableCell>
                       {/* {record.current_department !== "WorkClosing" && (

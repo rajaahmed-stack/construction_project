@@ -356,16 +356,65 @@ app.get("/api/stats", (req, res) => {
 // Delete work receiving entry by work_order_id
 app.delete('/api/delete-work-receiving/:id', (req, res) => {
   const workOrderId = req.params.id;
-  
-  const query = 'DELETE FROM work_receiving WHERE work_order_id = ?';
-  
-  db.query(query, [workOrderId], (err, results) => {
+
+  const deleteQueries = [
+    'DELETE FROM store WHERE work_order_id = ?',
+    'DELETE FROM gis_department WHERE work_order_id = ?',
+    'DELETE FROM drawing_department WHERE work_order_id = ?',
+    'DELETE FROM work_closing WHERE work_order_id = ?',
+    'DELETE FROM permission_closing WHERE work_order_id = ?',
+    'DELETE FROM permission_closing WHERE permission_number IN (SELECT permission_number FROM work_execution WHERE work_order_id = ?)',
+    'DELETE FROM work_execution WHERE work_order_id = ?',
+    'DELETE FROM work_execution WHERE permission_number IN (SELECT permission_number FROM work_execution WHERE work_order_id = ?)',
+    'DELETE FROM safety_department WHERE work_order_id = ?',
+    'DELETE FROM safety_department WHERE permission_number IN (SELECT permission_number FROM permissions WHERE work_order_id = ?)',
+    'DELETE FROM permissions WHERE work_order_id = ?',
+    'DELETE FROM survey WHERE work_order_id = ?',
+    'DELETE FROM work_receiving WHERE work_order_id = ?'
+  ];
+
+  db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error deleting work receiving:', err);
-      return res.status(500).send('Error deleting work receiving');
+      console.error('Error getting DB connection:', err);
+      return res.status(500).send('Database connection error');
     }
 
-    res.status(200).send('Work receiving deleted successfully');
+    connection.beginTransaction(err => {
+      if (err) {
+        connection.release();
+        return res.status(500).send('Transaction start error');
+      }
+
+      const runQuery = (index) => {
+        if (index >= deleteQueries.length) {
+          // All queries executed
+          connection.commit(err => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                res.status(500).send('Commit failed');
+              });
+            }
+            connection.release();
+            res.status(200).send('Work receiving and all related data deleted successfully');
+          });
+          return;
+        }
+
+        connection.query(deleteQueries[index], [workOrderId], (err) => {
+          if (err) {
+            return connection.rollback(() => {
+              console.error(`Error in query ${index}:`, err);
+              connection.release();
+              res.status(500).send('Error deleting related records');
+            });
+          }
+          runQuery(index + 1);
+        });
+      };
+
+      runQuery(0);
+    });
   });
 });
 app.put('/api/edit-work-receiving/:id', upload.single('file_path'), (req, res) => {

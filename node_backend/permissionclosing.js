@@ -304,6 +304,62 @@ router.get('/permissionclosing_download/:id', (req, res) => {
     });
   });
 });
+router.put('/edit-permissionclosing/:id', upload.fields([
+  { name: 'work_closing_certificate', maxCount: 1 },
+  { name: 'final_closing_certificate', maxCount: 1 }
+]), (req, res) => {
+  const workOrderId = req.params.id;
+  const { permission_number, closing_date, penalty_reason, penalty_amount } = req.body;
 
+  // Validate required fields
+  if (!permission_number || !closing_date || !workOrderId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Handle file paths
+  const workClosingCertificate = req.files['work_closing_certificate']
+    ? req.files['work_closing_certificate'][0].filename
+    : null;
+  const finalClosingCertificate = req.files['final_closing_certificate']
+    ? req.files['final_closing_certificate'][0].filename
+    : null;
+
+  // Update query
+  const query = `
+    UPDATE permission_closing 
+    SET 
+      permission_number = ?, 
+      closing_date = ?, 
+      penalty_reason = ?, 
+      penalty_amount = ?, 
+      work_closing_certificate = ?, 
+      final_closing_certificate = ?
+    WHERE work_order_id = ?
+  `;
+
+  const queryValues = [
+    permission_number,
+    closing_date,
+    penalty_reason || null, // Allow null for optional fields
+    penalty_amount || null, // Allow null for optional fields
+    workClosingCertificate,
+    finalClosingCertificate,
+    workOrderId
+  ];
+
+  db.query(query, queryValues, (err, results) => {
+    if (err) {
+      console.error('Error updating permission closing:', err);
+      return res.status(500).json({ error: 'Database update failed' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Work order not found or no changes made' });
+    }
+
+    // Send success response
+    res.status(200).json({ message: 'Permission closing updated successfully' });
+  });
+});
 
 module.exports = router;
