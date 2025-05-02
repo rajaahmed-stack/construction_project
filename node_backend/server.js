@@ -52,7 +52,7 @@ db.connect((err) => {
   if (err) {
     console.error('Error connecting to database:', err);
   } else {
-    console.log('Database connected: server');
+    console.log('Database connected: railway');
   }
 });
 
