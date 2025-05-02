@@ -405,30 +405,35 @@ router.post('/save-safety-document', (req, res) => {
     }
   });
 });
-router.post('/save-safety-permission', (req, res) => {
-  const { permissions, permissions_completed,  work_order_id } = req.body; // Extract field and value
-  console.log("Received permissions:", permissions); // Debug: log received file path
+router.post('/save-safety-permission', upload.fields([
+  { name: 'permissions', maxCount: 1 },
+]), (req, res) => {
+  const filePath = req.files?.permissions?.[0]?.path || 'uploads/undefined';
+  const safetyBarriersPath = req.files?.safety_barriers?.[0]?.path || 'uploads/undefined';
+
+  console.log("Received permissions:", filePath);
+  
+  const { permissions_completed, work_order_id } = req.body;
 
   const updateQuery = `
     UPDATE safety_department 
-    SET permissions = ?, permissions_completed = ? 
+    SET permissions = ?, permissions_completed = ?
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, permissions, permissions_completed) 
-    VALUES (?, ?, ?)
+    INSERT INTO safety_department (work_order_id, permissions, permissions_completed, safety_barriers) 
+    VALUES (?, ?, ?, ?)
   `;
 
-  db.query(updateQuery, [permissions, permissions_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [filePath, permissions_completed, safetyBarriersPath, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
 
     if (result.affectedRows === 0) {
-      // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, permissions, permissions_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, filePath, permissions_completed, safetyBarriersPath], (err2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
