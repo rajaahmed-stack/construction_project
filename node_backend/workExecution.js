@@ -98,7 +98,7 @@ router.get('/workExecution-data', (req, res) => {
            work_execution.milling,
            work_execution.milling_completed,
            work_execution.concrete,
-           work_execution.Concrete_completed,
+           work_execution.concrete_completed,
            work_execution.deck3,
            work_execution.deck3_completed,
            work_execution.deck2,

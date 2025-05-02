@@ -12,7 +12,7 @@ const StoreDepartment = () => {
   const [formData, setFormData] = useState({
     work_order_id: "",
     material_return: "",
-    material_recieving: "",
+    material_receiving: "",
     material_pending: "",
    
   });
@@ -79,7 +79,7 @@ const StoreDepartment = () => {
     e.preventDefault();
   
     // Ensure all required files are selected
-    if (!formData.material_return || !formData.material_recieving || !formData.material_pending) {
+    if (!formData.material_return || !formData.material_receiving || !formData.material_pending) {
       alert('Please select all required files before uploading.');
       return;
     }
@@ -87,7 +87,7 @@ const StoreDepartment = () => {
     try {
       const formDataWithFile = new FormData();
       formDataWithFile.append('material_return', formData.material_return);
-      formDataWithFile.append('material_recieving', formData.material_recieving);
+      formDataWithFile.append('material_receiving', formData.material_receiving);
       formDataWithFile.append('material_pending', formData.material_pending);
       formDataWithFile.append('work_order_id', formData.work_order_id);
   
@@ -105,7 +105,7 @@ const StoreDepartment = () => {
         setFormData({
           work_order_id: "",
           material_return: null,
-          material_recieving: null,
+          material_receiving: null,
           material_pending: null,
         });
   
@@ -235,7 +235,7 @@ const StoreDepartment = () => {
                 </div>
                 <div>
                   <strong>Material Receiving Uploaded:</strong>{" "}
-                  {record.material_recieving ? "✅" : "❌"}
+                  {record.material_receiving ? "✅" : "❌"}
                 </div>
                 <div>
                   <strong>Material Pending Uploaded:</strong>{" "}
@@ -284,7 +284,7 @@ const StoreDepartment = () => {
               <Form.Label>Material Receiving</Form.Label>
               <Form.Control
                 type="file"
-                name="material_recieving"
+                name="material_receiving"
                 onChange={handleFileUpload}
                 // value={formData.Work_closing_certificate}
                 required
