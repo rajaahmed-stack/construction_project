@@ -409,7 +409,6 @@ router.post('/save-safety-permission', upload.fields([
   { name: 'permissions', maxCount: 1 },
 ]), (req, res) => {
   const filePath = req.files?.permissions?.[0]?.path || 'uploads/undefined';
-  const safetyBarriersPath = req.files?.safety_barriers?.[0]?.path || 'uploads/undefined';
 
   console.log("Received permissions:", filePath);
   
@@ -422,18 +421,18 @@ router.post('/save-safety-permission', upload.fields([
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, permissions, permissions_completed, safety_barriers) 
-    VALUES (?, ?, ?, ?)
+    INSERT INTO safety_department (work_order_id, permissions, permissions_completed) 
+    VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [filePath, permissions_completed, safetyBarriersPath, work_order_id], (err, result) => {
+  db.query(updateQuery, [filePath, permissions_completed,  work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
 
     if (result.affectedRows === 0) {
-      db.query(insertQuery, [work_order_id, filePath, permissions_completed, safetyBarriersPath], (err2) => {
+      db.query(insertQuery, [work_order_id, filePath, permissions_completed], (err2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
