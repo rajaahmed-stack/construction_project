@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: 'trolley.proxy.rlwy.net',
+  host: 'mysql.railway.internal',
   user: 'root',
   password: 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
   database: 'railway'
