@@ -741,60 +741,63 @@ const handleSaveRemainingData = async (workOrderId) => {
                   <Typography variant="h6">User Type: {record.user_type}</Typography>
                   {record.user_type !== "MMC" && <Typography variant="h6">Contractor Name: {record.Contractor_name}</Typography>}
                   <Typography variant="h6">Execution Status</Typography>
-                <Grid container direction="row" spacing={1}>
-                  {[
-                    { label: "Asphalt", key: "asphalt_completed" || "asphalt" },
-                    { label: "Milling", key: "milling_completed" || "milling" },
-                    { label: "Concrete", key: "concrete_completed" || "concrete"},
-                    { label: "Deck3", key: "deck3_completed" || "deck3"},
-                    { label: "Deck2", key: "deck2_completed" || "deck2"},
-                    { label: "Deck1", key: "deck1_completed" || "deck1"},
-                    { label: "Sand", key: "sand_completed" || "sand"},
-                    { label: "Backfilling", key: "backfilling_completed" || "backfilling" },
-                    { label: "Cable Lying", key: "cable_lying_completed" || "cable_lying"},
-                    { label: "Trench", key: "trench_completed" || "trench"},
-                  ].map(({ label, key }) => (
-                    <Grid item key={key}>
+                  <Grid container direction="row" spacing={1}>
+                {[
+                  { label: "Asphalt", keys: ["asphalt", "asphalt_completed"] },
+                  { label: "Milling", keys: ["milling", "milling_completed"] },
+                  { label: "Concrete", keys: ["concrete", "concrete_completed"] },
+                  { label: "Deck3", keys: ["deck3", "deck3_completed"] },
+                  { label: "Deck2", keys: ["deck2", "deck2_completed"] },
+                  { label: "Deck1", keys: ["deck1", "deck1_completed"] },
+                  { label: "Sand", keys: ["sand", "sand_completed"] },
+                  { label: "Backfilling", keys: ["backfilling", "backfilling_completed"] },
+                  { label: "Cable Lying", keys: ["cable_lying", "cable_lying_completed"] },
+                  { label: "Trench", keys: ["trench", "trench_completed"] },
+                ].map(({ label, keys }) => {
+                  const dataKey = keys.find(k => record[k] !== undefined);
+                  const isDone = record[dataKey];
+                  return (
+                    <Grid item key={label}>
                       <Typography>
                         <strong>{label}:</strong>{" "}
-                        {record[key] ? <CheckCircleIcon color="success" /> : <CancelIcon color="error" />}
+                        {isDone ? <CheckCircleIcon color="success" /> : <CancelIcon color="error" />}
                       </Typography>
                     </Grid>
-                  ))}
-                </Grid>
-
+                  );
+                })}
+              </Grid>
               {/* File Upload Section */}
               <Grid container spacing={2} sx={{ marginTop: "10px" }}>
                 {[
                   ...(record.asphalt_completed !==1 
-                    ?[{ label: "Asphalt", handler: handleSaveAsphalt, key: "asphalt", disabled: record.asphalt_completed }]
+                    ?[{ label: "Asphalt", handler: handleSaveAsphalt, key: "asphalt", disabled: record.asphalt_completed  || record.asphalt}]
                     :[]),
                  ...(record.milling_completed !==1
-                  ?[{ label: "Milling", handler: handleSaveMilling, key: "milling" , disabled: record.milling_completed}]
+                  ?[{ label: "Milling", handler: handleSaveMilling, key: "milling" , disabled: record.milling_completed || record.milling}]
                   :[]),
                 ...(record.concrete_completed !==1
-                  ?[{ label: "Concrete", handler: handleSaveConcrete, key: "concrete",  disabled: record.concrete_completed }]
+                  ?[{ label: "Concrete", handler: handleSaveConcrete, key: "concrete",  disabled: record.concrete_completed || record.concrete}]
                   :[]),
                 ...(record.deck3_completed !==1
-                  ?[{ label: "Deck 3", handler: handleSaveDeck3, key: "deck3",  disabled: record.deck3_completed }]
+                  ?[{ label: "Deck 3", handler: handleSaveDeck3, key: "deck3",  disabled: record.deck3_completed || record.deck3}]
                   :[]),
                 ...(record.deck2_completed !==1
-                  ?[{ label: "Deck 2", handler: handleSaveDeck2, key: "deck2",  disabled: record.deck2_completed }]
+                  ?[{ label: "Deck 2", handler: handleSaveDeck2, key: "deck2",  disabled: record.deck2_completed || record.deck2}]
                   :[]),
                 ...(record.deck1_completed !==1
-                  ?[{ label: "Deck 1", handler: handleSaveDeck1, key: "deck1",  disabled: record.deck1_completed }]
+                  ?[{ label: "Deck 1", handler: handleSaveDeck1, key: "deck1",  disabled: record.deck1_completed || record.deck1}]
                   :[]),
                 ...(record.sand_completed !==1
-                  ?[{ label: "Sand", handler: handleSaveSand, key: "sand",  disabled: record.sand_completed }]
+                  ?[{ label: "Sand", handler: handleSaveSand, key: "sand",  disabled: record.sand_completed || record.sand}]
                   :[]),
                 ...(record.backfilling_completed !==1
-                  ?[{ label: "Backfilling", handler: handleSaveBackFilling, key: "backfilling",  disabled: record.backfilling_completed }]
+                  ?[{ label: "Backfilling", handler: handleSaveBackFilling, key: "backfilling",  disabled: record.backfilling_completed || record.backfilling}]
                   :[]),
                 ...(record.cable_lying_completed !==1
-                  ?[{ label: "Cable Lying", handler: handleSaveCableLying, key: "cable_lying",  disabled: record.cable_lying_completed }]
+                  ?[{ label: "Cable Lying", handler: handleSaveCableLying, key: "cable_lying",  disabled: record.cable_lying_completed || record.cable_lying}]
                   :[]),
                 ...(record.trench_completed !== 1
-                  ?[{ label: "Trench", handler: handleSaveTrench, key: "trench",  disabled: record.trench_completed }]
+                  ?[{ label: "Trench", handler: handleSaveTrench, key: "trench",  disabled: record.trench_completed || record.trench}]
                   :[]),
                 ].map(({ label, handler, key, disabled }) => (
                   <Grid item xs={6} key={key}>

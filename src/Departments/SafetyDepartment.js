@@ -433,7 +433,12 @@ const SafetyDepartment = () => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-boards", dataToSend);
+      console.log("Payload for Safety Boards:", dataToSend); // Debugging log
+  
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety-boards",
+        dataToSend
+      );
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -446,7 +451,7 @@ const SafetyDepartment = () => {
         setIsSendEnabled(true);
       }
     } catch (error) {
-      console.error("Error saving field:", error);
+      console.error("Error saving Safety Boards:", error);
     }
   };
   const handleSaveSafetyDocumentation = async (field, workOrderId) => {
@@ -586,43 +591,50 @@ return (
                 
                 {/* Safety Checks */}
                 <Grid container spacing={2} sx={{ marginTop: "10px" }}>
-                  {[
-                    { label: "Safety Signs", key: "safety_signs_completed" },
-                    { label: "Safety Barriers", key: "safety_barriers_completed" },
-                    { label: "Safety Lights", key: "safety_lights_completed" },
-                    { label: "Safety Boards", key: "safety_board_completed" },
-                    { label: "Safety Documentation", key: "safety_documentation_completed" },
-                    { label: "Safety Permission", key: "permissions_completed" },
-                  ].map(({ label, key }) => (
-                    <Grid item xs={6} key={key}>
-                      <Typography>
-                        <strong>{label}:</strong>{" "}
-                        {record[key] ? <CheckCircleIcon color="success" /> : <CancelIcon color="error" />}
-                      </Typography>
-                    </Grid>
-                  ))}
+                {[
+                    { label: "Safety Signs", key: ["safety_signs_completed", "safety_signs"] },
+                    { label: "Safety Barriers", key: ["safety_barriers_completed", "safety_barriers"] },
+                    { label: "Safety Lights", key: ["safety_lights_completed", "safety_lights"] },
+                    { label: "Safety Boards", key: ["safety_board_completed", "safety_boards"] },
+                    { label: "Safety Documentation", key: ["safety_documentation_completed", "safety_documentation"] },
+                    { label: "Safety Permission", key: ["permissions_completed", "permissions"] },
+                  ].map(({ label, key }) => {
+                    const [completedKey, mainKey] = key; // Destructure the key array
+                    return (
+                      <Grid item xs={6} key={label}>
+                        <Typography>
+                          <strong>{label}:</strong>{" "}
+                          {record[completedKey] ? (
+                            <CheckCircleIcon color="success" />
+                          ) : (
+                            <CancelIcon color="error" />
+                          )}
+                        </Typography>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
 
                 {/* File Upload Section */}
                 <Grid container spacing={2} sx={{ marginTop: "10px" }}>
                   {[
                     ...(record.safety_signs_completed !== 1 
-                      ? [{ label: "Safety Signs", handler: handleSaveSafetySign, key: "safetySigns", disabled: record.safety_signs_completed }]
+                      ? [{ label: "Safety Signs", handler: handleSaveSafetySign, key: "safetySigns", disabled: record.safety_signs_completed || record.safety_signs }]
                       : []),
                     ...(record.safety_barriers_completed !==1 
-                      ? [{ label: "Barriers", handler: handleSaveSafetyBarriers, key: "safetyBarriers", disabled: record.safety_barriers_completed }]
+                      ? [{ label: "Barriers", handler: handleSaveSafetyBarriers, key: "safetyBarriers", disabled: record.safety_barriers_completed || record.safety_barriers }]
                       : []),
                     ...(record.safety_lights_completed !==1
-                      ?[{ label: "Lights", handler: handleSaveSafetyLights, key: "safetyLights", disabled: record.safety_lights_completed }]
+                      ?[{ label: "Lights", handler: handleSaveSafetyLights, key: "safetyLights", disabled: record.safety_lights_completed || record.safety_lights }]
                       :[]),
                     ...(record.safety_board_completed !==1
-                      ?[{ label: "Boards", handler: handleSaveSafetyBoards, key: "safetyBoards", disabled: record.safety_board_completed }]
+                      ?[{ label: "Boards", handler: handleSaveSafetyBoards, key: "safetyBoards", disabled: record.safety_board_completed || record.safety_boards }]
                       :[]),
                     ...(record.safety_documentation_completed !==1
-                      ?[{ label: "Safety Documentation", handler: handleSaveSafetyDocumentation, key: "safetyDocumentation", disabled: record.safety_documentation_completed }]
+                      ?[{ label: "Safety Documentation", handler: handleSaveSafetyDocumentation, key: "safetyDocumentation", disabled: record.safety_documentation_completed || record.safety_documentation }]
                       :[]),
                     ...(record.permissions_completed !==1
-                      ?[{ label: "Safety Permission", handler: handleSaveSafetyPermission, key: "safetyPermission", disabled: record.permissions_completed }]
+                      ?[{ label: "Safety Permission", handler: handleSaveSafetyPermission, key: "safetyPermission", disabled: record.permissions_completed || record.permissions }]
                       :[]),
                   ].map(({ label, handler, key, disabled }) => (
                     <Grid item xs={6} key={key}>

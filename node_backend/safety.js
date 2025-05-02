@@ -336,8 +336,14 @@ router.post('/save-safety-lights', (req, res) => {
   });
 });
 router.post('/save-safety-boards', (req, res) => {
-  const { safety_boards, safety_boards_completed,  work_order_id } = req.body; // Extract field and value
-  console.log("Received safety_boards:", safety_boards); // Debug: log received file path
+  const { safety_boards, safety_board_completed, work_order_id } = req.body;
+
+  if (!work_order_id) {
+    return res.status(400).send('Work Order ID is required');
+  }
+
+  console.log("Received safety_boards:", safety_boards); // Debugging log
+  console.log("Received safety_board_completed:", safety_board_completed); // Debugging log
 
   const updateQuery = `
     UPDATE safety_department 
@@ -350,23 +356,22 @@ router.post('/save-safety-boards', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [safety_boards, safety_boards_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safety_boards, safety_board_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
 
     if (result.affectedRows === 0) {
-      // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, safety_boards, safety_boards_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safety_boards, safety_board_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
         }
-        return res.status(200).send("Field inserted successfully");
+        return res.status(200).send("Safety Boards data saved successfully");
       });
     } else {
-      return res.status(200).send("Field updated successfully");
+      return res.status(200).send("Safety Boards data updated successfully");
     }
   });
 });
