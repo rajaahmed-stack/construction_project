@@ -834,7 +834,7 @@ const handleSaveRemainingData = async () => {
             variant="contained"
             color="success"
             onClick={handleSaveRemainingData}
-            disabled={isRemarkUploaded}  // Disable if remark is uploaded
+            // disabled={isRemarkUploaded}  // Disable if remark is uploaded
           >
             Save All Data
           </Button>
