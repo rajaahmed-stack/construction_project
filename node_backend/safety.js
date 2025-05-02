@@ -341,12 +341,12 @@ router.post('/save-safety-boards', (req, res) => {
 
   const updateQuery = `
     UPDATE safety_department 
-    SET safety_boards = ?, safety_boards_completed = ? 
+    SET safety_boards = ?, safety_board_completed = ? 
     WHERE work_order_id = ?
   `;
 
   const insertQuery = `
-    INSERT INTO safety_department (work_order_id, safety_boards, safety_boards_completed) 
+    INSERT INTO safety_department (work_order_id, safety_boards, safety_board_completed) 
     VALUES (?, ?, ?)
   `;
 
