@@ -103,7 +103,7 @@ router.get('/gisdepstore-coming', (req, res) => {
       console.error('Database query error:', err);
       res.status(500).send('Database query error');
     } else {
-      console.log('GIS Fetching Data:', results);  // Log the results
+      console.log('Store Fetching Data:', results);  // Log the results
       res.json(results);
     }
   });
@@ -130,7 +130,7 @@ router.get('/store-data', (req, res) => {
       console.error('Database query error:', err);
       res.status(500).send('Database query error');
     } else {
-      console.log('GIS Data:', results);  // Log the results
+      console.log('Store Data:', results);  // Log the results
       res.json(results);
     }
   });
