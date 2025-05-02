@@ -5,10 +5,12 @@ const nodemailer = require('nodemailer');
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: 'mysql.railway.internal',
+  host: 'shinkansen.proxy.rlwy.net',
   user: 'root',
-  password: 'wPchUnlzWGmWGJZdUJCwhIWfNYYBYPMi',
-  database: 'railway'
+  password: 'XjSGGFPPsszznJyxanyHBVzUeppoFkKn',
+  database: 'railway',
+  port: process.env.MYSQL_PORT || '44942'
+
 });
 // Root route to avoid "Cannot GET /" error
 router.get('/api/user', (req, res) => {
