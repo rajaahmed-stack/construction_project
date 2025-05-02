@@ -41,78 +41,19 @@ const StoreDepartment = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/store/store-data"),
         ]);
   
-        const today = new Date();
+        console.log("Coming Response:", comingResponse.data);
+        console.log("Permission Response:", permissionResponse.data);
   
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.sstore_created_at && record.g_created_at) {
-            const workCreatedAt = new Date(record.g_created_at);
-            const surveyCreatedAt = new Date(record.sstore_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
-  
-        setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
-  
-        // ✅ Ensure `updatedData` is not empty before updating backend
-        if (updatedData.length > 0) {
-          console.log("Updating delivery statuses in backend...");
-  
-          await Promise.all(updatedData.map(async (record) => {
-            if (record.work_order_id && record.delivery_status) {
-              try {
-                const response = await axios.put("https://constructionproject-production.up.railway.app/api/store/update-storedelivery-status", {
-                  work_order_id: record.work_order_id,
-                  delivery_status: record.delivery_status,
-                });
-                console.log("Update response:", response.data);
-              } catch (error) {
-                console.error("Error updating delivery status:", error.response?.data || error);
-              }
-            }
-          }));
-        } else {
-          console.warn("No records to update in the backend.");
-        }
-  
-        // Filter alerts for work orders nearing or past deadlines
-        const urgentOrders = updatedData.filter((record) => record.statusColor !== "");
-        setAlertData(urgentOrders);
-  
-        if (urgentOrders.length > 0) {
-          const alertMessage = urgentOrders
-            .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
-            .join("\n");
-  
-          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
-        }
+        setLowerData(permissionResponse.data || []);
       } catch (error) {
-        console.error("Error fetching survey data:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching data:", error);
       }
     };
   
     fetchData();
-  }, []); // ✅ Keep dependency array empty to prevent infinite loops
+  }, []);
+//  eep dependency array empty to prevent infinite loops
 
   const handleAddData = (record) => {
     console.log("Add Data Clicked:", record);
