@@ -55,7 +55,7 @@ router.post('/upload-store-file/:fieldName', upload.single('file'), (req, res) =
 // Combined route for file upload and data saving
 router.post('/upload-and-save-storedocument', upload.fields([
   { name: 'material_return', maxCount: 1 },
-  { name: 'material_recieving', maxCount: 1 },
+  { name: 'material_receiving', maxCount: 1 },
   { name: 'material_pending', maxCount: 1 },
 ]), (req, res) => {
   console.log(req.files);
@@ -63,15 +63,15 @@ router.post('/upload-and-save-storedocument', upload.fields([
 
   const { work_order_id } = req.body;
   const material_return = req.files['material_return'] ? req.files['material_return'][0].filename : null;
-  const material_recieving = req.files['material_recieving'] ? req.files['material_recieving'][0].filename : null;
+  const material_receiving = req.files['material_receiving'] ? req.files['material_receiving'][0].filename : null;
   const material_pending = req.files['material_pending'] ? req.files['material_pending'][0].filename : null;
 
   const insertQuery = `
     INSERT INTO store 
-    (work_order_id, material_return, material_recieving, material_pending)
+    (work_order_id, material_return, material_receiving, material_pending)
     VALUES (?, ?, ?, ?)
   `;
-  const insertValues = [work_order_id, material_return, material_recieving, material_pending];
+  const insertValues = [work_order_id, material_return, material_receiving, material_pending];
 
   db.query(insertQuery, insertValues, (err, result) => {
     if (err) {
