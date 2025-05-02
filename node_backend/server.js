@@ -52,7 +52,7 @@ db.connect((err) => {
   if (err) {
     console.error('Error connecting to database:', err);
   } else {
-    console.log('Database connected: mmcmadina_constructiondata2');
+    console.log('Database connected: server');
   }
 });
 
