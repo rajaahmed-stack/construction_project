@@ -356,8 +356,14 @@ app.get("/api/stats", (req, res) => {
 // Delete work receiving entry by work_order_id
 app.delete('/api/delete-work-receiving/:id', (req, res) => {
   const workOrderId = req.params.id;
-  
-  const query = [
+
+  // Validate workOrderId
+  if (!workOrderId) {
+    return res.status(400).send('Work order ID is required');
+  }
+
+  // Define the queries to delete data from related tables
+  const queries = [
     'DELETE FROM gis_department WHERE work_order_id = ?',
     'DELETE FROM drawing_department WHERE work_order_id = ?',
     'DELETE FROM work_closing WHERE work_order_id = ?',
@@ -371,15 +377,21 @@ app.delete('/api/delete-work-receiving/:id', (req, res) => {
     'DELETE FROM survey WHERE work_order_id = ?',
     'DELETE FROM work_receiving WHERE work_order_id = ?'
   ];
-  
-  db.query(query, [workOrderId], (err, results) => {
-    if (err) {
-      console.error('Error deleting work receiving:', err);
-      return res.status(500).send('Error deleting work receiving');
-    }
 
-    res.status(200).send('Work receiving deleted successfully');
-  });
+  // Execute the queries sequentially
+  const executeQueries = async () => {
+    try {
+      for (const query of queries) {
+        await db.promise().query(query, [workOrderId]);
+      }
+      res.status(200).send('Work receiving and related data deleted successfully');
+    } catch (err) {
+      console.error('Error deleting work receiving:', err);
+      res.status(500).send('Error deleting work receiving');
+    }
+  };
+
+  executeQueries();
 });
 app.put('/api/edit-work-receiving/:id', upload.single('file_path'), (req, res) => {
   const workOrderId = req.params.id;
