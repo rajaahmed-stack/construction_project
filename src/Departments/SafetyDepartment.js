@@ -238,18 +238,28 @@ const SafetyDepartment = () => {
   
 
   const handleFileUpload = async (fieldName, file) => {
-    const formDataWithFile = new FormData();
-    formDataWithFile.append("file", file);
-    console.log("File to be uploaded:", file);  // Log the file being uploaded
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", file); // Ensure the field name is 'file'
   
     try {
-      const response = await axios.post(`https://constructionproject-production.up.railway.app/api/safety/upload-safety-file/${fieldName}`, formDataWithFile);
-      console.log("File upload response:", response.data); // Log the response from backend
+      const response = await axios.post(
+        `https://constructionproject-production.up.railway.app/api/safety/upload-safety-file/${fieldName}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+  
+      console.log("File upload response:", response.data); // Debugging log
       setFormData((prevData) => ({
         ...prevData,
-        [fieldName]: response.data.filePath,  // Update state with file path
+        [fieldName]: response.data.filePath, // Update state with the file path
       }));
-      handleTaskCompletion(`${fieldName}Completed`);
     } catch (error) {
       console.error("Error uploading file:", error);
     }
