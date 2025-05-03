@@ -44,16 +44,17 @@ const upload = multer({ storage: storage });
 router.post('/upload-safety-file/:fieldName', upload.single('file'), (req, res) => {
   const { file } = req;
   const fieldName = req.params.fieldName;
-  
+
   if (!file) {
     console.log("No file uploaded!");
     return res.status(400).send('No file uploaded');
   }
-  console.log('Uploaded file:', file);  // Log the uploaded file to check it
+
+  console.log('Uploaded file:', file); // Debugging log
 
   // Return the file path after uploading
-  const filePath = path.join('uploads', file.filename);
-  res.json({ filePath });
+  const filePath = `uploads/${file.filename}`;
+  res.json({ fieldName, filePath });
 });
 
 // Fetch Safety Coming Data
