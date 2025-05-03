@@ -371,7 +371,6 @@ router.post('/save-safety-boards', (req, res) => {
     }
   });
 });
-
 router.post('/save-safety-document', (req, res) => {
   const { safety_documentation, safety_documentation_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_documentation:", safety_documentation); // Debug: log received file path
@@ -442,10 +441,6 @@ router.post('/save-safety-permission', (req, res) => {
     }
   });
 });
-
-
-
-
 
 router.put("/update-sdelivery-status", (req, res) => {
   const { work_order_id, delivery_status } = req.body;
