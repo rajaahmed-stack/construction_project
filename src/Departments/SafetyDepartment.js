@@ -73,19 +73,19 @@ const SafetyDepartment = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-data"),
         ]);
   
-        const today = new Date();
+        const today = new Date(); // ✅ Define `today` at the top
   
         const updatedData = permissionResponse.data.map((record) => {
           if (record.safety_created_at && record.permission_created_at) {
-            const workCreatedAt = new Date(record.permission_created_at);
-            const surveyCreatedAt = new Date(record.safety_created_at);
+            const workCreatedAt = new Date(record.safety_created_at);
+            const permissionCreatedAt = new Date(record.permission_created_at);
             const deadline = new Date(workCreatedAt);
             deadline.setDate(deadline.getDate() + 2);
   
             let statusColor = "";
             let deliveryStatus = "On Time";
   
-            if (surveyCreatedAt > deadline) {
+            if (permissionCreatedAt > deadline) {
               statusColor = "red";
               deliveryStatus = "Delayed";
             } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
@@ -104,26 +104,24 @@ const SafetyDepartment = () => {
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
   
-        // Update delivery statuses in the backend
-        if (updatedData.length > 0) {
-          await Promise.all(
-            updatedData.map(async (record) => {
-              if (record.work_order_id && record.delivery_status) {
-                try {
-                  await axios.put("https://constructionproject-production.up.railway.app/api/safety/update-sdelivery-status", {
-                    work_order_id: record.work_order_id,
-                    delivery_status: record.delivery_status,
-                  });
-                } catch (error) {
-                  console.error("Error updating delivery status:", error.response?.data || error);
-                }
+        // 🔁 Update delivery status for each record in backend
+        await Promise.all(
+          updatedData.map(async (record) => {
+            if (record.work_order_id && record.delivery_status) {
+              try {
+                await axios.put("https://constructionproject-production.up.railway.app/api/safety/update-delivery-status", {
+                  work_order_id: record.work_order_id,
+                  delivery_status: record.delivery_status,
+                });
+              } catch (error) {
+                console.error("Error updating delivery status:", error.response?.data || error.message);
               }
-            })
-          );
-        }
+            }
+          })
+        );
   
-        // Filter alerts for work orders nearing or past deadlines
-        const urgentOrders = updatedData.filter((record) => record.statusColor !== "");
+        // 🚨 Filter alerts
+        const urgentOrders = updatedData.filter((record) => record.statusColor !== "green");
         setAlertData(urgentOrders);
   
         if (urgentOrders.length > 0) {
@@ -132,15 +130,17 @@ const SafetyDepartment = () => {
             .join("\n");
           // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
+  
       } catch (error) {
-        console.error("Error fetching safety data:", error);
+        console.error("Error fetching safety data:", error.message);
       } finally {
         setLoading(false);
       }
     };
   
     fetchData();
-  }, []); // Ensure dependency array is empty to prevent infinite loops
+  }, []);
+  
   
 
   const handleSendToNext = async (workOrderId) => {
@@ -287,40 +287,54 @@ const SafetyDepartment = () => {
       [name]: value || "", // Make sure that null or undefined values are handled
     }));
   };
-  const handleSaveData = async () => {
+  const handleSaveData = async (workOrderId) => {
     try {
-      // Ensure Work Order ID is available
-      const workOrderId = lowerData[0]?.work_order_id;
       if (!workOrderId) {
         alert("Work Order ID is missing!");
         return;
       }
   
-      // Validate form data
-      if (!formData.siteRecheckingDate || !formData.remarks || !formData.safetyPenalties) {
+      const { siteRecheckingDate, remarks, safetyPenalties } = formData;
+  
+      // Basic validations
+      if (!siteRecheckingDate || !remarks || !safetyPenalties) {
         alert("Please fill all required fields before saving!");
+        return;
+      }
+  
+      // Validate site rechecking date format
+      const date = new Date(siteRecheckingDate);
+      if (isNaN(date.getTime())) {
+        alert("Please enter a valid date for Site Rechecking Date.");
+        return;
+      }
+  
+      // Validate safety penalties - must be a positive number
+      if (isNaN(safetyPenalties) || Number(safetyPenalties) < 0) {
+        alert("Safety Penalties must be a valid non-negative number.");
         return;
       }
   
       // Prepare the data to send
       const dataToSend = {
-        site_rechecking_date: formData.siteRecheckingDate || null,
-        remarks: formData.remarks,
-        safety_penalties: formData.safetyPenalties,
+        site_rechecking_date: siteRecheckingDate,
+        remarks: remarks.trim(),
+        safety_penalties: Number(safetyPenalties),
         work_order_id: workOrderId,
       };
   
-      // Log the data being sent
       console.log("Data being sent:", dataToSend);
   
-      // Send POST request to save data
-      const response = await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety", dataToSend);
+      // Send POST request
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety",
+        dataToSend
+      );
   
-      // Check the response and inform the user
       console.log("Server response:", response.data);
       alert("Data saved successfully!");
   
-      // Reset form data after successful submission
+      // Reset form fields
       setFormData({
         siteRecheckingDate: "",
         remarks: "",
@@ -330,13 +344,10 @@ const SafetyDepartment = () => {
     } catch (error) {
       console.error("Error saving data:", error);
       if (error.response) {
-        // Server responded with an error
         alert("Error from server: " + error.response.data);
       } else if (error.request) {
-        // No response from server
         alert("No response from server.");
       } else {
-        // Other errors
         alert("Error: " + error.message);
       }
     }
@@ -438,8 +449,8 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        safety_boards: formData.safetyBoards ? `uploads/${formData.safetyBoards.filename}` : null,
-        safety_board_completed: formData.safetyBoardCompleted,
+        safety_boards: formData.safetyBoards ? formData.safetyBoards.path : null,
+        safety_board_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };
   
@@ -462,6 +473,7 @@ const SafetyDepartment = () => {
       }
     } catch (error) {
       console.error("Error saving Safety Boards:", error);
+      alert("Failed to save Safety Boards. Please try again.");
     }
   };
   const handleSaveSafetyDocumentation = async (field, workOrderId) => {
@@ -472,12 +484,17 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        safety_documentation: formData.safetyDocumentation ? `uploads/${formData.safetyDocumentation.filename}` : null,
-        safety_documentation_completed: formData.safetyDocumentationCompleted,
+        safety_documentation: formData.safetyDocumentation ? formData.safetyDocumentation.path : null,
+        safety_documentation_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-document", dataToSend);
+      console.log("Payload for Safety Documentation:", dataToSend); // Debugging log
+  
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety-document",
+        dataToSend
+      );
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -490,7 +507,8 @@ const SafetyDepartment = () => {
         setIsSendEnabled(true);
       }
     } catch (error) {
-      console.error("Error saving field:", error);
+      console.error("Error saving Safety Documentation:", error);
+      alert("Failed to save Safety Documentation. Please try again.");
     }
   };
   const handleSaveSafetyPermission = async (field, workOrderId) => {
@@ -501,12 +519,17 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        permissions: formData.permissions ? `uploads/${formData.permissions.filename}` : null,
-        permissions_completed: formData.permissionsCompleted,
+        permissions: formData.permissions ? formData.permissions.path : null,
+        permissions_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-permission", dataToSend);
+      console.log("Payload for Safety Permission:", dataToSend); // Debugging log
+  
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety-permission",
+        dataToSend
+      );
   
       alert(`${field} saved successfully!`);
       setFormData((prevData) => ({
@@ -519,7 +542,8 @@ const SafetyDepartment = () => {
         setIsSendEnabled(true);
       }
     } catch (error) {
-      console.error("Error saving field:", error);
+      console.error("Error saving Safety Permission:", error);
+      alert("Failed to save Safety Permission. Please try again.");
     }
   };
   
