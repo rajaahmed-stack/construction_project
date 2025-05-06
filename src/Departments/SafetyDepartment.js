@@ -340,7 +340,6 @@ const SafetyDepartment = () => {
         remarks: "",
         safetyPenalties: "",
       });
-  
     } catch (error) {
       console.error("Error saving data:", error);
       if (error.response) {
@@ -738,9 +737,13 @@ return (
                 <Grid container spacing={2} sx={{ marginTop: "10px" }}>
                   
                   <Grid item>
-                    <Button variant="contained" color="success" onClick={handleSaveData}>
-                      Save All Data
-                    </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={() => handleSaveData(record.work_order_id)} // Pass the specific workOrderId
+                  >
+                    Save All Data
+                  </Button>
                   </Grid>
                  
 {/*                  

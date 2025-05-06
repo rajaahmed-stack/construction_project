@@ -305,18 +305,16 @@ router.get('/permissionclosing_download/:id', (req, res) => {
   });
 });
 router.put('/edit-permissionclosing/:id', upload.fields([
-  { name: 'work_closing_certificate', maxCount: 1 },
-  { name: 'final_closing_certificate', maxCount: 1 }
+  { name: 'work_closing_certificate', maxCount: 1 }, // Matches frontend
+  { name: 'final_closing_certificate', maxCount: 1 } // Matches frontend
 ]), (req, res) => {
   const workOrderId = req.params.id;
   const { permission_number, closing_date, penalty_reason, penalty_amount } = req.body;
 
-  // Validate required fields
   if (!permission_number || !closing_date || !workOrderId) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Handle file paths
   const workClosingCertificate = req.files['work_closing_certificate']
     ? req.files['work_closing_certificate'][0].filename
     : null;
@@ -324,7 +322,6 @@ router.put('/edit-permissionclosing/:id', upload.fields([
     ? req.files['final_closing_certificate'][0].filename
     : null;
 
-  // Update query
   const query = `
     UPDATE permission_closing 
     SET 
@@ -340,8 +337,8 @@ router.put('/edit-permissionclosing/:id', upload.fields([
   const queryValues = [
     permission_number,
     closing_date,
-    penalty_reason || null, // Allow null for optional fields
-    penalty_amount || null, // Allow null for optional fields
+    penalty_reason || null,
+    penalty_amount || null,
     workClosingCertificate,
     finalClosingCertificate,
     workOrderId
@@ -357,7 +354,6 @@ router.put('/edit-permissionclosing/:id', upload.fields([
       return res.status(404).json({ error: 'Work order not found or no changes made' });
     }
 
-    // Send success response
     res.status(200).json({ message: 'Permission closing updated successfully' });
   });
 });

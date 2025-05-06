@@ -179,22 +179,21 @@ const PermissionClosing = () => {
     formDataWithFile.append('penalty_amount', formData.penalty_amount || '');
   
     if (formData.Work_closing_certificate) {
-      formDataWithFile.append('Work_closing_certificate', formData.Work_closing_certificate);
+      formDataWithFile.append('work_closing_certificate', formData.Work_closing_certificate);
     }
   
     if (formData.final_closing_certificate) {
       formDataWithFile.append('final_closing_certificate', formData.final_closing_certificate);
     }
   
-    // Determine the URL based on whether it's an edit or a new record
     const url = formData.isEditing
       ? `https://constructionproject-production.up.railway.app/api/permission-closing/edit-permissionclosing/${formData.work_order_id}`
       : 'https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument';
   
     try {
-      const response = await axios.post(url, formDataWithFile, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = formData.isEditing
+        ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
   
       if (response.data.success) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
@@ -225,7 +224,6 @@ const PermissionClosing = () => {
       alert('An error occurred while saving data.');
     }
   };
-  
   const handleEdit = (record) => {
     setFormData({
       work_order_id: record.work_order_id,
