@@ -11,6 +11,7 @@ const Survey = () => {
   const [formData, setFormData] = useState({}); // Form data
   const [loading, setLoading] = useState(true); // Loading state for data fetching
   const [alertData, setAlertData] = useState([]); // For alerting on deadlines
+  const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,6 +87,7 @@ const Survey = () => {
     };
   
     fetchData();
+    
   }, []);
   
   
@@ -148,6 +150,7 @@ const Survey = () => {
   const handleSaveData = async (e) => {
     e.preventDefault();
   
+    // Validate required fields
     const requiredFields = ['work_order_id', 'handover_date', 'return_date', 'remark'];
     for (const field of requiredFields) {
       if (!formData[field]) {
@@ -161,6 +164,7 @@ const Survey = () => {
       return;
     }
   
+    // Prepare form data for submission
     const formDataWithFile = new FormData();
     formDataWithFile.append('survey_file_path', formData.survey_file_path);
   
@@ -181,10 +185,28 @@ const Survey = () => {
   
       if (response.status === 200) {
         alert("Data saved successfully!");
+  
+        // Update the lowerData state with the new or updated record
+        const updatedRecord = {
+          ...formData,
+          survey_file_path: response.data.filePath || formData.survey_file_path, // Use the file path from the response if available
+        };
+  
+        setLowerData((prevData) => {
+          if (formData.isEditing) {
+            // Replace the existing record in case of editing
+            return prevData.map((record) =>
+              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
+            );
+          } else {
+            // Add the new record to the lowerData
+            return [...prevData, updatedRecord];
+          }
+        });
+  
+        // Reset the form and close the modal
         setFormData({});
         setShowForm(false);
-        const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data");
-        setLowerData(updatedData.data || []);
       } else {
         alert(`Error: ${response.data.message || 'Failed to save data'}`);
       }
@@ -193,18 +215,20 @@ const Survey = () => {
       alert("Error submitting data.");
     }
   };
-  
   const handleEdit = (record) => {
     setFormData({
       work_order_id: record.work_order_id,
       handover_date: record.handover_date,
       return_date: record.return_date,
       remark: record.remark,
-      survey_file_path: null, // Reset or allow new file
-      isEditing: true, // Add a flag to know it's edit mode
+      job_type: record.job_type,           // Include job type
+      sub_section: record.sub_section,     // Include sub section
+      survey_file_path: null,              // Optional: reset or allow new file
+      isEditing: true,
     });
     setShowForm(true);
   };
+  
   
 
   

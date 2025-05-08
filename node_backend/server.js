@@ -358,6 +358,7 @@ app.delete('/api/delete-work-receiving/:id', (req, res) => {
   const workOrderId = req.params.id;
 
   const queries = [
+    'DELETE FROM store WHERE work_order_id = ?',
     'DELETE FROM gis_department WHERE work_order_id = ?',
     'DELETE FROM drawing_department WHERE work_order_id = ?',
     'DELETE FROM work_closing WHERE work_order_id = ?',
