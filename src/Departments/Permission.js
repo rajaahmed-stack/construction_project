@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Container, Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Modal, TextField } from "@mui/material";
+import { Container, Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Modal, TextField, Snackbar } from "@mui/material";
 
 const Permission = () => {
   const [upperData, setUpperData] = useState([]);
@@ -8,6 +8,8 @@ const Permission = () => {
   const [showForm, setShowForm] = useState(false);
   const [alertData, setAlertData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [formData, setFormData] = useState({
     work_order_id: "",
     request_date: "",
@@ -125,6 +127,8 @@ const Permission = () => {
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`Please fill all the fields. Missing: ${field}`);
+        showSnackbar('Please fill all fields and attach a valid file.');
+
         return;
       }
     }
@@ -268,6 +272,10 @@ const Permission = () => {
     } catch (error) {
       console.error("Error updating department:", error);
     }
+  };
+  const showSnackbar = (msg) => {
+    setSnackbarMessage(msg);
+    setOpenSnackbar(true);
   };
   return (
     <Container className="survey-container">
@@ -499,6 +507,12 @@ const Permission = () => {
           </Box>
         </Modal>
       </Box>
+      <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={3000}
+                    onClose={() => setOpenSnackbar(false)}
+                    message={snackbarMessage}
+                    />
     </Container>
   );
 };
