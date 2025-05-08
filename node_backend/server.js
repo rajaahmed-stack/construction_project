@@ -195,33 +195,33 @@ app.post('/api/save-work_receiving', upload.single('file_path'), (req, res) => {
 });
 
 // Download file by work_order_id
-// app.get('/api/download/:id', (req, res) => {
-//   const fileId = req.params.id;
+app.get('/api/download/:id', (req, res) => {
+  const fileId = req.params.id;
 
-//   db.query('SELECT file_path FROM work_receiving WHERE work_order_id = ?', [fileId], (err, results) => {
-//     if (err) {
-//       console.error('Database error:', err);
-//       return res.status(500).send('Database error');
-//     }
+  db.query('SELECT file_path FROM work_receiving WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
 
-//     if (results.length === 0) {
-//       return res.status(404).send('File not found');
-//     }
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
 
-//     let filePath = results[0].file_path;
-//     if (Buffer.isBuffer(filePath)) {
-//       filePath = filePath.toString('utf8');
-//     }
+    let filePath = results[0].file_path;
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
 
-//     const absolutePath = path.join(__dirname, filePath);
-//     res.download(absolutePath, (err) => {
-//       if (err) {
-//         console.error('Error sending file:', err);
-//         res.status(500).send('Error downloading file');
-//       }
-//     });
-//   });
-// });
+    const absolutePath = path.join(__dirname, filePath);
+    res.download(absolutePath, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        res.status(500).send('Error downloading file');
+      }
+    });
+  });
+});
 
 // Update current department
 app.post('/api/update-current-department', (req, res) => {
