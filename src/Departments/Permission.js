@@ -134,6 +134,7 @@ const Permission = () => {
       return;
     }
   
+    // Prepare form data for submission
     const formDataWithFile = new FormData();
     formDataWithFile.append('Document', formData.Document);
     formDataWithFile.append('work_order_id', formData.work_order_id);
@@ -161,13 +162,33 @@ const Permission = () => {
       : 'https://constructionproject-production.up.railway.app/api/permission/upload-and-save-pdocument';
   
     try {
-      const response = await axios.post(url, formDataWithFile, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+     const response = formData.isEditing
+            ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
+            : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
+      
   
       if (response.data.success) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-        setShowForm(false);
+  
+        // Update the lowerData state with the new or updated record
+        const updatedRecord = {
+          ...formData,
+          Document: response.data.filePath || formData.Document, // Use the file path from the response if available
+        };
+  
+        setLowerData((prevData) => {
+          if (formData.isEditing) {
+            // Replace the existing record in case of editing
+            return prevData.map((record) =>
+              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
+            );
+          } else {
+            // Add the new record to the lowerData
+            return [...prevData, updatedRecord];
+          }
+        });
+  
+        // Reset the form and close the modal
         setFormData({
           work_order_id: "",
           permission_number: "",
@@ -179,6 +200,7 @@ const Permission = () => {
           remaining_days: 0,
           isEditing: false,
         });
+        setShowForm(false);
       } else {
         alert('Operation failed');
       }

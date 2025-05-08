@@ -134,51 +134,52 @@ const DrawingDepartment = () => {
     } 
   };
   
-const handleSave = async (e) => {
-  e.preventDefault();
-
-  if (!formData.drawing ) {
-    alert('Please select both files to upload.');
-    return;
-  }
-
-  try {
-    const formDataWithFile = new FormData();
-    formDataWithFile.append('drawing', formData.drawing);
-    formDataWithFile.append('work_order_id', formData.work_order_id);
-    
-
-    const response = await axios.post(
-      'https://constructionproject-production.up.railway.app/api/drawing-department/upload-and-save-drawingdocument',
-      formDataWithFile,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
-
-    if (response.data.success) {
-      alert('File uploaded and data saved successfully');
-      setShowForm(false);
-      setFormData({
-        work_order_id: "",
-        drawing: "",
-        
-      });
-
-      // Refresh data
-      const [comingResponse, permissionResponse] = await Promise.all([
-        axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawingdep-coming"),
-        axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawing-data"),
-      ]);
-      setUpperData(comingResponse.data || []);
-      setLowerData(permissionResponse.data || []);
-    } else {
-      alert('Failed to upload the file');
+  const handleSave = async (e) => {
+    e.preventDefault();
+  
+    // Validate required fields
+    if (!formData.drawing) {
+      alert('Please upload the drawing document.');
+      return;
     }
-
-  } catch (error) {
-    console.error('Error uploading file and saving data:', error);
-    alert('Failed to upload file and save data. Please try again.');
-  }
-};
+  
+    try {
+      // Prepare form data for submission
+      const formDataWithFile = new FormData();
+      formDataWithFile.append('drawing', formData.drawing);
+      formDataWithFile.append('work_order_id', formData.work_order_id);
+  
+      const response = await axios.post(
+        'https://constructionproject-production.up.railway.app/api/drawing-department/upload-and-save-drawingdocument',
+        formDataWithFile,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+  
+      if (response.data.success) {
+        alert('File uploaded and data saved successfully');
+  
+        // Update the lowerData state with the new record
+        const updatedRecord = {
+          ...formData,
+          drawing: true, // Mark drawing as uploaded
+        };
+  
+        setLowerData((prevData) => [...prevData, updatedRecord]);
+  
+        // Reset the form and close the modal
+        setFormData({
+          work_order_id: "",
+          drawing: "",
+        });
+        setShowForm(false);
+      } else {
+        alert('Failed to upload the file');
+      }
+    } catch (error) {
+      console.error('Error uploading file and saving data:', error);
+      alert('Failed to upload file and save data. Please try again.');
+    }
+  };
   
   
   

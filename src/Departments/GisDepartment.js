@@ -135,51 +135,52 @@ const GisDepartment = () => {
     } 
   };
   
-const handleSave = async (e) => {
-  e.preventDefault();
-
-  if (!formData.gis ) {
-    alert('Please select both files to upload.');
-    return;
-  }
-
-  try {
-    const formDataWithFile = new FormData();
-    formDataWithFile.append('gis', formData.gis);
-    formDataWithFile.append('work_order_id', formData.work_order_id);
-    
-
-    const response = await axios.post(
-      'https://constructionproject-production.up.railway.app/api/gis/upload-and-save-gisdocument',
-      formDataWithFile,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
-
-    if (response.data.success) {
-      alert('File uploaded and data saved successfully');
-      setShowForm(false);
-      setFormData({
-        work_order_id: "",
-        gis: "",
-        
-      });
-
-      // Refresh data
-      const [comingResponse, permissionResponse] = await Promise.all([
-        axios.get("https://constructionproject-production.up.railway.app/api/gis/gisdep-coming"),
-        axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
-      ]);
-      setUpperData(comingResponse.data || []);
-      setLowerData(permissionResponse.data || []);
-    } else {
-      alert('Failed to upload the file');
+  const handleSave = async (e) => {
+    e.preventDefault();
+  
+    // Validate required fields
+    if (!formData.gis) {
+      alert('Please upload the GIS document.');
+      return;
     }
-
-  } catch (error) {
-    console.error('Error uploading file and saving data:', error);
-    alert('Failed to upload file and save data. Please try again.');
-  }
-};
+  
+    try {
+      // Prepare form data for submission
+      const formDataWithFile = new FormData();
+      formDataWithFile.append('gis', formData.gis);
+      formDataWithFile.append('work_order_id', formData.work_order_id);
+  
+      const response = await axios.post(
+        'https://constructionproject-production.up.railway.app/api/gis/upload-and-save-gisdocument',
+        formDataWithFile,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+  
+      if (response.data.success) {
+        alert('File uploaded and data saved successfully');
+  
+        // Update the lowerData state with the new record
+        const updatedRecord = {
+          ...formData,
+          gis: true, // Mark GIS as uploaded
+        };
+  
+        setLowerData((prevData) => [...prevData, updatedRecord]);
+  
+        // Reset the form and close the modal
+        setFormData({
+          work_order_id: "",
+          gis: "",
+        });
+        setShowForm(false);
+      } else {
+        alert('Failed to upload the file');
+      }
+    } catch (error) {
+      console.error('Error uploading file and saving data:', error);
+      alert('Failed to upload file and save data. Please try again.');
+    }
+  };
   
   
   

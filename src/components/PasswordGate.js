@@ -19,7 +19,7 @@ const PasswordGate = () => {
     // Check if the credentials are for admin
     if ( password === correctPassword) {
       login();
-      navigate('/home'); // Navigate to home page if admin
+      navigate('/Home'); // Navigate to home page if admin
     } else {
       // If not admin, check from users database
       try {

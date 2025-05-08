@@ -18,12 +18,14 @@ import Management from "./components/Management";
 import AIRecommendations from "./components/AIRecommendations";
 import UserManagement from "./components/UserManagement";
 import Home from "./components/Home";
+// import NavBar from "../src/usapages/NavBar";
 
 const App = () => (
   <AuthProvider> {/* 👈 Wrap everything inside AuthProvider */}
     <Router>
       <Routes>
         <Route path="/" element={<PasswordGate />} />
+        {/* <Route path="/NavBar" element={<NavBar />} /> */}
         <Route path="/home" element={<Home />} />
         <Route path="/departments" element={<DepartmentList />} />
         <Route path="/management" element={<Management />} />

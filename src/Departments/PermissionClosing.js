@@ -12,7 +12,7 @@ const PermissionClosing = () => {
   const [formData, setFormData] = useState({
     work_order_id: "",
     permission_number: "",
-    Work_closing_certificate: null,
+    work_closing_certificate: null,
     work_closing_certificate_completed: false,
     final_closing_certificate: null,
     final_closing_certificate_completed: false,
@@ -179,7 +179,7 @@ const PermissionClosing = () => {
     formDataWithFile.append('penalty_amount', formData.penalty_amount || '');
   
     if (formData.Work_closing_certificate) {
-      formDataWithFile.append('work_closing_certificate', formData.Work_closing_certificate);
+      formDataWithFile.append('work_closing_certificate', formData.work_closing_certificate);
     }
   
     if (formData.final_closing_certificate) {
@@ -195,9 +195,31 @@ const PermissionClosing = () => {
         ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
         : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
   
-      if (response.data.success) {
+      console.log("Backend response:", response.data); // Log the backend response
+  
+      if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-        setShowForm(false);
+  
+        // Update the lowerData state with the new or updated record
+        const updatedRecord = {
+          ...formData,
+          work_closing_certificate_completed: formData.Work_closing_certificate ? true : false,
+          final_closing_certificate_completed: formData.final_closing_certificate ? true : false,
+        };
+  
+        setLowerData((prevData) => {
+          if (formData.isEditing) {
+            // Replace the existing record in case of editing
+            return prevData.map((record) =>
+              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
+            );
+          } else {
+            // Add the new record to the lowerData
+            return [...prevData, updatedRecord];
+          }
+        });
+  
+        // Reset the form and close the modal
         setFormData({
           work_order_id: "",
           permission_number: "",
@@ -208,14 +230,7 @@ const PermissionClosing = () => {
           final_closing_certificate: null,
           isEditing: false,
         });
-  
-        // Refresh data
-        const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
-          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
-        ]);
-        setUpperData(comingResponse.data || []);
-        setLowerData(permissionResponse.data || []);
+        setShowForm(false);
       } else {
         alert('Operation failed');
       }
@@ -228,7 +243,7 @@ const PermissionClosing = () => {
     setFormData({
       work_order_id: record.work_order_id,
       permission_number: record.permission_number,
-      closing_date: record.closing_date || "", // Set existing closing date or empty if not available
+      closing_date: record.closing_date || "",// Set existing closing date or empty if not available
       penalty_reason: record.penalty_reason || "", // Set existing penalty reason or empty
       penalty_amount: record.penalty_amount || "", // Set existing penalty amount or empty
       Work_closing_certificate: null, // Reset file input for new upload

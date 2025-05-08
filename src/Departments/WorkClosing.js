@@ -75,7 +75,7 @@ const WorkClosing = () => {
     e.preventDefault();
   
     // Validate required fields
-    const requiredFields = ['work_order_id', 'permission_number', 'closing_date'];
+    const requiredFields = ['work_order_id', 'submission_date', 'resubmission_date', 'approval_date'];
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`Please fill all the fields. Missing: ${field}`);
@@ -86,59 +86,65 @@ const WorkClosing = () => {
     // Prepare form data for submission
     const formDataWithFile = new FormData();
     formDataWithFile.append('work_order_id', formData.work_order_id);
-    formDataWithFile.append('permission_number', formData.permission_number);
-    formDataWithFile.append('closing_date', formData.closing_date);
-    formDataWithFile.append('penalty_reason', formData.penalty_reason || '');
-    formDataWithFile.append('penalty_amount', formData.penalty_amount || '');
+    formDataWithFile.append('submission_date', formData.submission_date);
+    formDataWithFile.append('resubmission_date', formData.resubmission_date);
+    formDataWithFile.append('approval_date', formData.approval_date);
   
-    if (formData.Work_closing_certificate) {
-      formDataWithFile.append('Work_closing_certificate', formData.Work_closing_certificate);
-    }
-  
-    if (formData.final_closing_certificate) {
-      formDataWithFile.append('final_closing_certificate', formData.final_closing_certificate);
+    if (formData.mubahisa) {
+      formDataWithFile.append('mubahisa', formData.mubahisa);
     }
   
     // Determine the URL based on whether it's an edit or a new record
     const url = formData.isEditing
-      ? `https://constructionproject-production.up.railway.app/api/permission-closing/edit-permissionclosing/${formData.work_order_id}`
-      : 'https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument';
+      ? `https://constructionproject-production.up.railway.app/api/work-closing/edit-workclosing/${formData.work_order_id}`
+      : 'https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument';
   
     try {
       const response = formData.isEditing
         ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
         : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
   
-      if (response.data.success) {
+      console.log("Backend response:", response.data); // Log the backend response
+  
+      if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-        setShowForm(false);
-        setFormData({
-          work_order_id: "",
-          permission_number: "",
-          closing_date: "",
-          penalty_reason: "",
-          penalty_amount: "",
-          Work_closing_certificate: null,
-          final_closing_certificate: null,
-          isEditing: false,
+  
+        // Update the lowerData state with the new or updated record
+        const updatedRecord = {
+          ...formData,
+          mubahisa: formData.mubahisa ? true : false, // Mark mubahisa as true if a file was uploaded
+        };
+  
+        setLowerData((prevData) => {
+          if (formData.isEditing) {
+            // Replace the existing record in case of editing
+            return prevData.map((record) =>
+              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
+            );
+          } else {
+            // Add the new record to the lowerData
+            return [...prevData, updatedRecord];
+          }
         });
   
-        // Refresh data
-        const [comingResponse, permissionResponse] = await Promise.all([
-          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
-          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
-        ]);
-        setUpperData(comingResponse.data || []);
-        setLowerData(permissionResponse.data || []);
+        // Reset the form and close the modal
+        setFormData({
+          work_order_id: "",
+          submission_date: "",
+          resubmission_date: "",
+          approval_date: "",
+          mubahisa: null,
+          isEditing: false,
+        });
+        setShowForm(false);
       } else {
         alert('Operation failed');
       }
     } catch (error) {
-      console.error('Save error:', error);
+      console.error('Error saving data:', error);
       alert('An error occurred while saving data.');
     }
   };
-  
   const handleEdit = (record) => {
     setFormData({
       work_order_id: record.work_order_id,
@@ -441,13 +447,13 @@ const WorkClosing = () => {
                       <TableCell>{new Date(record.approval_date).toLocaleDateString()}</TableCell>
                       <TableCell> {record.mubahisa ? "✅" : "❌"}</TableCell>
                         <TableCell>
-                                                                      <Button
-                                                                        onClick={() => handleEdit(record)}
-                                                                        sx={{ backgroundColor: '#6a11cb', color: 'white', '&:hover': { backgroundColor: 'black' } }}
-                                                                      >
-                                                                        Edit
-                                                                      </Button>
-                                                                    </TableCell>
+                          <Button
+                            onClick={() => handleEdit(record)}
+                            sx={{ backgroundColor: '#6a11cb', color: 'white', '&:hover': { backgroundColor: 'black' } }}
+                            >
+                            Edit
+                          </Button>
+                        </TableCell>
                       {/* <TableCell>{record.remaining_days} days left</TableCell> */}
                       {/* <TableCell>
                         <Button variant="contained" color="secondary" onClick={() => alert('Send to next department')}>
