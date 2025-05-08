@@ -167,7 +167,7 @@ const Permission = () => {
             : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
       
   
-      if (response.data.success) {
+      if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
   
         // Update the lowerData state with the new or updated record
@@ -216,18 +216,20 @@ const Permission = () => {
     });
   };
   
-    const handleEdit = (record) => {
-      setFormData({
-        work_order_id: record.work_order_id,
-        request_date: record.request_date,
-        permission_renewal: record.permission_renewal,
-        start_date: record.start_date,
-        end_date: record.end_date,
-        Document: null, // Reset or allow new file
-        isEditing: true, // Add a flag to know it's edit mode
-      });
-      setShowForm(true);
-    };
+  const handleEdit = (record) => {
+    setFormData({
+      work_order_id: record.work_order_id,
+      permission_number: record.permission_number || "", // FIXED LINE
+      request_date: record.request_date,
+      permission_renewal: record.permission_renewal,
+      start_date: record.start_date,
+      end_date: record.end_date,
+      Document: null,
+      isEditing: true,
+    });
+    setShowForm(true);
+  };
+  
     
   
 
@@ -404,15 +406,15 @@ const Permission = () => {
                   readOnly
                   variant="outlined"
                 />
-                 <TextField
-                  label="Permission Number"
-                  name="permission_number"
-                  value={formData.permission_number}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                />
+                <TextField
+                    label="Permission Number"
+                    name="permission_number"
+                    value={formData.permission_number}
+                    onChange={handleChange}
+                    fullWidth
+                    margin="normal"
+                    required
+                  />
                 <TextField
                   label="Request Date"
                   name="request_date"
