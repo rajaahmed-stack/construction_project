@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { 
-  Grid, Paper, Typography, Table, TableHead, TableBody, TableRow, TableCell, Button, TextField, Input, Card, CardContent 
+  Grid, Paper, Typography, Table, TableHead, TableBody, TableRow, TableCell, Button, TextField, Input, Card, CardContent, Snackbar 
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -17,6 +17,8 @@ const SafetyDepartment = () => {
   const [isButtonVisible, setIsButtonVisible] = useState(true);
   const [alertData, setAlertData] = useState([]);
   const [loading, setLoading] = useState(true);
+   const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [openSnackbar, setOpenSnackbar] = useState(false);
   const [formData, setFormData] = useState({
     safetySigns: null,
     safetySignsCompleted: false,
@@ -595,7 +597,10 @@ const SafetyDepartment = () => {
       alert("Failed to save Safety Permission. Please try again.");
     }
   };
-  
+  const showSnackbar = (msg) => {
+    setSnackbarMessage(msg);
+    setOpenSnackbar(true);
+  };
   
 return (
   
@@ -820,6 +825,12 @@ return (
         )}
       </Paper>
     </Grid>
+     <Snackbar
+                        open={openSnackbar}
+                        autoHideDuration={3000}
+                        onClose={() => setOpenSnackbar(false)}
+                        message={snackbarMessage}
+                        />
   </Grid>
 );
 };

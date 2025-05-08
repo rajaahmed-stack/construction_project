@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Box, Button, TextField, Modal, Typography, Paper, Container, Table, 
-  TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from "@mui/material";
+  TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Snackbar } from "@mui/material";
 import "../styles/survey.css";  // Importing the stylesheet
 
 const Survey = () => {
@@ -11,8 +11,9 @@ const Survey = () => {
   const [formData, setFormData] = useState({}); // Form data
   const [loading, setLoading] = useState(true); // Loading state for data fetching
   const [alertData, setAlertData] = useState([]); // For alerting on deadlines
-  const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000;
-
+ const [data, setData] = useState([]);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -155,6 +156,8 @@ const Survey = () => {
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`Please fill all the fields. Missing: ${field}`);
+        showSnackbar('Please fill all fields and attach a valid file.');
+
         return;
       }
     }
@@ -256,6 +259,10 @@ const Survey = () => {
     } catch (error) {
       console.error("Error updating department:", error);
     }
+  };
+  const showSnackbar = (msg) => {
+    setSnackbarMessage(msg);
+    setOpenSnackbar(true);
   };
 
   return (
@@ -486,6 +493,12 @@ const Survey = () => {
           </Box>
         </Modal>
       </Box>
+       <Snackbar
+              open={openSnackbar}
+              autoHideDuration={3000}
+              onClose={() => setOpenSnackbar(false)}
+              message={snackbarMessage}
+              />
     </Container>
   );
 };
