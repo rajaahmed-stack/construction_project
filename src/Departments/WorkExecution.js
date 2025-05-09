@@ -6,6 +6,35 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";import "../styles/workexecution.css";
 
+const processWorkExeData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.safety_created_at && record.workexe_created_at) {
+      const workCreatedAt = new Date(record.safety_created_at);
+      const surveyCreatedAt = new Date(record.workexe_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
+
 const WorkExecution = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);
@@ -95,33 +124,8 @@ const WorkExecution = () => {
             axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-data"),
           ]);
     
-          const today = new Date();
-    
-          const updatedData = permissionResponse.data.map((record) => {
-            if (record.safety_created_at && record.workexe_created_at) {
-              const workCreatedAt = new Date(record.safety_created_at);
-              const surveyCreatedAt = new Date(record.workexe_created_at);
-              const deadline = new Date(workCreatedAt);
-              deadline.setDate(deadline.getDate() + 2);
-    
-              let statusColor = "";
-              let deliveryStatus = "On Time";
-    
-              if (surveyCreatedAt > deadline) {
-                statusColor = "red";
-                deliveryStatus = "Delayed";
-              } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-                statusColor = "yellow";
-                deliveryStatus = "Near Deadline";
-              } else {
-                statusColor = "green";
-                deliveryStatus = "On Time";
-              }
-    
-              return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-            }
-            return record;
-          });
+          const updatedData = processWorkExeData(permissionResponse.data);
+
     
           setLowerData(updatedData);
           setUpperData(comingResponse.data || []);
@@ -199,7 +203,21 @@ const WorkExecution = () => {
   
     return (completedFields / totalFields) * 100;
   };
-  
+  const refreshWorkExeData = async () => {
+            try {
+              const [comingResponse, permissionResponse] = await Promise.all([
+                axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-coming"),
+                axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-data"),
+              ]);
+          
+              const updatedData = processWorkExeData(permissionResponse.data);
+          
+              setUpperData(comingResponse.data || []);
+              setLowerData(updatedData);
+            } catch (error) {
+              console.error("Error refreshing work execution data:", error);
+            }
+          };
 
   // Handle form submission
   const handleSaveData = async (e) => {
@@ -217,28 +235,16 @@ const WorkExecution = () => {
     }
   
     setLoading(true);
-  
-    const today = new Date();
-    const deadline = new Date();
-    deadline.setDate(deadline.getDate() + 2);
-  
-    let deliveryStatus = "on time";
-    if (today > deadline) {
-      deliveryStatus = "delayed";
-    } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-      deliveryStatus = "nearing deadline";
-    }
-  
-    const updatedFormData = { ...formData, delivery_status: deliveryStatus };
+
   
     try {
       const response = await axios.post(
-        "https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder",
-        updatedFormData
+        "https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder"
       );
   
       if (response.status === 200) {
         alert("Data saved successfully!");
+        await refreshWorkExeData();
         setShowForm(false);
   
         const updatedRecord = upperData.find(
@@ -288,6 +294,7 @@ const handleSaveRemainingData = async (workOrderId) => {
     );
 
     alert("Data saved successfully!");
+    await refreshWorkExeData();
 
     // Reset the remark field for the current record
     setFormData((prevData) => ({
@@ -387,6 +394,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-asphalt", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -416,6 +424,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-milling", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -445,6 +454,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-concrete", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -475,6 +485,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck3", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -505,6 +516,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck2", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -535,6 +547,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck1", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -564,6 +577,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-sand", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -593,6 +607,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-backfilling", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -622,6 +637,8 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -651,6 +668,7 @@ const handleSaveRemainingData = async (workOrderId) => {
       await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-trench", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshWorkExeData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
