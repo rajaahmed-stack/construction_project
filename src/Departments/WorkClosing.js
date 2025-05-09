@@ -3,6 +3,35 @@ import axios from "axios";
 import { Container, Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Modal, TextField } from "@mui/material";
 import "../styles/permissionclosing.css";
 
+
+const processWorkClosingData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.wc_created_at && record.pc_created_at) {
+      const workCreatedAt = new Date(record.pc_created_at);
+      const surveyCreatedAt = new Date(record.wc_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
 const WorkClosing = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);
@@ -71,6 +100,21 @@ const WorkClosing = () => {
 
   //   fetchData();
   // }, []);
+   const refreshWorkClosingData = async () => {
+          try {
+            const [comingResponse, workclosingResponse] = await Promise.all([
+            axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
+            axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
+    ]);
+        
+            const updatedData = processWorkClosingData(workclosingResponse.data);
+        
+            setUpperData(comingResponse.data || []);
+            setLowerData(updatedData);
+          } catch (error) {
+            console.error("Error refreshing survey data:", error);
+          }
+        };
   const handleSave = async (e) => {
     e.preventDefault();
   
@@ -108,6 +152,7 @@ const WorkClosing = () => {
   
       if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
+        await refreshWorkClosingData();
   
         // Update the lowerData state with the new or updated record
         const updatedRecord = {
@@ -115,17 +160,6 @@ const WorkClosing = () => {
           mubahisa: formData.mubahisa ? true : false, // Mark mubahisa as true if a file was uploaded
         };
   
-        setLowerData((prevData) => {
-          if (formData.isEditing) {
-            // Replace the existing record in case of editing
-            return prevData.map((record) =>
-              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
-            );
-          } else {
-            // Add the new record to the lowerData
-            return [...prevData, updatedRecord];
-          }
-        });
   
         // Reset the form and close the modal
         setFormData({
@@ -165,34 +199,9 @@ const WorkClosing = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
         ]);
   
-        const today = new Date();
-  
-        const updatedData = workclosingResponse.data.map((record) => {
-          if (record.pc_created_at && record.wc_created_at) {
-            const workCreatedAt = new Date(record.pc_created_at);
-            const surveyCreatedAt = new Date(record.wc_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            } else {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
-  
+      
+        const updatedData = processWorkClosingData(workclosingResponse.data);
+
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
   

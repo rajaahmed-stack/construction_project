@@ -9,6 +9,36 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ReactDOM from "react-dom";
 import "../styles/safety.css";
 
+
+const processSafetyData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.safety_created_at && record.permission_created_at) {
+      const workCreatedAt = new Date(record.permission_created_at);
+      const surveyCreatedAt = new Date(record.safety_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
+
 const SafetyDepartment = () => {
   console.log("SafetyDepartment component rendered.");
   const [upperData, setUpperData] = useState([]);
@@ -76,33 +106,7 @@ const SafetyDepartment = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-data"),
         ]);
   
-        const today = new Date(); // ✅ Define `today` at the top
-  
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.safety_created_at && record.permission_created_at) {
-            const workCreatedAt = new Date(record.safety_created_at);
-            const permissionCreatedAt = new Date(record.permission_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (permissionCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            } else {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
+        const updatedData = processSafetyData(permissionResponse.data);
   
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
@@ -365,7 +369,8 @@ const SafetyDepartment = () => {
     
         console.log("Server response:", response.data);
         alert("Data saved successfully!");
-    
+        await refreshSafetyData();
+
         // Update the lowerData state after saving
         setLowerData((prevData) =>
           prevData.map((item) =>
@@ -397,6 +402,21 @@ const SafetyDepartment = () => {
         }
       }
     };
+     const refreshSafetyData = async () => {
+          try {
+            const [comingResponse, permissionResponse] = await Promise.all([
+              axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-coming"),
+              axios.get("https://constructionproject-production.up.railway.app/api/safety/safety-data"),
+            ]);
+        
+            const updatedData = processSafetyData(permissionResponse.data);
+        
+            setUpperData(comingResponse.data || []);
+            setLowerData(updatedData);
+          } catch (error) {
+            console.error("Error refreshing survey data:", error);
+          }
+        };
     const handleSaveSafetySign = async (field, workOrderId) => { 
       try {
         if (!workOrderId) {
@@ -416,6 +436,7 @@ const SafetyDepartment = () => {
         );
     
         alert(`${field} saved successfully!`);
+        await refreshSafetyData();
         setFormData((prevData) => ({
           ...prevData,
           [`${field}Completed`]: true,
@@ -448,6 +469,7 @@ const SafetyDepartment = () => {
         );
     
         alert(`${field} saved successfully!`);
+        await refreshSafetyData();
         setFormData((prevData) => ({
           ...prevData,
           [`${field}Completed`]: true,
@@ -478,6 +500,7 @@ const SafetyDepartment = () => {
       const response = await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
   
       alert(`${field} saved successfully!`);
+      await refreshSafetyData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -513,6 +536,7 @@ const SafetyDepartment = () => {
       );
   
       alert(`${field} saved successfully!`);
+      await refreshSafetyData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -548,6 +572,7 @@ const SafetyDepartment = () => {
       );
   
       alert(`${field} saved successfully!`);
+      await refreshSafetyData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -583,6 +608,7 @@ const SafetyDepartment = () => {
       );
   
       alert(`${field} saved successfully!`);
+      await refreshSafetyData();
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,

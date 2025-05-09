@@ -4,6 +4,36 @@ import { Box, Button, TextField, Modal, Typography, Paper, Container, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Snackbar } from "@mui/material";
 import "../styles/survey.css";  // Importing the stylesheet
 
+
+const processSurveyData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.survey_created_at && record.created_at) {
+      const workCreatedAt = new Date(record.created_at);
+      const surveyCreatedAt = new Date(record.survey_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
+
 const Survey = () => {
   const [upperData, setUpperData] = useState([]); // Survey coming data
   const [lowerData, setLowerData] = useState([]); // Existing survey data
@@ -14,6 +44,8 @@ const Survey = () => {
  const [data, setData] = useState([]);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -21,65 +53,28 @@ const Survey = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-coming"),
           axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data"),
         ]);
-  
-        const today = new Date();
-  
-        const updatedData = surveyResponse.data.map((record) => {
-          if (record.survey_created_at && record.created_at) {
-            const workCreatedAt = new Date(record.created_at);
-            const surveyCreatedAt = new Date(record.survey_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = '';
-            let deliveryStatus = 'On Time';
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = 'red';
-              deliveryStatus = 'Delayed';
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = 'Green';
-              deliveryStatus = 'On Time';
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = 'yellow';
-              deliveryStatus = 'Near Deadline';
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
-  
+    
+        const updatedData = processSurveyData(surveyResponse.data);
+    
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
-  
-        // Send updated statuses to backend
+    
         await Promise.all(updatedData.map(async (record) => {
           if (record.delivery_status) {
             try {
-              console.log("Sending update for:", record.work_order_id, record.delivery_status);
-              const response = await axios.put("https://constructionproject-production.up.railway.app/api/survey/update-delivery-status", {
+              await axios.put("https://constructionproject-production.up.railway.app/api/survey/update-delivery-status", {
                 work_order_id: record.work_order_id,
                 delivery_status: record.delivery_status,
               });
-              console.log("Update response:", response.data);
             } catch (error) {
               console.error("Error updating delivery status:", error.response ? error.response.data : error);
             }
           }
         }));
-  
-        // Filter alerts for work orders nearing or past deadlines
+    
         const urgentOrders = updatedData.filter((record) => record.statusColor !== '');
         setAlertData(urgentOrders);
-  
-        if (urgentOrders.length > 0) {
-          const alertMessage = urgentOrders.map((order) =>
-            `Work Order: ${order.work_order_id || 'N/A'}, Status: ${order.delivery_status}`
-          ).join('\n');
-  
-          // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
-        }
+    
       } catch (error) {
         console.error("Error fetching survey data:", error);
       } finally {
@@ -147,6 +142,22 @@ const Survey = () => {
       survey_file_path: e.target.files[0], // Store actual file object
     });
   };
+
+  const refreshSurveyData = async () => {
+    try {
+      const [comingResponse, surveyResponse] = await Promise.all([
+        axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-coming"),
+        axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data"),
+      ]);
+  
+      const updatedData = processSurveyData(surveyResponse.data);
+  
+      setUpperData(comingResponse.data || []);
+      setLowerData(updatedData);
+    } catch (error) {
+      console.error("Error refreshing survey data:", error);
+    }
+  };
   
   const handleSaveData = async (e) => {
     e.preventDefault();
@@ -188,6 +199,7 @@ const Survey = () => {
   
       if (response.status === 200) {
         alert("Data saved successfully!");
+        await refreshSurveyData();
   
         // Update the lowerData state with the new or updated record
         const updatedRecord = {
@@ -195,18 +207,7 @@ const Survey = () => {
           survey_file_path: response.data.filePath || formData.survey_file_path, // Use the file path from the response if available
         };
   
-        setLowerData((prevData) => {
-          if (formData.isEditing) {
-            // Replace the existing record in case of editing
-            return prevData.map((record) =>
-              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
-            );
-          } else {
-            // Add the new record to the lowerData
-            return [...prevData, updatedRecord];
-          }
-        });
-  
+      
         // Reset the form and close the modal
         setFormData({});
         setShowForm(false);

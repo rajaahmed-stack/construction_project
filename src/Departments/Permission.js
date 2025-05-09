@@ -2,6 +2,37 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Container, Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Modal, TextField, Snackbar } from "@mui/material";
 
+
+
+
+const processPermissionData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.survey_created_at && record.permission_created_at) {
+      const workCreatedAt = new Date(record.survey_created_at);
+      const surveyCreatedAt = new Date(record.permission_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
 const Permission = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);
@@ -33,36 +64,12 @@ const Permission = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/permission/permission-data"),
         ]);
   
-        const today = new Date();
-  
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.survey_created_at && record.permission_created_at) {
-            const workCreatedAt = new Date(record.survey_created_at);
-            const surveyCreatedAt = new Date(record.permission_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
-  
+      
+        const updatedData = processPermissionData(permissionResponse.data);
+    
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
+       
   
         // ✅ Ensure `updatedData` is not empty before updating backend
         if (updatedData.length > 0) {
@@ -118,7 +125,21 @@ const Permission = () => {
     link.download = url.substring(url.lastIndexOf("/") + 1);
     link.click();
   };
-
+  const refreshPermissionData = async () => {
+      try {
+        const [comingResponse, permissionResponse] = await Promise.all([
+          axios.get("https://constructionproject-production.up.railway.app/api/permission/permission-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission/permission-data"),
+        ]);
+    
+        const updatedData = processPermissionData(permissionResponse.data);
+    
+        setUpperData(comingResponse.data || []);
+        setLowerData(updatedData);
+      } catch (error) {
+        console.error("Error refreshing survey data:", error);
+      }
+    };
   const handleSave = async (e) => {
     e.preventDefault();
   
@@ -173,24 +194,14 @@ const Permission = () => {
   
       if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-  
+        await refreshPermissionData();
         // Update the lowerData state with the new or updated record
         const updatedRecord = {
           ...formData,
           Document: response.data.filePath || formData.Document, // Use the file path from the response if available
         };
   
-        setLowerData((prevData) => {
-          if (formData.isEditing) {
-            // Replace the existing record in case of editing
-            return prevData.map((record) =>
-              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
-            );
-          } else {
-            // Add the new record to the lowerData
-            return [...prevData, updatedRecord];
-          }
-        });
+        
   
         // Reset the form and close the modal
         setFormData({

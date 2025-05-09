@@ -3,6 +3,35 @@ import axios from "axios";
 import { Container, Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Modal, TextField } from "@mui/material";
 import "../styles/permissionclosing.css";
 
+
+const processPermissionClosingData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.workexe_created_at && record.pc_created_at) {
+      const workCreatedAt = new Date(record.workexe_created_at);
+      const surveyCreatedAt = new Date(record.pc_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
 const PermissionClosing = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);
@@ -30,33 +59,8 @@ const PermissionClosing = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
         ]);
   
-        const today = new Date();
-  
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.pc_created_at && record.workexe_created_at) {
-            const workCreatedAt = new Date(record.workexe_created_at);
-            const surveyCreatedAt = new Date(record.pc_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            } else {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
+        const updatedData = processPermissionClosingData(permissionResponse.data);
+
   
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
@@ -106,58 +110,22 @@ const PermissionClosing = () => {
     }));
   };
 
-  // const handleSave = async (e) => {
-  //   e.preventDefault();
-  
-  //   if (!formData.Work_closing_certificate || !formData.final_closing_certificate) {
-  //     alert("Please upload both certificates.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     const formDataWithFile = new FormData();
-  //     formDataWithFile.append("Work_closing_certificate", formData.Work_closing_certificate);
-  //     formDataWithFile.append("final_closing_certificate", formData.final_closing_certificate);
-  //     formDataWithFile.append("work_order_id", formData.work_order_id);
-  //     formDataWithFile.append("permission_number", formData.permission_number);
-  //     formDataWithFile.append("closing_date", formData.closing_date);
-  //     formDataWithFile.append("penalty_reason", formData.penalty_reason);
-  //     formDataWithFile.append("penalty_amount", formData.penalty_amount);
-  
-  //     const response = await axios.post(
-  //       "https://constructionproject-production.up.railway.app/api/permission-closing/upload-and-save-pcdocument",
-  //       formDataWithFile,
-  //       { headers: { "Content-Type": "multipart/form-data" } }
-  //     );
-  
-  //     if (response.data.success) {
-  //       alert("File uploaded and data saved successfully.");
-  //       setShowForm(false);
-  //       setFormData({
-  //         work_order_id: "",
-  //         permission_number: "",
-  //         Work_closing_certificate: null,
-  //         final_closing_certificate: null,
-  //         closing_date: "",
-  //         penalty_reason: "",
-  //         penalty_amount: "",
-  //       });
-  
-  //       // Refresh data
-  //       const [comingResponse, permissionResponse] = await Promise.all([
-  //         axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
-  //         axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
-  //       ]);
-  //       setUpperData(comingResponse.data || []);
-  //       setLowerData(permissionResponse.data || []);
-  //     } else {
-  //       alert("Failed to upload the file.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error uploading file and saving data:", error);
-  //     alert("Failed to upload file and save data. Please try again.");
-  //   }
-  // };
+
+  const refreshPermissionClosingData = async () => {
+        try {
+          const [comingResponse, permissionResponse] = await Promise.all([
+            axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
+          ]);
+      
+          const updatedData = processPermissionClosingData(permissionResponse.data);
+      
+          setUpperData(comingResponse.data || []);
+          setLowerData(updatedData);
+        } catch (error) {
+          console.error("Error refreshing survey data:", error);
+        }
+      };
   const handleSave = async (e) => {
     e.preventDefault();
   
@@ -199,6 +167,7 @@ const PermissionClosing = () => {
   
       if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
+        await refreshPermissionClosingData();
   
         // Update the lowerData state with the new or updated record
         const updatedRecord = {
@@ -207,17 +176,7 @@ const PermissionClosing = () => {
           final_closing_certificate_completed: formData.final_closing_certificate ? true : false,
         };
   
-        setLowerData((prevData) => {
-          if (formData.isEditing) {
-            // Replace the existing record in case of editing
-            return prevData.map((record) =>
-              record.work_order_id === updatedRecord.work_order_id ? updatedRecord : record
-            );
-          } else {
-            // Add the new record to the lowerData
-            return [...prevData, updatedRecord];
-          }
-        });
+      
   
         // Reset the form and close the modal
         setFormData({
