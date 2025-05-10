@@ -82,8 +82,8 @@ app.use('/uploads', express.static(uploadDir));
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'rb4733164@gmail.com',
-    pass: 'avqi dffd sfju bjcn', // App password (not your main password)
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,// App password (not your main password)
   },
 });
 
