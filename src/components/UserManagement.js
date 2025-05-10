@@ -54,7 +54,7 @@ const UserManagement = () => {
 
   const handleDeleteUser = async (userId) => {
     try {
-      await axios.delete(`constructionproject-production.up.railway.app/api/usermanagement/users/${userId}`);
+      await axios.delete(`https://constructionproject-production.up.railway.app/api/usermanagement/delete-users/${userId}`);
       message.success("User deleted successfully");
       setUsers(users.filter((user) => user.id !== userId));
     } catch (error) {
@@ -68,10 +68,10 @@ const UserManagement = () => {
     try {
       let response;
       if (currentUser) {
-        response = await axios.put(`constructionproject-production.up.railway.app/api/users/${currentUser.id}`, values);
+        response = await axios.put(`https://constructionproject-production.up.railway.app/api/users/${currentUser.id}`, values);
         message.success("User updated successfully");
       } else {
-        response = await axios.post("constructionproject-production.up.railway.app/api/save_users", values);
+        response = await axios.post("https://constructionproject-production.up.railway.app/api/usermanagement/save_users", values);
         message.success("User added successfully");
   
         // Send email after adding user
@@ -90,7 +90,7 @@ const UserManagement = () => {
     setLoading(false);
   };
   const sendEmail = (to, subject, text) => {
-    axios.post("constructionproject-production.up.railway.app/api/send-email", { to, subject, text })
+    axios.post("https://constructionproject-production.up.railway.app/api/send-email", { to, subject, text })
       .then(() => {
         console.log("Email sent successfully");
       })
