@@ -3,6 +3,8 @@ import axios from "axios";
 import { Form, Button, Modal } from "react-bootstrap";
 import "../styles/permissionclosing.css";
 
+
+
 const StoreDepartment = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);

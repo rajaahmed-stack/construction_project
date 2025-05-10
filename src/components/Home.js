@@ -9,6 +9,10 @@ import {
 } from "react-icons/fi";
 import axios from "axios";
 import "../styles/Home.css";
+import {
+  BarChart, Bar, XAxis, Tooltip, ResponsiveContainer
+} from "recharts";
+
 
 const departments = [
   { name:  "Work Receiving Department", path: "/Departments/work-receiving-department" },
@@ -36,6 +40,7 @@ const departmentCredentials = {
   "Store": { username: "store", password: "s" },
 };
 
+
 const Home = () => {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
@@ -46,20 +51,55 @@ const Home = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [recentOrders, setRecentOrders] = useState([
+    { title: "Install New Transformer", department: "Work Execution Department", status: "Completed" },
+    { title: "Cable Replacement", department: "Survey Department", status: "Pending" },
+    { title: "Safety Inspection", department: "Safety Department", status: "Ongoing" }
+  ]);
+  const [chartData, setChartData] = useState([
+    { name: "Work Receiving", projects: 15 },
+    { name: "Survey", projects: 10 },
+    { name: "Execution", projects: 20 },
+  ]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAllData = async () => {
       try {
-        const response = await axios.get(
-          "https://constructionproject-production.up.railway.app/api/stats"
-        );
-        setStats(response.data);
+        const [statsRes, ordersRes, chartStatsRes, usersRes] = await Promise.all([
+          axios.get("https://constructionproject-production.up.railway.app/api/stats"),
+          axios.get("https://constructionproject-production.up.railway.app/api/recent-work-orders"),
+          axios.get("https://constructionproject-production.up.railway.app/api/chart-stats"),
+          axios.get("https://constructionproject-production.up.railway.app/api/users"), // Optional if you want users
+        ]);
+  
+        setStats(statsRes.data);
+        setRecentOrders(ordersRes.data);
+  
+        const stats = chartStatsRes.data;
+        const formattedChartData = [
+          { name: "Work Receiving", projects: stats.work_receiving },
+          { name: "Survey", projects: stats.survey },
+          { name: "Permission", projects: stats.permissions },
+          { name: "Safety", projects: stats.safety },
+          { name: "Work Execution", projects: stats.work_execution },
+          { name: "Permission Closing", projects: stats.permission_closing },
+          { name: "Work Closing", projects: stats.work_closing },
+          { name: "Drawing", projects: stats.drawing },
+          { name: "GIS", projects: stats.gis },
+          { name: "Store", projects: stats.store },
+        ];
+        setChartData(formattedChartData);
+  
+        // If you want to display users
+        // setUsers(usersRes.data);
       } catch (error) {
-        console.error("Error fetching stats", error);
+        console.error("Error fetching data:", error);
       }
     };
-    fetchStats();
+  
+    fetchAllData();
   }, []);
+  
 
   useEffect(() => {
     document.body.className = darkMode ? "dark-mode" : "";
@@ -120,63 +160,115 @@ const Home = () => {
             <p onClick={() => navigate("/management")}>
               <FiSettings /> Management
             </p>
+            <p onClick={() => navigate("/users")}>
+              <FiSettings /> User Registration
+            </p>
           </nav>
         </aside>
 
-        {/* Main Content */}
         <div className="main-content">
-          {/* Header */}
-          <header className="home-header">
-            <div>
-              <h1>🏗️ Mansour Al Mosaid Group</h1>
-              <p>“Building the Future with Excellence”</p>
-            </div>
-            <div className="mode-switch">
-              <span>{darkMode ? "🌙" : "☀️"}</span>
-              <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-            </div>
-          </header>
+  {/* Header */}
+  <header className="home-header">
+  <div>
+    <h1>🏗️ Mansour Al Mosaid Group</h1>
+    <p>“Building the Future with Excellence”</p>
+  </div>
+  <div className="mode-switch">
+    <span>{darkMode ? "🌙" : "☀️"}</span>
+    <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
+  </div>
+</header>
 
-          {/* Welcome Banner */}
-          <div className="welcome-banner">
-            <h2>Welcome back, Admin 👋</h2>
-            <p>Here's a quick look at your operations today.</p>
+{/* Welcome Banner */}
+<div className="welcome-banner">
+  <div className="welcome-left">
+    <div className="emoji-circle">👋</div>
+    <div className="welcome-text">
+      <h1>Welcome back, Admin</h1>
+      <p>Here's a summary of your site’s activities today.</p>
+    </div>
+  </div>
+</div>
+
+{/* Dashboard Overview */}
+<section className="overview">
+  <Row gutter={[16, 16]}>
+    {[
+      {
+        title: "Projects Completed",
+        value: stats.projectsCompleted,
+        icon: <FiCheckCircle size={36} />,
+      },
+      {
+        title: "Ongoing Emergencies",
+        value: stats.ongoingEmergencies,
+        icon: <FiAlertTriangle size={36} />,
+      },
+      {
+        title: "Budget",
+        value: `$${stats.budget}`,
+        icon: <FiDollarSign size={36} />,
+      },
+    ].map((item, index) => (
+      <Col xs={24} md={8} key={index}>
+        <Card className="status-card" bordered={false}>
+          <div className="card-content">
+            <div className="card-text">
+              <h4>{item.title}</h4>
+              <h2>{item.value}</h2>
+            </div>
+            <div className="card-icon">{item.icon}</div>
           </div>
+        </Card>
+      </Col>
+    ))}
+  </Row>
+</section>
 
-          {/* Dashboard Overview */}
-          <section className="overview">
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={8}>
-                <Card className="status-card success" bordered={false}>
-                  <FiCheckCircle size={30} />
-                  <h3>{stats.projectsCompleted} Projects Completed</h3>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card className="status-card warning" bordered={false}>
-                  <FiAlertTriangle size={30} />
-                  <h3>{stats.ongoingEmergencies} Ongoing Emergencies</h3>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card className="status-card finance" bordered={false}>
-                  <FiDollarSign size={30} />
-                  <h3>${stats.budget} Budget</h3>
-                </Card>
-              </Col>
-            </Row>
-          </section>
+{/* Recent Work Orders */}
+<section className="recent-orders">
+  <h2>📝 Recent Work Orders</h2>
+  <table className="recent-orders-table">
+    <thead>
+      <tr>
+        <th>Work Order #</th>
+        <th>Job Type</th>
+        <th>Sub Section</th>
+        <th>Receiving Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {recentOrders.map((order, idx) => (
+        <tr key={idx}>
+          <td>{order.work_order_id}</td>
+          <td>{order.job_type}</td>
+          <td>{order.sub_section}</td>
+          <td>{new Date(order.receiving_date).toLocaleDateString()}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</section>
 
-          {/* Footer */}
-          <footer className="home-footer">
-            <div className="footer-content">
-              <p>
-                © 2025 <strong>Mansour Al Mosaid Group</strong>. All Rights Reserved.
-              </p>
-            </div>
-          </footer>
-        </div>
-      </div>
+
+{/* Charts Section */}
+<section className="dashboard-charts">
+  <h2>📊 Department Stats Overview</h2>
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={chartData}>
+      <XAxis dataKey="name" />
+      <Tooltip />
+      <Bar dataKey="projects" fill="#3b82f6" />
+    </BarChart>
+  </ResponsiveContainer>
+</section>
+
+{/* Footer */}
+<footer className="home-footer">
+  <p>© 2025 <strong>Mansour Al Mosaid Group</strong>. All Rights Reserved.</p>
+</footer>
+</div>
+
 
       {/* Modal for credentials */}
       <Modal open={showModal} onClose={() => setShowModal(false)}>
@@ -239,6 +331,7 @@ const Home = () => {
           </form>
         </Box>
       </Modal>
+      </div>
     </>
   );
 };

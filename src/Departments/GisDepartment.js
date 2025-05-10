@@ -3,6 +3,36 @@ import axios from "axios";
 import { Form, Button, Modal } from "react-bootstrap";
 import "../styles/permissionclosing.css";
 
+const processGisData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.d_created_at && record.g_created_at) {
+      const workCreatedAt = new Date(record.d_created_at);
+      const surveyCreatedAt = new Date(record.g_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
+
+
 const GisDepartment = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);
@@ -15,22 +45,6 @@ const GisDepartment = () => {
    
   });
 
-  // // Fetch data from the backend
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const [comingResponse, permissionResponse] = await Promise.all([
-  //         axios.get("https://constructionproject-production.up.railway.app/api/gis/gisdep-coming"),
-  //         axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
-  //       ]);
-  //       setUpperData(comingResponse.data || []);
-  //       setLowerData(permissionResponse.data || []);
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-  //   fetchData();
-  // }, []);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -39,33 +53,8 @@ const GisDepartment = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
         ]);
   
-        const today = new Date();
-  
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.d_created_at && record.g_created_at) {
-            const workCreatedAt = new Date(record.d_created_at);
-            const surveyCreatedAt = new Date(record.g_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
+        const updatedData = processGisData(permissionResponse.data);
+
   
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
@@ -100,7 +89,7 @@ const GisDepartment = () => {
             .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
             .join("\n");
   
-          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+          // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
         console.error("Error fetching survey data:", error);
@@ -134,7 +123,22 @@ const GisDepartment = () => {
       }));
     } 
   };
+  const refreshGisData = async () => {
+    try {
+      const [comingResponse, permissionResponse] = await Promise.all([
+        axios.get("https://constructionproject-production.up.railway.app/api/gis/gisdep-coming"),
+        axios.get("https://constructionproject-production.up.railway.app/api/gis/gis-data"),
+      ]);
   
+      const updatedData = processGisData(permissionResponse.data);
+  
+      setUpperData(comingResponse.data || []);
+      setLowerData(updatedData);
+    } catch (error) {
+      console.error("Error refreshing survey data:", error);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
   
@@ -160,12 +164,7 @@ const GisDepartment = () => {
         alert('File uploaded and data saved successfully');
   
         // Update the lowerData state with the new record
-        const updatedRecord = {
-          ...formData,
-          gis: true, // Mark GIS as uploaded
-        };
-  
-        setLowerData((prevData) => [...prevData, updatedRecord]);
+       await refreshGisData();
   
         // Reset the form and close the modal
         setFormData({

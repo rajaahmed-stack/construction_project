@@ -3,7 +3,34 @@ import axios from "axios";
 import { Form, Button, Modal } from "react-bootstrap";
 import "../styles/permissionclosing.css";
 
+const processDrawingsData = (data) => {
+  const today = new Date();
+  return data.map((record) => {
+    if (record.d_created_at && record.workexe_created_at) {
+      const workCreatedAt = new Date(record.workexe_created_at);
+      const surveyCreatedAt = new Date(record.d_created_at);
+      const deadline = new Date(workCreatedAt);
+      deadline.setDate(deadline.getDate() + 2);
 
+      let statusColor = '';
+      let deliveryStatus = 'On Time';
+
+      if (surveyCreatedAt > deadline) {
+        statusColor = 'red';
+        deliveryStatus = 'Delayed';
+      } else if (surveyCreatedAt < deadline) {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
+      } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+        statusColor = 'yellow';
+        deliveryStatus = 'Near Deadline';
+      }
+
+      return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return record;
+  });
+};
 
 const DrawingDepartment = () => {
   const [upperData, setUpperData] = useState([]);
@@ -41,34 +68,9 @@ const DrawingDepartment = () => {
           axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawing-data"),
         ]);
   
-        const today = new Date();
-  
-        const updatedData = permissionResponse.data.map((record) => {
-          if (record.d_created_at && record.workexe_created_at) {
-            const workCreatedAt = new Date(record.workexe_created_at);
-            const surveyCreatedAt = new Date(record.d_created_at);
-            const deadline = new Date(workCreatedAt);
-            deadline.setDate(deadline.getDate() + 2);
-  
-            let statusColor = "";
-            let deliveryStatus = "On Time";
-  
-            if (surveyCreatedAt > deadline) {
-              statusColor = "red";
-              deliveryStatus = "Delayed";
-            } else if (surveyCreatedAt < deadline) {
-              statusColor = "green";
-              deliveryStatus = "On Time";
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = "yellow";
-              deliveryStatus = "Near Deadline";
-            }
-  
-            return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
-          }
-          return record;
-        });
-  
+        
+        const updatedData = processDrawingsData(permissionResponse.data);
+
         setLowerData(updatedData);
         setUpperData(comingResponse.data || []);
   
@@ -102,7 +104,7 @@ const DrawingDepartment = () => {
             .map((order) => `Work Order: ${order.work_order_id || "N/A"}, Status: ${order.delivery_status}`)
             .join("\n");
   
-          alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
+          // alert(`Warning: Some work orders are close to or past their deadline.\n\n${alertMessage}`);
         }
       } catch (error) {
         console.error("Error fetching survey data:", error);
@@ -135,6 +137,21 @@ const DrawingDepartment = () => {
       }));
     } 
   };
+   const refreshDrawingData = async () => {
+        try {
+          const [comingResponse, permissionResponse] = await Promise.all([
+            axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawingdep-coming"),
+            axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawing-data"),
+          ]);
+      
+          const updatedData = processDrawingsData(permissionResponse.data);
+      
+          setUpperData(comingResponse.data || []);
+          setLowerData(updatedData);
+        } catch (error) {
+          console.error("Error refreshing survey data:", error);
+        }
+      };
   
   const handleSave = async (e) => {
     e.preventDefault();
@@ -161,13 +178,7 @@ const DrawingDepartment = () => {
         alert('File uploaded and data saved successfully');
   
         // Update the lowerData state with the new record
-        const updatedRecord = {
-          ...formData,
-          drawing: true, // Mark drawing as uploaded
-        };
-  
-        setLowerData((prevData) => [...prevData, updatedRecord]);
-  
+       await refreshDrawingData();
         // Reset the form and close the modal
         setFormData({
           work_order_id: "",
