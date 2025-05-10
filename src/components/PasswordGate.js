@@ -1,45 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext"; // 👈 import the auth context
-import axios from "axios"; // Import axios for API calls
-
+import { useAuth } from "./AuthContext";
+import axios from "axios";
+const departments = [
+  { name:  "Work Receiving", path: "/Departments/work-receiving-department" },
+  { name:   "Survey", path:"/Departments/survey-department" },
+  { name:   "Permission",path: "/Departments/permission-department" },
+  { name:   "Safety", path: "/Departments/safety-department" },
+  { name:   "Work Execution", path: "/Departments/work-execution-department" },
+  { name:   "Permission Closing", path: "/Departments/permission-closing-department" },
+  { name:   "Work Closing ", path: "/Departments/work-closing-department" },
+  { name:   "Drawing", path: "/Departments/drawing" },
+  { name:   "GIS", path: "/Departments/gis" },
+  { name:   "Store", path: "/Departments/store" },
+];
 const PasswordGate = () => {
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState(""); // Username state
-  const { login } = useAuth(); // 👈 use login function
+  const [username, setUsername] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
-  
-  const correctPassword = "admin123";
-  // const correctUsername = "admin"; // Admin username
 
-  // Handle login logic
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Check if the credentials are for admin
-    if ( password === correctPassword) {
+    // Admin check
+    if (username === "admin" && password === "admin123") {
       login();
-      navigate('/Home'); // Navigate to home page if admin
-    } else {
-      // If not admin, check from users database
-      try {
-        const response = await axios.get(`https://constructionproject-production.up.railway.app/api/users`);
-        const users = response.data;
+      navigate("/Home");
+      return;
+    }
 
-        // Find matching user by username and password
-        const user = users.find((user) =>  user.password === password);
-        
-        if (user) {
-          // If user is found, navigate to their respective department page
-          alert(`Welcome to the ${user.username}'s Department`);
-          navigate(`/Departments/${user.username.toLowerCase()}`);
-        } else {
-          alert("❌ Incorrect username or password. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error fetching users", error);
-        alert("Error checking credentials. Please try again.");
+    // Check user credentials from database
+    try {
+      const response = await axios.get(`https://constructionproject-production.up.railway.app/api/users`);
+      const users = response.data;
+
+      const user = users.find((user) => user.department === username && user.password === password);
+
+      if (user) {
+        login(); // optional: depending if you want to consider all logged-in users
+        alert(`Welcome to the ${user.department}'s Department`);
+        navigate(`/Departments/${user.department.toLowerCase()}`);
+      } else {
+        alert("❌ Incorrect username or password. Please try again.");
       }
+    } catch (error) {
+      console.error("Error fetching users", error);
+      alert("⚠️ Error checking credentials. Please try again.");
     }
   };
 
@@ -70,7 +77,7 @@ const PasswordGate = () => {
         <h2 style={{ marginBottom: "20px", color: "#333" }}>🔐 Secure Access</h2>
 
         <form onSubmit={handleLogin}>
-          {/* <input
+          <input
             type="text"
             placeholder="Enter username..."
             value={username}
@@ -84,7 +91,7 @@ const PasswordGate = () => {
               marginBottom: "20px",
               outline: "none",
             }}
-          /> */}
+          />
           <input
             type="password"
             placeholder="Enter password..."

@@ -76,8 +76,28 @@ const UserManagement = () => {
   
         // Send email after adding user
         const subject = 'User Registration Confirmation';
-        const text = `Hello ${values.name},\n\nYour registration was successful!\n\nYour username is: ${values.username}`;
-        sendEmail(values.email, subject, text); // Send email after adding user
+        const text = `
+        🌟 Welcome to Mansour Al Mosaid Group! 🌟
+        
+        Dear ${values.name},
+        
+        Your registration was successful! 🎉
+        
+        Here are your login details:
+        
+        🔐 Username: ${values.username}  
+        🔑 Password: ${values.password}  
+        
+        Please keep this information secure and do not share it with anyone.
+        
+        If you have any questions, feel free to reach out.
+        
+        Regards,  
+        Mansour Al Mosaid Group Team  
+        🏗️ "Building the Future with Excellence"
+        `;
+        
+        sendEmail(values.email, subject, text);
       }
   
       setUsers(response.data); // Set the updated users list
