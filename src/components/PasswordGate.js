@@ -22,25 +22,30 @@ const PasswordGate = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    // Admin check
+  
     if (username === "admin" && password === "admin123") {
       login();
       navigate("/Home");
       return;
     }
-
-    // Check user credentials from database
+  
     try {
       const response = await axios.get(`https://constructionproject-production.up.railway.app/api/users`);
       const users = response.data;
-
-      const user = users.find((user) => user.department === username && user.password === password);
-
+  
+      const user = users.find(
+        (user) => user.department === username && user.password === password
+      );
+  
       if (user) {
-        login(); // optional: depending if you want to consider all logged-in users
-        alert(`Welcome to the ${user.department}'s Department`);
-        navigate(`/Departments/${user.department.toLowerCase()}`);
+        const matchedDept = departments.find((d) => d.name === user.department);
+        if (matchedDept) {
+          login();
+          alert(`Welcome to the ${user.department} Department`);
+          navigate(matchedDept.path);
+        } else {
+          alert("✅ Logged in, but department path not found.");
+        }
       } else {
         alert("❌ Incorrect username or password. Please try again.");
       }
@@ -49,6 +54,7 @@ const PasswordGate = () => {
       alert("⚠️ Error checking credentials. Please try again.");
     }
   };
+  
 
   return (
     <div

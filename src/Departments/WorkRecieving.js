@@ -4,6 +4,33 @@ import {
   TableBody, TableCell, TableContainer, TableHead, TableRow, Snackbar 
 } from '@mui/material';
 import { Download, Save } from '@mui/icons-material';
+import axios from "axios";
+
+const processWorkReceivingData = (data) => {
+  const today = new Date();
+  return data.map((item) => {
+    if (item.created_at) {
+      const createdAt = new Date(item.created_at);
+      const deadline = new Date(createdAt);
+      deadline.setDate(deadline.getDate() + 2);
+
+      let statusColor = '';
+      let deliveryStatus = 'on time';
+
+      if (item.current_department === 'Work Receiving') {
+        if (today > deadline) {
+          statusColor = 'red';
+          deliveryStatus = 'delayed';
+        } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
+          statusColor = 'yellow';
+        }
+      }
+
+      return { ...item, deadline, statusColor, delivery_status: deliveryStatus };
+    }
+    return item;
+  });
+};
 
 const WorkReceiving = () => {
   const [formData, setFormData] = useState({
@@ -21,133 +48,122 @@ const WorkReceiving = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
+ 
+  
   useEffect(() => {
-    fetchData();
+    fetchWorkReceivingData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchWorkReceivingData = async () => {
     try {
-      const response = await fetch('https://constructionproject-production.up.railway.app/api/work_receiving');
-      const results = await response.json();
-      
-      const today = new Date();
-      const updatedData = results.map((item) => {
-        if (item.created_at) {
-          const createdAt = new Date(item.created_at);
-          const deadline = new Date(createdAt);
-          deadline.setDate(deadline.getDate() + 2); // Add 2 days to created_at
-
-          let statusColor = '';
-          let deliveryStatus = 'on time'; // Default status
-
-          if (item.current_department === 'Work Receiving') {
-            if (today > deadline) {
-              statusColor = 'red'; // Deadline Passed
-              deliveryStatus = 'delayed'; // Update status to delayed
-            } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-              statusColor = 'yellow'; // Near Deadline
-            }
-          }
-
-          return { 
-            ...item, 
-            deadline, 
-            statusColor, 
-            delivery_status: deliveryStatus // Add delivery status to the item
-          };
-        }
-        return item;
-      });
-
+      const response = await axios.get("https://constructionproject-production.up.railway.app/api/work_receiving");
+      const updatedData = processWorkReceivingData(response.data);
       setData(updatedData);
-
-      // Filter alerts for work orders nearing or past deadlines
+  
       const urgentOrders = updatedData.filter((item) => item.statusColor !== '');
       setAlertData(urgentOrders);
-
+  
       if (urgentOrders.length > 0) {
-        showSnackbar('Warning: Some work orders are close to or past their deadline.');
+        showSnackbar('Warning: Some work orders are close to or past their deadline.', 'warning');
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching work receiving data:", error);
     }
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const refreshWorkReceivingData = async () => {
+    try {
+      const response = await axios.get("https://constructionproject-production.up.railway.app/api/work_receiving");
+      const updatedData = processWorkReceivingData(response.data);
+      setData(updatedData);
+    } catch (error) {
+      console.error("Error refreshing work receiving data:", error);
+    }
+  };
 
+  
   const handleSave = async () => {
-    if (!formData.jobType || !formData.subSection || !formData.workOrderList || !formData.receivingDate || !formData.endDate || !formData.estimatedValue) {
-        showSnackbar('Please fill out all fields', 'error');
-        return;
+    const { jobType, subSection, workOrderList, receivingDate, endDate, estimatedValue, file_path, workOrderId } = formData;
+
+    if (!jobType || !subSection || !workOrderList || !receivingDate || !endDate || !estimatedValue) {
+      showSnackbar('Please fill out all fields', 'error');
+      return;
     }
 
-    if (!formData.file_path || !(formData.file_path instanceof File)) {
-        alert("Please select a valid file.");
-        return;
+    if (!file_path || !(file_path instanceof File)) {
+      alert("Please select a valid file.");
+      return;
     }
 
-    // Create FormData for new or edit
     const formDataWithFile = new FormData();
-    formDataWithFile.append('file_path', formData.file_path);  // Append file
-    formDataWithFile.append('jobType', formData.jobType);
-    formDataWithFile.append('subSection', formData.subSection);
-    formDataWithFile.append('workOrderList', formData.workOrderList);  // Work order ID
-    formDataWithFile.append('receivingDate', formData.receivingDate);
-    formDataWithFile.append('endDate', formData.endDate);
-    formDataWithFile.append('estimatedValue', formData.estimatedValue);
+    formDataWithFile.append('file_path', file_path);
+    formDataWithFile.append('jobType', jobType);
+    formDataWithFile.append('subSection', subSection);
+    formDataWithFile.append('workOrderList', workOrderList);
+    formDataWithFile.append('receivingDate', receivingDate);
+    formDataWithFile.append('endDate', endDate);
+    formDataWithFile.append('estimatedValue', estimatedValue);
     formDataWithFile.append('current_department', 'Work Receiving');
-    
-    const today = new Date();
-    const deadline = new Date(formData.receivingDate);
-    deadline.setDate(deadline.getDate() + 2);
 
-    let deliveryStatus = 'on time';
-    if (today > deadline) {
-        deliveryStatus = 'delayed';
-    } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-        deliveryStatus = 'nearing deadline';
-    }
+    // const today = new Date();
+    // const deadline = new Date(receivingDate);
+    // deadline.setDate(deadline.getDate() + 2);
 
-    formDataWithFile.append('delivery_status', deliveryStatus);
+    // let deliveryStatus = 'on time';
+    // const daysDiff = (deadline - today) / (1000 * 60 * 60 * 24);
+
+    // if (daysDiff < 0) {
+    //   deliveryStatus = 'delayed';
+    // } else if (daysDiff <= 1) {
+    //   deliveryStatus = 'nearing deadline';
+    // }
+
+    // formDataWithFile.append('delivery_status', deliveryStatus);
 
     try {
-        const url = formData.workOrderId 
-            ? `https://constructionproject-production.up.railway.app/api/edit-work-receiving/${formData.workOrderId}` 
-            : 'https://constructionproject-production.up.railway.app/api/save-work_receiving';
+      const url = workOrderId
+        ? `https://constructionproject-production.up.railway.app/api/edit-work-receiving/${workOrderId}`
+        : 'https://constructionproject-production.up.railway.app/api/save-work_receiving';
 
-        const method = formData.workOrderId ? 'PUT' : 'POST';  // If updating, use PUT, else POST
+      const method = workOrderId ? 'PUT' : 'POST';
 
-        const response = await fetch(url, {
-            method: method,
-            body: formDataWithFile,  // Send form data with file
+      const response = await fetch(url, {
+        method,
+        body: formDataWithFile,
+      });
+
+      const message = await response.text();
+      if (message.includes('Duplicate entry')) {
+        showSnackbar('Work Order already exists!', 'warning');
+      } else if (message.includes('Successfully created') || message.includes('updated successfully')) {
+        showSnackbar('Work Order saved successfully!', 'success');
+        // await fetchData();  // instead of refreshWorkReceivingData
+        await fetchWorkReceivingData(); // Refresh data after saving
+        setFormData({
+          jobType: '',
+          subSection: '',
+          workOrderList: '',
+          receivingDate: '',
+          endDate: '',
+          estimatedValue: '',
+          file_path: null,
+          workOrderId: null,
         });
-
-        const message = await response.text();
-        if (message.includes('Duplicate entry')) {
-            showSnackbar('Work Order already exists!', 'warning');
-        } else if (message.includes('Successfully created') || message.includes('updated successfully')) {
-            showSnackbar('Work Order saved successfully!', 'success');
-            setFormData({
-                jobType: '',
-                subSection: '',
-                workOrderList: '',
-                receivingDate: '',
-                endDate: '',
-                estimatedValue: '',
-                file_path: null,
-                workOrderId: null,  // Reset the ID after save
-            });
-            fetchData();  // Refresh data
-        } else {
-            showSnackbar(message, 'info');
-        }
+        console.log('Success! Reloading after 5 seconds...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000); // 10 seconds
+      } else {
+        showSnackbar(message, 'info');
+      }
     } catch (error) {
-        console.error('Error saving data:', error);
-        showSnackbar('Error saving data. Try again!', 'error');
+      console.error('Error saving data:', error);
+      showSnackbar('Error saving data. Try again!', 'error');
     }
-};
+  };
 
 const handleDownload = async (workOrderId) => {
   if (!workOrderId) {
@@ -199,7 +215,7 @@ const handleDelete = async (id) => {
     });
     setSnackbarMessage('Work Receiving deleted successfully!');
     setOpenSnackbar(true);
-    fetchData(); // Refresh data
+    fetchWorkReceivingData(); // Refresh data
   } catch (error) {
     setSnackbarMessage('Failed to delete Work Receiving.');
     setOpenSnackbar(true);

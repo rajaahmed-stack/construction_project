@@ -146,7 +146,7 @@ const PermissionClosing = () => {
     formDataWithFile.append('penalty_reason', formData.penalty_reason || '');
     formDataWithFile.append('penalty_amount', formData.penalty_amount || '');
   
-    if (formData.Work_closing_certificate) {
+    if (formData.work_closing_certificate) {
       formDataWithFile.append('work_closing_certificate', formData.work_closing_certificate);
     }
   
@@ -170,11 +170,11 @@ const PermissionClosing = () => {
         await refreshPermissionClosingData();
   
         // Update the lowerData state with the new or updated record
-        const updatedRecord = {
-          ...formData,
-          work_closing_certificate_completed: formData.Work_closing_certificate ? true : false,
-          final_closing_certificate_completed: formData.final_closing_certificate ? true : false,
-        };
+        // const updatedRecord = {
+        //   ...formData,
+        //   work_closing_certificate_completed: formData.Work_closing_certificate ? true : false,
+        //   final_closing_certificate_completed: formData.final_closing_certificate ? true : false,
+        // };
   
       
   
@@ -185,7 +185,7 @@ const PermissionClosing = () => {
           closing_date: "",
           penalty_reason: "",
           penalty_amount: "",
-          Work_closing_certificate: null,
+          work_closing_certificate: null,
           final_closing_certificate: null,
           isEditing: false,
         });

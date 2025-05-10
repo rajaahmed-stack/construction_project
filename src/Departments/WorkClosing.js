@@ -7,29 +7,32 @@ import "../styles/permissionclosing.css";
 const processWorkClosingData = (data) => {
   const today = new Date();
   return data.map((record) => {
-    if (record.wc_created_at && record.pc_created_at) {
-      const workCreatedAt = new Date(record.pc_created_at);
-      const surveyCreatedAt = new Date(record.wc_created_at);
-      const deadline = new Date(workCreatedAt);
+    const wcCreatedAt = record.wc_created_at ? new Date(record.wc_created_at) : null;
+    const pcCreatedAt = record.pc_created_at ? new Date(record.pc_created_at) : null;
+
+    if (wcCreatedAt && pcCreatedAt) {
+      const deadline = new Date(pcCreatedAt);
       deadline.setDate(deadline.getDate() + 2);
 
       let statusColor = '';
       let deliveryStatus = 'On Time';
 
-      if (surveyCreatedAt > deadline) {
+      if (wcCreatedAt > deadline) {
         statusColor = 'red';
         deliveryStatus = 'Delayed';
-      } else if (surveyCreatedAt < deadline) {
-        statusColor = 'green';
-        deliveryStatus = 'On Time';
       } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
         statusColor = 'yellow';
         deliveryStatus = 'Near Deadline';
+      } else {
+        statusColor = 'green';
+        deliveryStatus = 'On Time';
       }
 
       return { ...record, deadline, statusColor, delivery_status: deliveryStatus };
     }
-    return record;
+
+    // Return the record anyway, with default values
+    return { ...record, delivery_status: 'Not Enough Info', statusColor: 'gray' };
   });
 };
 const WorkClosing = () => {
