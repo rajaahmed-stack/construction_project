@@ -353,7 +353,7 @@ app.get("/api/stats", (req, res) => {
       });
     });
   });
-router.get('/recent-work-orders', async (req, res) => {
+app.get('/api/recent-work-orders', async (req, res) => {
     try {
       const [rows] = await db.execute(`
         SELECT work_order_id, job_type, sub_section, receiving_date 
@@ -367,7 +367,7 @@ router.get('/recent-work-orders', async (req, res) => {
       res.status(500).json({ error: "Internal server error" });
     }
   });
-  router.get("/chart-stats", async (req, res) => {
+app.get('/api/chart-stats', async (req, res) => {
     try {
       const [rows] = await db.query(`
         SELECT 
