@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -353,41 +353,44 @@ app.get("/api/stats", (req, res) => {
       });
     });
   });
-app.get('/api/recent-work-orders', async (req, res) => {
-    try {
-      const [rows] = await db.execute(`
-        SELECT work_order_id, job_type, sub_section, receiving_date 
-        FROM work_receiving 
-        ORDER BY receiving_date DESC 
-        LIMIT 5
-      `);
-      res.json(rows);
-    } catch (error) {
-      console.error("Error fetching recent work orders:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+  app.get('/api/recent-work-orders', (req, res) => {
+    const query = `
+      SELECT work_order_id, job_type, sub_section, receiving_date 
+      FROM work_receiving 
+      ORDER BY receiving_date DESC 
+      LIMIT 5
+    `;
+    
+    db.query(query, (error, results) => {
+      if (error) {
+        console.error("Error fetching recent work orders:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json(results);
+    });
   });
-app.get('/api/chart-stats', async (req, res) => {
-    try {
-      const [rows] = await db.query(`
-        SELECT 
-          (SELECT COUNT(*) FROM work_receiving) AS work_receiving,
-          (SELECT COUNT(*) FROM survey) AS survey,
-          (SELECT COUNT(*) FROM permissions) AS permissions,
-          (SELECT COUNT(*) FROM safety_department) AS safety,
-          (SELECT COUNT(*) FROM work_execution) AS work_execution,
-          (SELECT COUNT(*) FROM permission_closing) AS permission_closing,
-          (SELECT COUNT(*) FROM work_closing) AS work_closing,
-          (SELECT COUNT(*) FROM drawing_department) AS drawing,
-          (SELECT COUNT(*) FROM gis_department) AS gis,
-          (SELECT COUNT(*) FROM store) AS store
-      `);
-      
-      res.json(rows[0]);
-    } catch (err) {
-      console.error("Error fetching stats:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
+  app.get('/api/chart-stats', (req, res) => {
+    const query = `
+      SELECT 
+        (SELECT COUNT(*) FROM work_receiving) AS work_receiving,
+        (SELECT COUNT(*) FROM survey) AS survey,
+        (SELECT COUNT(*) FROM permissions) AS permissions,
+        (SELECT COUNT(*) FROM safety_department) AS safety,
+        (SELECT COUNT(*) FROM work_execution) AS work_execution,
+        (SELECT COUNT(*) FROM permission_closing) AS permission_closing,
+        (SELECT COUNT(*) FROM work_closing) AS work_closing,
+        (SELECT COUNT(*) FROM drawing_department) AS drawing,
+        (SELECT COUNT(*) FROM gis_department) AS gis,
+        (SELECT COUNT(*) FROM store) AS store
+    `;
+    
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error("Error fetching stats:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+      res.json(results[0]);
+    });
   });
 // Delete work receiving entry by work_order_id
 app.delete('/api/delete-work-receiving/:id', (req, res) => {
