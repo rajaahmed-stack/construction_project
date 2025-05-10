@@ -254,7 +254,7 @@ app.post('/api/update-current-department', (req, res) => {
 // Add a new user and send confirmation email
 app.post('/api/usermanagement/save_users', (req, res) => {
   const { name, email, password, username } = req.body;
-  const query = 'INSERT INTO users (name, email, password, username) VALUES (?, ?, ?, ?)';
+  const query = 'INSERT INTO users (name, email, password, department) VALUES (?, ?, ?, ?)';
 
   db.query(query, [name, email, password, username], (err, results) => {
     if (err) {
@@ -296,7 +296,7 @@ app.put('/api/users/:id', (req, res) => {
 });
 
 // Delete a user
-app.delete('/api/users/:id', (req, res) => {
+app.delete('/api/delete-users/:id', (req, res) => {
   const { id } = req.params;
   const query = 'DELETE FROM users WHERE id = ?';
 
