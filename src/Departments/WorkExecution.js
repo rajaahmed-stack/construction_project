@@ -235,11 +235,15 @@ const WorkExecution = () => {
     }
   
     setLoading(true);
-
+  
+  
+  
+    const updatedFormData = { ...formData };
   
     try {
       const response = await axios.post(
-        "https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder"
+        "https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder",
+        updatedFormData
       );
   
       if (response.status === 200) {
@@ -395,6 +399,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -425,6 +430,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -455,6 +461,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -486,6 +493,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -517,6 +525,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -548,6 +557,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -578,6 +588,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -608,6 +619,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -629,12 +641,12 @@ const handleSaveRemainingData = async (workOrderId) => {
       }
   
       const dataToSend = {
-        cable_lying: formData.cable_lying ? `uploads/${formData.cable_lying.filename}` : null,
+        cable_lying: formData.cable_lying  || null,
         cable_lying_completed: formData.cable_lying_completed,
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
+      const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -669,6 +681,7 @@ const handleSaveRemainingData = async (workOrderId) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
+
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
