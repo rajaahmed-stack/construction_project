@@ -31,7 +31,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://constructionproject-production.up.railway.app/api/usermanagement/users");
+      const response = await axios.get("https://constructionproject-production.up.railway.app/api/users");
       console.log(response.data); // Check the response
       setUsers(response.data);
     } catch (error) {
@@ -54,7 +54,7 @@ const UserManagement = () => {
 
   const handleDeleteUser = async (userId) => {
     try {
-      await axios.delete(`https://constructionproject-production.up.railway.app/api/usermanagement/delete-users/${userId}`);
+      await axios.delete(`https://constructionproject-production.up.railway.app/api/delete-users/${userId}`);
       message.success("User deleted successfully");
       setUsers(users.filter((user) => user.id !== userId));
     } catch (error) {

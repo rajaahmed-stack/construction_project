@@ -82,8 +82,8 @@ app.use('/uploads', express.static(uploadDir));
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,// App password (not your main password)
+    user: process.env.EMAIL_USER || 'rb4733164@gmail.com',
+    pass: process.env.EMAIL_PASS || 'avqi dffd sfju bjcn',// App password (not your main password)
   },
 });
 
@@ -104,6 +104,11 @@ const sendEmail = (to, subject, text) => {
     }
   });
 };
+app.post('/api/send-email', (req, res) => {
+  const { to, subject, text } = req.body;
+  sendEmail(to, subject, text);
+  res.status(200).send('Email request received');
+});
 
 // Root route
 app.get('/server', (req, res) => {
