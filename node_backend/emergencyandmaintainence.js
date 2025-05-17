@@ -48,7 +48,7 @@ router.get('/api/e&m', (req, res) => {
 });
 
 // Save work_receiving data
-router.post('/api/EAM/save-emergency_and_maintainence', upload.array('file_path'), (req, res) => {
+router.post('/save-emergency_and_maintainence', upload.array('file_path'), (req, res) => {
   const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, remarks } = req.body;
 const documentFilePath = req.files?.map(file => path.join('uploads', file.filename)).join(',') || null;
 
