@@ -117,3 +117,4 @@ const documentFilePath = req.files?.map(file => path.join('uploads', file.filena
     });
   });
 });
+module.exports = router;
