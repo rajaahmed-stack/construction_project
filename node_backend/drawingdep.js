@@ -106,26 +106,43 @@ router.post('/upload-and-save-drawingdocument', (req, res, next) => {
 // Fetch workExecution Coming Data
 router.get('/drawingdep-coming', (req, res) => {
     const query = `
-   SELECT 
-    work_execution.work_order_id, 
-    work_execution.permission_number,
-    work_receiving.job_type, 
-    work_receiving.sub_section,
-    work_receiving.file_path,
-    survey.survey_file_path,
-    permissions.Document
-FROM work_execution 
-LEFT JOIN work_receiving 
-    ON work_execution.work_order_id = work_receiving.work_order_id
-LEFT JOIN survey 
-    ON work_execution.work_order_id = survey.work_order_id
-LEFT JOIN permissions 
-    ON work_execution.work_order_id = permissions.work_order_id
-WHERE work_execution.work_order_id NOT IN (
+  -- Part 1: Existing Work Orders from work_execution
+SELECT  
+    we.work_order_id, 
+    we.permission_number,
+    wr.job_type, 
+    wr.sub_section,
+    wr.file_path,
+    s.survey_file_path,
+    p.Document
+FROM work_execution we
+LEFT JOIN work_receiving wr ON we.work_order_id = wr.work_order_id
+LEFT JOIN survey s ON we.work_order_id = s.work_order_id
+LEFT JOIN permissions p ON we.work_order_id = p.work_order_id
+WHERE we.work_order_id NOT IN (
         SELECT work_order_id FROM drawing_department
     )
-AND work_receiving.current_department IN ('PermissionClosing', 'WorkClosing')
-AND work_receiving.job_type != 'Meters';
+AND wr.current_department IN ('PermissionClosing', 'WorkClosing')
+
+UNION
+
+-- Part 2: Work Orders with job_type = 'Meters' directly from work_receiving
+SELECT  
+    wr.work_order_id, 
+    NULL AS permission_number,
+    wr.job_type, 
+    wr.sub_section,
+    wr.file_path,
+    s.survey_file_path,
+    p.Document
+FROM work_receiving wr
+LEFT JOIN survey s ON wr.work_order_id = s.work_order_id
+LEFT JOIN permissions p ON wr.work_order_id = p.work_order_id
+WHERE wr.job_type = 'Meters'
+AND wr.work_order_id NOT IN (
+        SELECT work_order_id FROM drawing_department
+    );
+
 
 
 

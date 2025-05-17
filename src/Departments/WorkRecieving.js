@@ -75,7 +75,7 @@ const WorkReceiving = () => {
       setAlertData(urgentOrders);
   
       if (urgentOrders.length > 0) {
-        showSnackbar('Warning: Some work orders are close to or past their deadline.', 'warning');
+        // showSnackbar('Warning: Some work orders are close to or past their deadline.', 'warning');
       }
     } catch (error) {
       console.error("Error fetching work receiving data:", error);
