@@ -449,7 +449,7 @@ app.delete('/api/delete-work-receiving/:id', (req, res) => {
 
 app.put('/api/edit-work-receiving/:id', upload.array('file_path'), (req, res) => {
   const workOrderId = req.params.id;
-  const { jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status } = req.body;
+  const { jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status,remarks } = req.body;
   const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
 
   const query = `
@@ -459,7 +459,7 @@ app.put('/api/edit-work-receiving/:id', upload.array('file_path'), (req, res) =>
     WHERE work_order_id = ?
   `;
 
-  db.query(query, [jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, documentFilePath, workOrderId], (err, results) => {
+  db.query(query, [jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, documentFilePath, remarks, workOrderId], (err, results) => {
     if (err) {
       console.error('Error updating work receiving:', err);
       return res.status(500).send('Error updating work receiving');
