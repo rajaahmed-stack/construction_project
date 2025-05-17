@@ -267,28 +267,43 @@ const handleEdit = (item) => {
         <Grid item xs={12} md={6}>
           <Paper elevation={4} sx={{ padding: 3 }}>
             <Grid container spacing={2}>
-              {[
-                { label: 'Job Type', name: 'jobType', options: ['Extension', 'Emergency', 'Meters', 'Projects'] },
-                { label: 'Sub Section', name: 'subSection', options: ['Overhead', 'Underground'] }
-              ].map(({ label, name, options }) => (
-                <Grid item xs={12} key={name}>
+            <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Job Type"
+                  name="jobType"
+                  value={formData.jobType}
+                  onChange={handleChange}
+                  variant="outlined"
+                >
+                  {['Extension', 'Emergency', 'Meters', 'Projects'].map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              {formData.jobType !== 'Meters' && formData.jobType !== 'Emergency' && (
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     select
-                    label={label}
-                    name={name}
-                    value={formData[name]}
+                    label="Sub Section"
+                    name="subSection"
+                    value={formData.subSection}
                     onChange={handleChange}
                     variant="outlined"
                   >
-                    {options.map((option) => (
+                    {['Overhead', 'Underground'].map((option) => (
                       <MenuItem key={option} value={option}>
                         {option}
                       </MenuItem>
                     ))}
                   </TextField>
                 </Grid>
-              ))}
+              )}
 
               {[
                 { label: 'Work Order', name: 'workOrderList', type: 'text' },
@@ -296,33 +311,40 @@ const handleEdit = (item) => {
                 { label: 'End Date', name: 'endDate', type: 'date' },
                 { label: 'Estimated Value', name: 'estimatedValue', type: 'number' },
                 { label: 'Remarks', name: 'remarks', type: 'text' }
-              ].map(({ label, name, type }) => (
-                <Grid item xs={12} key={name}>
+              ].map((field) => (
+                <Grid item xs={12} key={field.name}>
                   <TextField
                     fullWidth
-                    type={type}
-                    label={label}
-                    name={name}
-                    value={formData[name]}
+                    label={field.label}
+                    name={field.name}
+                    type={field.type}
+                    value={formData[field.name]}
                     onChange={handleChange}
                     variant="outlined"
-                    InputLabelProps={type === 'date' ? { shrink: true } : {}}
+                    InputLabelProps={field.type === 'date' ? { shrink: true } : {}}
                   />
                 </Grid>
               ))}
-            </Grid>
-            <input
-                  type="file"
-                  name="file_path"
-                  multiple
-                  onChange={(e) => setFormData({ ...formData, file_path: e.target.files })}
-                  accept="image/*,application/pdf"
-                />
-            
 
-            <Button fullWidth variant="contained" color="primary" startIcon={<Save />} onClick={handleSave} sx={{ mt: 3 }}>
-              Save
-            </Button>
+              <Grid item xs={12}>
+                <input
+                  multiple
+                  type="file"
+                  onChange={(e) => setFormData({ ...formData, file_path: e.target.files })}
+                />
+              </Grid>
+
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Save />}
+                  onClick={handleSave}
+                >
+                  Save
+                </Button>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
 
@@ -333,7 +355,7 @@ const handleEdit = (item) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    {['Sr.No','Work Order', 'Job Type', 'Sub Section', 'Receiving Date', 'End Date', 'Value', 'Created At', 'Deadline',  'File', 'Action'].map(header => (
+                    {['Sr.No','Work Order', 'Job Type', 'Sub Section', 'Receiving Date', 'End Date', 'Value','Remarks','File', 'Action'].map(header => (
                       <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>
                     ))}
                   </TableRow>
@@ -348,8 +370,9 @@ const handleEdit = (item) => {
                       <TableCell>{new Date(item.receiving_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(item.end_date).toLocaleDateString()}</TableCell>
                       <TableCell>{item.estimated_value}</TableCell>
-                      <TableCell>{new Date(item.created_at).toLocaleString()}</TableCell>
-                      <TableCell>{item.deadline.toLocaleDateString()}</TableCell>
+                      <TableCell>{item.remarks}</TableCell>
+                      {/* <TableCell>{new Date(item.created_at).toLocaleString()}</TableCell> */}
+                      {/* <TableCell>{item.deadline.toLocaleDateString()}</TableCell> */}
                       {/* <TableCell> {item.file_path ? "✅" : "❌"}</TableCell> */}
                       <TableCell>
                           {item.file_path ? (

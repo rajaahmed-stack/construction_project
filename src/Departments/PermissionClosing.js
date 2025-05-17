@@ -11,7 +11,7 @@ const processPermissionClosingData = (data) => {
       const workCreatedAt = new Date(record.workexe_created_at);
       const surveyCreatedAt = new Date(record.pc_created_at);
       const deadline = new Date(workCreatedAt);
-      deadline.setDate(deadline.getDate() + 2);
+      deadline.setDate(deadline.getDate() + 10);
 
       let statusColor = '';
       let deliveryStatus = 'On Time';

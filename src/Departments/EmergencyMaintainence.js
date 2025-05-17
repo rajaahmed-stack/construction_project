@@ -12,7 +12,7 @@ const processWorkReceivingData = (data) => {
     if (item.created_at) {
       const createdAt = new Date(item.created_at);
       const deadline = new Date(createdAt);
-      deadline.setDate(deadline.getDate() + 1);
+      deadline.setDate(deadline.getDate() + 2);
 
       let statusColor = '';
       let deliveryStatus = 'on time';
