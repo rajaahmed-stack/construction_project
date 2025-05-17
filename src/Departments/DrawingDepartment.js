@@ -123,21 +123,20 @@ const DrawingDepartment = () => {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      alert('Please select a file.');
+    const files = Array.from(e.target.files);
+    if (files.length === 0) {
+      alert('Please select at least one file.');
       return;
     }
-    
-    // Ensure both certificates are set separately
+  
     if (e.target.name === 'drawing') {
       setFormData((prevData) => ({
         ...prevData,
-        drawing: file,
+        drawing: files,
       }));
-    } 
+    }
   };
-   const refreshDrawingData = async () => {
+     const refreshDrawingData = async () => {
         try {
           const [comingResponse, permissionResponse] = await Promise.all([
             axios.get("https://constructionproject-production.up.railway.app/api/drawing-department/drawingdep-coming"),
@@ -153,47 +152,47 @@ const DrawingDepartment = () => {
         }
       };
   
-  const handleSave = async (e) => {
-    e.preventDefault();
-  
-    // Validate required fields
-    if (!formData.drawing) {
-      alert('Please upload the drawing document.');
-      return;
-    }
-  
-    try {
-      // Prepare form data for submission
-      const formDataWithFile = new FormData();
-      formDataWithFile.append('drawing', formData.drawing);
-      formDataWithFile.append('work_order_id', formData.work_order_id);
-  
-      const response = await axios.post(
-        'https://constructionproject-production.up.railway.app/api/drawing-department/upload-and-save-drawingdocument',
-        formDataWithFile,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
-  
-      if (response.data.success) {
-        alert('File uploaded and data saved successfully');
-  
-        // Update the lowerData state with the new record
-       await refreshDrawingData();
-        // Reset the form and close the modal
-        setFormData({
-          work_order_id: "",
-          drawing: "",
-        });
-        setShowForm(false);
-      } else {
-        alert('Failed to upload the file');
-      }
-    } catch (error) {
-      console.error('Error uploading file and saving data:', error);
-      alert('Failed to upload file and save data. Please try again.');
-    }
-  };
-  
+      const handleSave = async (e) => {
+        e.preventDefault();
+      
+        if (!formData.drawing || formData.drawing.length === 0) {
+          alert('Please upload at least one drawing file.');
+          return;
+        }
+      
+        try {
+          const formDataWithFile = new FormData();
+          formDataWithFile.append('work_order_id', formData.work_order_id);
+      
+          // Append each selected file
+          formData.drawing.forEach((file) => {
+            formDataWithFile.append('drawing', file); // field name matches backend
+          });
+      
+          const response = await axios.post(
+            'https://constructionproject-production.up.railway.app/api/drawing-department/upload-and-save-drawingdocument',
+            formDataWithFile,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          );
+      
+          if (response.data.success) {
+            alert('Files uploaded and data saved successfully');
+      
+            await refreshDrawingData();
+            setFormData({
+              work_order_id: '',
+              drawing: [],
+            });
+            setShowForm(false);
+          } else {
+            alert('Failed to upload the files');
+          }
+        } catch (error) {
+          console.error('Error uploading files and saving data:', error);
+          alert('Failed to upload files and save data. Please try again.');
+        }
+      };
+      
   
   
   
@@ -340,10 +339,11 @@ const DrawingDepartment = () => {
               <Form.Control
                 type="file"
                 name="drawing"
+                multiple
                 onChange={handleFileUpload}
-                // value={formData.Work_closing_certificate}
                 required
               />
+
             </Form.Group>
             
             <Button variant="secondary" type="submit" onClick={handleSave}>

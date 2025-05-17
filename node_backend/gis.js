@@ -55,21 +55,23 @@ router.post('/upload-workExecution-file/:fieldName', upload.single('file'), (req
 });
 // Combined route for file upload and data saving
 router.post('/upload-and-save-gisdocument', upload.fields([
-  { name: 'gis', maxCount: 1 },
+  { name: 'gis', maxCount: 30 }, // allow up to 10 GIS files
 ]), (req, res) => {
   console.log(req.files);
   console.log(req.body);
 
   const { work_order_id } = req.body;
-  const gis = req.files['gis'] ? req.files['gis'][0].filename : null;
 
-  // Insert file information and work order details into the database
+  // Handle multiple files — save filenames as JSON string or comma-separated string
+  const gisFiles = req.files['gis'] ? req.files['gis'].map(file => file.filename) : [];
+
+  // Convert array to JSON string to store in DB
   const insertQuery = `
     INSERT INTO gis_department 
     (work_order_id, gis)
     VALUES (?, ?)
   `;
-  const insertValues = [work_order_id, gis];
+  const insertValues = [work_order_id, JSON.stringify(gisFiles)];
 
   db.query(insertQuery, insertValues, (err, result) => {
     if (err) {
@@ -77,7 +79,6 @@ router.post('/upload-and-save-gisdocument', upload.fields([
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
 
-    // Update current department in work_receiving
     const updateQuery = `
       UPDATE work_receiving 
       SET current_department = 'Store' 
@@ -91,7 +92,7 @@ router.post('/upload-and-save-gisdocument', upload.fields([
       }
 
       console.log('Department updated to Store for work order:', work_order_id);
-      res.status(200).json({ success: true, message: 'File uploaded, data saved, and department updated successfully' });
+      res.status(200).json({ success: true, message: 'Files uploaded, data saved, and department updated successfully' });
     });
   });
 });
@@ -99,17 +100,22 @@ router.post('/upload-and-save-gisdocument', upload.fields([
 // Fetch workExecution Coming Data
 router.get('/gisdep-coming', (req, res) => {
     const query = `
-      SELECT drawing_department.work_order_id, 
-      drawing_department.drawing,
-      work_receiving.job_type, 
-      work_receiving.file_path, 
-      work_receiving.sub_section
-    FROM drawing_department 
-    LEFT JOIN work_receiving 
-    ON drawing_department.work_order_id = work_receiving.work_order_id
-    WHERE drawing_department.work_order_id NOT IN 
-    (SELECT work_order_id FROM gis_department) 
+     SELECT 
+  drawing_department.work_order_id, 
+  drawing_department.drawing,
+  work_receiving.job_type, 
+  work_receiving.file_path, 
+  work_receiving.sub_section
+FROM drawing_department 
+LEFT JOIN work_receiving 
+  ON drawing_department.work_order_id = work_receiving.work_order_id
+WHERE 
+  (
+    drawing_department.work_order_id NOT IN (SELECT work_order_id FROM gis_department) 
     AND current_department = 'GIS'
+  )
+  OR drawing_department.work_order_id IS NOT NULL
+
       `;
   db.query(query, (err, results) => {
     if (err) {

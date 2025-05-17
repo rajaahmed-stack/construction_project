@@ -25,6 +25,8 @@ const drawingdepartment = require('./drawingdep');
 const gisdepartment = require('./gis');
 const management = require('./management');
 const store = require('./store');
+const invoice = require('./invoice');
+const lab = require('./lab');
 const usermanagement = require('./usermanagement');
 
 // MySQL connection
@@ -129,9 +131,9 @@ app.get('/api/work_receiving', (req, res) => {
 });
 
 // Save work_receiving data
-app.post('/api/save-work_receiving', upload.single('file_path'), (req, res) => {
+app.post('/api/save-work_receiving', upload.array('file_path'), (req, res) => {
   const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status } = req.body;
-  const documentFilePath = req.file ? path.join('uploads', req.file.filename) : null;
+const documentFilePath = req.files?.map(file => path.join('uploads', file.filename)).join(',') || null;
 
   if (!workOrderList || !jobType || !subSection || !receivingDate || !endDate || !estimatedValue || !current_department) {
     return res.status(400).send('All fields are required');
@@ -157,8 +159,8 @@ app.post('/api/save-work_receiving', upload.single('file_path'), (req, res) => {
 
       const insertQuery = `
         INSERT INTO work_receiving 
-        (work_order_id, job_type, sub_section, receiving_date, end_date, estimated_value, current_department, delivery_status, file_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (work_order_id, job_type, sub_section, receiving_date, end_date, estimated_value, current_department, delivery_status, file_path, remarks)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       db.query(insertQuery, [workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, documentFilePath], (err) => {
@@ -438,15 +440,15 @@ app.delete('/api/delete-work-receiving/:id', (req, res) => {
   });
 });
 
-app.put('/api/edit-work-receiving/:id', upload.single('file_path'), (req, res) => {
+app.put('/api/edit-work-receiving/:id', upload.array('file_path'), (req, res) => {
   const workOrderId = req.params.id;
   const { jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status } = req.body;
-  const documentFilePath = req.file ? path.join('uploads', req.file.filename) : null;
+  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
 
   const query = `
     UPDATE work_receiving 
     SET job_type = ?, sub_section = ?, receiving_date = ?, end_date = ?, estimated_value = ?, 
-    current_department = ?, delivery_status = ?, file_path = ?
+    current_department = ?, delivery_status = ?, file_path = ?, remarks = ?
     WHERE work_order_id = ?
   `;
 
@@ -471,6 +473,8 @@ app.use('/api/drawing-department', drawingdepartment);
 app.use('/api/gis', gisdepartment);
 app.use('/api/management', management);
 app.use('/api/store', store);
+app.use('/api/invoice', invoice);
+app.use('/api/lab', lab);
 app.use('/api/usermanagement', usermanagement);
 // Start server
 app.listen(port, () => {

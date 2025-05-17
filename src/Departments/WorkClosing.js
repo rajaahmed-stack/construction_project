@@ -105,6 +105,7 @@ const WorkClosing = () => {
   // }, []);
   const refreshWorkClosingData = async () => {
     try {
+      setLoading(true);
       const [comingResponse, workclosingResponse] = await Promise.all([
         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workclosing-coming"),
         axios.get("https://constructionproject-production.up.railway.app/api/work-closing/workClosing-data"),
@@ -114,69 +115,90 @@ const WorkClosing = () => {
   
       setUpperData(comingResponse.data || []);
       setLowerData(updatedData);
+  
+      // Optionally update delivery status again
+      await Promise.all(updatedData.map(async (record) => {
+        if (record.work_order_id && record.delivery_status) {
+          try {
+            await axios.put("https://constructionproject-production.up.railway.app/api/work-closing/update-wcdelivery-status", {
+              work_order_id: record.work_order_id,
+              delivery_status: record.delivery_status,
+            });
+          } catch (error) {
+            console.error("Error updating delivery status:", error);
+          }
+        }
+      }));
+  
+      setAlertData(updatedData.filter((r) => r.statusColor !== ""));
     } catch (error) {
       console.error("Error refreshing work closing data:", error);
+    } finally {
+      setLoading(false);
     }
   };
-        const handleSave = async (e) => {
-          e.preventDefault();
-        
-          // Validate required fields
-          const requiredFields = ['work_order_id', 'submission_date', 'resubmission_date', 'approval_date'];
-          for (const field of requiredFields) {
-            if (!formData[field]) {
-              alert(`Please fill all the fields. Missing: ${field}`);
-              return;
-            }
-          }
-        
-          // Prepare form data for submission
-          const formDataWithFile = new FormData();
-          formDataWithFile.append('work_order_id', formData.work_order_id);
-          formDataWithFile.append('submission_date', formData.submission_date);
-          formDataWithFile.append('resubmission_date', formData.resubmission_date);
-          formDataWithFile.append('approval_date', formData.approval_date);
-        
-          if (formData.mubahisa) {
-            formDataWithFile.append('mubahisa', formData.mubahisa);
-          }
-        
-          // Determine the URL based on whether it's an edit or a new record
-          const url = formData.isEditing
-            ? `https://constructionproject-production.up.railway.app/api/work-closing/edit-workclosing/${formData.work_order_id}`
-            : 'https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument';
-        
-          try {
-            const response = formData.isEditing
-              ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
-              : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
-        
-            console.log("Backend response:", response.data); // Log the backend response
-        
-            if (response.status === 200) {
-              alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-        
-              // Refresh the data after editing
-              await refreshWorkClosingData();
-        
-              // Reset the form and close the modal
-              setFormData({
-                work_order_id: "",
-                submission_date: "",
-                resubmission_date: "",
-                approval_date: "",
-                mubahisa: null,
-                isEditing: false,
-              });
-              setShowForm(false);
-            } else {
-              alert('Operation failed');
-            }
-          } catch (error) {
-            console.error('Error saving data:', error);
-            alert('An error occurred while saving data.');
-          }
-        };
+  const handleSave = async (e) => {
+    e.preventDefault();
+  
+    const requiredFields = ['work_order_id', 'submission_date', 'resubmission_date', 'approval_date'];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(`Please fill all the fields. Missing: ${field}`);
+        return;
+      }
+    }
+  
+    const formDataWithFile = new FormData();
+    formDataWithFile.append('work_order_id', formData.work_order_id);
+    formDataWithFile.append('submission_date', formData.submission_date);
+    formDataWithFile.append('resubmission_date', formData.resubmission_date);
+    formDataWithFile.append('approval_date', formData.approval_date);
+ 
+    if (formData.mubahisa && formData.mubahisa.length > 0) {
+      formData.mubahisa.forEach((file) => {
+        formDataWithFile.append('mubahisa', file);
+      });
+    }
+  
+  
+    const url = formData.isEditing
+      ? `https://constructionproject-production.up.railway.app/api/work-closing/edit-workclosing/${formData.work_order_id}`
+      : 'https://constructionproject-production.up.railway.app/api/work-closing/upload-and-save-wcdocument';
+  
+    try {
+      const response = formData.isEditing
+        ? await axios.put(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : await axios.post(url, formDataWithFile, { headers: { 'Content-Type': 'multipart/form-data' } });
+  
+      if (response.status === 200) {
+        alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
+  
+        // ✅ Refresh data using shared function
+        await refreshWorkClosingData();
+  
+        // ✅ Reset the form
+        setFormData({
+          work_order_id: "",
+          submission_date: "",
+          resubmission_date: "",
+          approval_date: "",
+          mubahisa: null,
+          isEditing: false,
+        });
+  
+        // ✅ Close the modal
+        setShowForm(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000); // 1-second delay
+      } else {
+        alert('Operation failed');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('An error occurred while saving data.');
+    }
+  };
   const handleEdit = (record) => {
     setFormData({
       work_order_id: record.work_order_id,
@@ -436,7 +458,7 @@ const WorkClosing = () => {
               <Table className="survey-table">
                 <TableHead>
                   <TableRow>
-                    {['Work Order ID', 'Job Type', 'Sub Section', 'Submission Date','Resubmission Date', 'Approval Date', 'Mubahisa'].map((header) => (
+                    {['Sr.No','Work Order ID', 'Job Type', 'Sub Section', 'Submission Date','Resubmission Date', 'Approval Date', 'Mubahisa'].map((header) => (
                       <TableCell key={header} className="survey-table-header">
                         {header}
                       </TableCell>
@@ -444,8 +466,9 @@ const WorkClosing = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {lowerData.map((record) => (
+                  {lowerData.map((record,index) => (
                     <TableRow key={record.work_order_id}>
+                      <TableCell>{index +1}</TableCell>
                       <TableCell>{record.work_order_id}</TableCell>
                       <TableCell>{record.job_type}</TableCell>
                       <TableCell>{record.sub_section}</TableCell>
@@ -548,7 +571,8 @@ const WorkClosing = () => {
              <input
                 type="file"
                 name="mubahisa"
-                onChange={(e) => setFormData({ ...formData, mubahisa: e.target.files[0] })}
+                multiple
+                onChange={(e) => setFormData({ ...formData, mubahisa: e.target.files })}
                 accept="image/*,application/pdf"
               />
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>

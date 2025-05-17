@@ -40,6 +40,7 @@ const WorkReceiving = () => {
     receivingDate: '',
     endDate: '',
     estimatedValue: '',
+    remarks: '',
   });
 
   const [file, setFile] = useState(null);
@@ -47,12 +48,21 @@ const WorkReceiving = () => {
   const [alertData, setAlertData] = useState([]);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
  
   
   useEffect(() => {
     fetchWorkReceivingData();
-  }, []);
+
+    // Set up auto-refresh interval
+    const interval = setInterval(() => {
+      fetchWorkReceivingData();
+    }, 5000); // Refresh every 10 seconds
+
+    // Clean up the interval when the component is unmounted
+    return () => clearInterval(interval);
+  }, [refreshTrigger]);
 
   const fetchWorkReceivingData = async () => {
     try {
@@ -86,26 +96,31 @@ const WorkReceiving = () => {
 
   
   const handleSave = async () => {
-    const { jobType, subSection, workOrderList, receivingDate, endDate, estimatedValue, file_path, workOrderId } = formData;
+    const { jobType, subSection, workOrderList, receivingDate, endDate, estimatedValue, file_path, remarks, workOrderId } = formData;
 
-    if (!jobType || !subSection || !workOrderList || !receivingDate || !endDate || !estimatedValue) {
+    if (!jobType || !subSection || !workOrderList || !receivingDate || !endDate || !estimatedValue || !remarks) {
       showSnackbar('Please fill out all fields', 'error');
       return;
     }
 
-    if (!file_path || !(file_path instanceof File)) {
-      alert("Please select a valid file.");
+    if (!file_path || file_path.length === 0) {
+      alert("Please select at least one file.");
       return;
     }
-
+    
     const formDataWithFile = new FormData();
-    formDataWithFile.append('file_path', file_path);
+    
+    for (let i = 0; i < file_path.length; i++) {
+      formDataWithFile.append('file_path', file_path[i]);
+    }
+    
     formDataWithFile.append('jobType', jobType);
     formDataWithFile.append('subSection', subSection);
     formDataWithFile.append('workOrderList', workOrderList);
     formDataWithFile.append('receivingDate', receivingDate);
     formDataWithFile.append('endDate', endDate);
     formDataWithFile.append('estimatedValue', estimatedValue);
+    formDataWithFile.append('remarks', remarks);
     formDataWithFile.append('current_department', 'Work Receiving');
 
     // const today = new Date();
@@ -140,8 +155,8 @@ const WorkReceiving = () => {
         showSnackbar('Work Order already exists!', 'warning');
       } else if (message.includes('Successfully created') || message.includes('updated successfully')) {
         showSnackbar('Work Order saved successfully!', 'success');
-        // await fetchData();  // instead of refreshWorkReceivingData
-        await fetchWorkReceivingData(); // Refresh data after saving
+        setRefreshTrigger(prev => !prev);  // This will re-fetch data
+
         setFormData({
           jobType: '',
           subSection: '',
@@ -150,6 +165,7 @@ const WorkReceiving = () => {
           endDate: '',
           estimatedValue: '',
           file_path: null,
+          remarks: '',
           workOrderId: null,
         });
         console.log('Success! Reloading after 5 seconds...');
@@ -230,6 +246,7 @@ const handleEdit = (item) => {
       receivingDate: item.receiving_date,
       endDate: item.end_date,
       estimatedValue: item.estimated_value,
+      remarks: item.remarks,
       workOrderId: item.work_order_id,  // Set the Work Order ID
   });
 };
@@ -277,7 +294,8 @@ const handleEdit = (item) => {
                 { label: 'Work Order', name: 'workOrderList', type: 'text' },
                 { label: 'Receiving Date', name: 'receivingDate', type: 'date' },
                 { label: 'End Date', name: 'endDate', type: 'date' },
-                { label: 'Estimated Value', name: 'estimatedValue', type: 'number' }
+                { label: 'Estimated Value', name: 'estimatedValue', type: 'number' },
+                { label: 'Remarks', name: 'remarks', type: 'text' }
               ].map(({ label, name, type }) => (
                 <Grid item xs={12} key={name}>
                   <TextField
@@ -296,7 +314,8 @@ const handleEdit = (item) => {
             <input
                   type="file"
                   name="file_path"
-                  onChange={(e) => setFormData({ ...formData, file_path: e.target.files[0] })}
+                  multiple
+                  onChange={(e) => setFormData({ ...formData, file_path: e.target.files })}
                   accept="image/*,application/pdf"
                 />
             
@@ -314,14 +333,15 @@ const handleEdit = (item) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    {['Work Order', 'Job Type', 'Sub Section', 'Receiving Date', 'End Date', 'Value', 'Created At', 'Deadline',  'File', 'Action'].map(header => (
+                    {['Sr.No','Work Order', 'Job Type', 'Sub Section', 'Receiving Date', 'End Date', 'Value', 'Created At', 'Deadline',  'File', 'Action'].map(header => (
                       <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {data.map((item) => (
+                  {data.map((item, index) => (
                     <TableRow key={item.work_order_id} sx={{ backgroundColor: item.statusColor }}>
+                      <TableCell>{index + 1}</TableCell> {/* Serial number */}
                       <TableCell>{item.work_order_id}</TableCell>
                       <TableCell>{item.job_type}</TableCell>
                       <TableCell>{item.sub_section}</TableCell>

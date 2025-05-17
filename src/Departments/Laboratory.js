@@ -4,7 +4,7 @@ import { Grid, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBo
   Modal, Box, TextField, Card, CardContent, FormControl, InputLabel, MenuItem, Select  } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";import "../styles/workexecution.css";
+import CancelIcon from "@mui/icons-material/Cancel";import "../styles/Laboratory.css";
 
 const processWorkExeData = (data) => {
   const today = new Date();
@@ -35,7 +35,7 @@ const processWorkExeData = (data) => {
   });
 };
 
-const WorkExecution = () => {
+const Laboratory = () => {
   const [upperData, setUpperData] = useState([]);
   const [lowerData, setLowerData] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -120,8 +120,8 @@ const WorkExecution = () => {
       const fetchData = async () => {
         try {
           const [comingResponse, permissionResponse] = await Promise.all([
-            axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-coming"),
-            axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-data"),
+            axios.get("https://constructionproject-production.up.railway.app/api/Laboratory/Laboratory-coming"),
+            axios.get("https://constructionproject-production.up.railway.app/api/Laboratory/Laboratory-data"),
           ]);
     
           const updatedData = processWorkExeData(permissionResponse.data);
@@ -136,7 +136,7 @@ const WorkExecution = () => {
               updatedData.map(async (record) => {
                 if (record.work_order_id && record.delivery_status) {
                   try {
-                    await axios.put("https://constructionproject-production.up.railway.app/api/work-execution/update-wedelivery-status", {
+                    await axios.put("https://constructionproject-production.up.railway.app/api/Laboratory/update-wedelivery-status", {
                       work_order_id: record.work_order_id,
                       delivery_status: record.delivery_status,
                     });
@@ -170,10 +170,29 @@ const WorkExecution = () => {
     
 
 
-  const handleAddData = (record) => {
-    setFormData({ ...formData, work_order_id: record.work_order_id || ""  , permission_number: record.permission_number || ""});
-    setShowForm(true);
-  };
+    const handleAddData = async (record) => {
+        try {
+          // Prepare the data to be saved
+          const dataToSave = {
+            work_order_id: record.work_order_id,
+            permission_number: record.permission_number,
+          };
+      
+          // Save the data to the backend
+          const response = await axios.post(
+            "https://constructionproject-production.up.railway.app/api/Laboratory/save-Laboratory-workorder",
+            dataToSave
+          );
+      
+          if (response.status === 200) {
+            alert("Data saved successfully!");
+            await refreshWorkExeData(); // Refresh the lower section
+          }
+        } catch (error) {
+          console.error("Error saving data:", error);
+          alert("Failed to save data. Please try again.");
+        }
+      };
   
   // Handle input change
   const handleFormChange = (e) => {
@@ -206,8 +225,8 @@ const WorkExecution = () => {
   const refreshWorkExeData = async () => {
             try {
               const [comingResponse, permissionResponse] = await Promise.all([
-                axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-coming"),
-                axios.get("https://constructionproject-production.up.railway.app/api/work-execution/workExecution-data"),
+                axios.get("https://constructionproject-production.up.railway.app/api/Laboratory/Laboratory-coming"),
+                axios.get("https://constructionproject-production.up.railway.app/api/Laboratory/Laboratory-data"),
               ]);
           
               const updatedData = processWorkExeData(permissionResponse.data);
@@ -238,7 +257,7 @@ const WorkExecution = () => {
   
     try {
       const response = await axios.post(
-        "https://constructionproject-production.up.railway.app/api/work-execution/save-workexecution-workorder",
+        "https://constructionproject-production.up.railway.app/api/Laboratory/save-Laboratory-workorder",
         formData
       );
   
@@ -286,7 +305,7 @@ const WorkExecution = () => {
   };
 const handleSendToNext = async (workOrderId) => {
   try {
-    await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/update-wedepartment", {
+    await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/update-wedepartment", {
       workOrderId,
     });
     alert("Work Order moved to Permission Closing department.");
@@ -308,7 +327,7 @@ const handleSaveRemainingData = async (workOrderId) => {
     };
 
     const response = await axios.post(
-      "https://constructionproject-production.up.railway.app/api/work-execution/save-remainingdata",
+      "https://constructionproject-production.up.railway.app/api/Laboratory/save-labremainingdata",
       dataToSend
     );
 
@@ -354,7 +373,7 @@ const handleFileUpload = async (fieldName, files) => {
 
   try {
     const response = await axios.post(
-      `https://constructionproject-production.up.railway.app/api/work-execution/upload-workExecution-file/${fieldName}`,
+      `https://constructionproject-production.up.railway.app/api/Laboratory/upload-Laboratory-file/${fieldName}`,
       formDataWithFiles
     );
 
@@ -393,7 +412,7 @@ const handleFileUpload = async (fieldName, files) => {
    // Fetch saved data on page load (useEffect will run when the page is loaded)
   //  useEffect(() => {
   //   axios
-  //     .get(`https://constructionproject-production.up.railway.app/api/work-execution/get-work-execution/${workOrderId}`)
+  //     .get(`https://constructionproject-production.up.railway.app/api/Laboratory/get-Laboratory/${workOrderId}`)
   //     .then((response) => {
   //       if (response.data) {
   //         // If there's data, set it in formData state
@@ -421,7 +440,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-asphalt", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labasphalt", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -452,7 +471,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-milling", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labmilling", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -483,7 +502,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-concrete", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labconcrete", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -515,7 +534,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck3", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labdeck3", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -547,7 +566,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck2", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labdeck2", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -579,7 +598,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-deck1", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labdeck1", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -610,7 +629,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-sand", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labsand", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -641,7 +660,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-backfilling", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labbackfilling", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -672,7 +691,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
+      const response = await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labcable_lying", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -703,7 +722,7 @@ const handleFileUpload = async (fieldName, files) => {
         work_order_id: workOrderId,
       };
   
-      await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-trench", dataToSend);
+      await axios.post("https://constructionproject-production.up.railway.app/api/Laboratory/save-labtrench", dataToSend);
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
@@ -736,9 +755,9 @@ const handleFileUpload = async (fieldName, files) => {
       {/* Upper Section: Incoming Work Execution Data */}
       <Grid item xs={12} md={5}>
   <Paper elevation={3} sx={{ padding: "20px", backgroundColor: "#f8f9fa" }}>
-    <Typography variant="h6">Incoming Work Execution Data</Typography>
+    <Typography variant="h6">Incoming Laboratory Data</Typography>
     {upperData.length === 0 ? (
-      <Typography color="error">No Work Execution coming data available.</Typography>
+      <Typography color="error">No Laboratory coming data available.</Typography>
     ) : (
       <Table sx={{ width: "100%" }}>
         <TableHead>
@@ -759,7 +778,7 @@ const handleFileUpload = async (fieldName, files) => {
               <TableCell sx={{ padding: "8px" }}>{record.permission_number}</TableCell>
               <TableCell sx={{ padding: "8px" }}>
                 {(record.file_path || record.survey_file_path) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe_download/${record.work_order_id}`} download>
+                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (
@@ -783,12 +802,12 @@ const handleFileUpload = async (fieldName, files) => {
       {/* Lower Section: Existing Work Execution Data */}
       <Grid item xs={12} md={7}>
         <Paper elevation={3} sx={{ padding: "20px" }}>
-          <Typography variant="h6">Existing Work Execution Data</Typography>
+          <Typography variant="h6">Existing Laboratory Data</Typography>
           {lowerData.length === 0 ? (
-            <Typography color="error">No Work Execution data available.</Typography>
+            <Typography color="error">No Laboratory data available.</Typography>
           ) : (
             lowerData.map((record, index) => (
-              <Card key={index} sx={{ marginBottom: "20px", backgroundColor: "#f0fff0" }}>
+              <Card key={index} sx={{ marginBottom: "20px", backgroundColor: "#fffacd" }}>
                 <CardContent>
                   <Typography variant="h6">Work Order: {record.work_order_id}</Typography>
                   <Typography variant="h6">Job Type: {record.job_type}</Typography>
@@ -1005,4 +1024,4 @@ const handleFileUpload = async (fieldName, files) => {
   );
 };
 
-export default WorkExecution;
+export default Laboratory;

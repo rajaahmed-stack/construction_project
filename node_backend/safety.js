@@ -41,20 +41,20 @@ const upload = multer({ storage: storage });
 
 
 // Backend route for handling file uploads
-router.post('/upload-safety-file/:fieldName', upload.single('file'), (req, res) => {
-  const { file } = req;
+router.post('/upload-safety-file/:fieldName', upload.array('file'), (req, res) => {
+  const files = req.files;
   const fieldName = req.params.fieldName;
 
-  if (!file) {
+  if (!files) {
     console.log("No file uploaded!");
     return res.status(400).send('No file uploaded');
   }
 
-  console.log('Uploaded file:', file); // Debugging log
+  console.log('Uploaded file:', files); // Debugging log
 
   // Return the file path after uploading
-  const filePath = `uploads/${file.filename}`;
-  res.json({ fieldName, filePath });
+  const filePaths = files.map(file => `uploads/${file.filename}`);
+  res.json({ fieldName, filePaths });
 });
 
 // Fetch Safety Coming Data

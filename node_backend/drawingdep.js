@@ -54,50 +54,51 @@ router.post('/upload-workExecution-file/:fieldName', upload.single('file'), (req
   res.json({ filePath });
 });
 router.post('/upload-and-save-drawingdocument', (req, res, next) => {
-  upload.fields([{ name: 'drawing', maxCount: 1 }])(req, res, function (err) {
-      if (err instanceof multer.MulterError) {
-          console.error('Multer error:', err);
-          return res.status(400).send('File upload error.');
-      } else if (err) {
-          console.error('Unknown upload error:', err);
-          return res.status(500).send('Unknown upload error.');
+  upload.fields([{ name: 'drawing', maxCount: 30 }])(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      console.error('Multer error:', err);
+      return res.status(400).send('File upload error.');
+    } else if (err) {
+      console.error('Unknown upload error:', err);
+      return res.status(500).send('Unknown upload error.');
+    }
+
+    console.log(req.files);
+    console.log(req.body);
+
+    const { work_order_id } = req.body;
+    const drawingFiles = req.files['drawing'] ? req.files['drawing'].map(f => f.filename) : [];
+
+    const drawingFilenames = JSON.stringify(drawingFiles); // Store as JSON array
+
+    const insertQuery = `
+      INSERT INTO drawing_department (work_order_id, drawing)
+      VALUES (?, ?)
+    `;
+    const insertValues = [work_order_id, drawingFilenames];
+
+    db.query(insertQuery, insertValues, (err, result) => {
+      if (err) {
+        console.error('Error saving data to database:', err);
+        return res.status(500).json({ success: false, message: 'Error saving data to the database' });
       }
 
-      console.log(req.files);
-      console.log(req.body);
-
-      const { work_order_id } = req.body;
-      const drawing = req.files['drawing'] ? req.files['drawing'][0].filename : null;
-
-      const insertQuery = `
-          INSERT INTO drawing_department 
-          (work_order_id, drawing)
-          VALUES (?, ?)
+      const query = `
+        UPDATE work_receiving
+        SET current_department = 'GIS'
+        WHERE work_order_id = ?
       `;
-      const insertValues = [work_order_id, drawing];
 
-      db.query(insertQuery, insertValues, (err, result) => {
-          if (err) {
-              console.error('Error saving data to database:', err);
-              return res.status(500).json({ success: false, message: 'Error saving data to the database' });
-          }
+      db.query(query, [work_order_id], (err, result) => {
+        if (err) {
+          console.error('Error updating department:', err);
+          return res.status(500).json({ success: false, message: 'Error updating department' });
+        }
 
-          const query = `
-              UPDATE work_receiving 
-              SET current_department = 'GIS' 
-              WHERE work_order_id = ?
-          `;
-
-          db.query(query, [work_order_id], (err, result) => {
-              if (err) {
-                  console.error('Error updating department:', err);
-                  return res.status(500).json({ success: false, message: 'Error updating department' });
-              }
-
-              console.log('Department updated to GIS for work order:', work_order_id);
-              res.status(200).json({ success: true, message: 'File uploaded, data saved, and department updated successfully' });
-          });
+        console.log('Department updated to GIS for work order:', work_order_id);
+        res.status(200).json({ success: true, message: 'Files uploaded, data saved, and department updated successfully' });
       });
+    });
   });
 });
 
