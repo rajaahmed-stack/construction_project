@@ -25,8 +25,8 @@ const drawingdepartment = require('./drawingdep');
 const gisdepartment = require('./gis');
 const management = require('./management');
 const store = require('./store');
-const invoice = require('./invoice');
-const lab = require('./lab');
+const invoiceroute = require('./invoice');
+const labroute = require('./lab');
 const usermanagement = require('./usermanagement');
 
 // MySQL connection
@@ -478,8 +478,8 @@ app.use('/api/drawing-department', drawingdepartment);
 app.use('/api/gis', gisdepartment);
 app.use('/api/management', management);
 app.use('/api/store', store);
-app.use('/api/invoice', invoice);
-app.use('/api/lab', lab);
+app.use('/api/invoice', invoiceroute);
+app.use('/api/lab', labroute);
 app.use('/api/usermanagement', usermanagement);
 // Start server
 app.listen(port, () => {
