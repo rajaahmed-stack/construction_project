@@ -71,6 +71,7 @@ router.get('/Laboratory-coming', (req, res) => {
     WHERE work_execution.work_order_id NOT IN 
     (SELECT work_order_id FROM lab) 
     AND work_receiving.current_department = 'Laboratory';
+     AND work_receiving.job_type != 'Meters';
 
   `;
   db.query(query, (err, results) => {

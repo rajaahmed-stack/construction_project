@@ -61,6 +61,7 @@ router.get('/workclosing-coming', (req, res) => {
     WHERE permission_closing.work_order_id NOT IN 
       (SELECT work_order_id FROM work_closing) 
       AND current_department = 'WorkClosing';
+       AND work_receiving.job_type != 'Meters';
     `;
     db.query(query, (err, results) => {
       if (err) {
