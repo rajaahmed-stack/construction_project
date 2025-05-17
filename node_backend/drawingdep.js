@@ -106,25 +106,26 @@ router.post('/upload-and-save-drawingdocument', (req, res, next) => {
 // Fetch workExecution Coming Data
 router.get('/drawingdep-coming', (req, res) => {
     const query = `
-    SELECT work_execution.work_order_id, 
+   SELECT 
+    work_execution.work_order_id, 
     work_execution.permission_number,
     work_receiving.job_type, 
     work_receiving.sub_section,
     work_receiving.file_path,
     survey.survey_file_path,
     permissions.Document
-    FROM work_execution 
-    LEFT JOIN work_receiving 
+FROM work_execution 
+LEFT JOIN work_receiving 
     ON work_execution.work_order_id = work_receiving.work_order_id
-    LEFT JOIN survey 
+LEFT JOIN survey 
     ON work_execution.work_order_id = survey.work_order_id
-    LEFT JOIN permissions 
+LEFT JOIN permissions 
     ON work_execution.work_order_id = permissions.work_order_id
-    WHERE work_execution.work_order_id NOT IN 
-    (SELECT work_order_id FROM drawing_department) 
-    OR (work_receiving.current_department = 'PermissionClosing' 
-          OR work_receiving.current_department = 'WorkClosing');
-          OR work_receiving.job_type = 'Meters';
+WHERE work_execution.work_order_id NOT IN (
+        SELECT work_order_id FROM drawing_department
+    )
+AND work_receiving.current_department IN ('PermissionClosing', 'WorkClosing')
+AND work_receiving.job_type != 'Meters';
 
 
 

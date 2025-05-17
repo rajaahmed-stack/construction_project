@@ -27,6 +27,7 @@ const management = require('./management');
 const store = require('./store');
 const invoiceroute = require('./invoice');
 const labroute = require('./lab');
+const eam = require('./emergencyandmaintainence');
 const usermanagement = require('./usermanagement');
 
 // MySQL connection
@@ -132,10 +133,10 @@ app.get('/api/work_receiving', (req, res) => {
 
 // Save work_receiving data
 app.post('/api/save-work_receiving', upload.array('file_path'), (req, res) => {
-  const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status } = req.body;
+  const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, remarks } = req.body;
 const documentFilePath = req.files?.map(file => path.join('uploads', file.filename)).join(',') || null;
 
-  if (!workOrderList || !jobType || !subSection || !receivingDate || !endDate || !estimatedValue || !current_department) {
+  if (!workOrderList || !jobType || !subSection || !receivingDate || !endDate || !estimatedValue || !current_department || !remarks) {
     return res.status(400).send('All fields are required');
   }
 
@@ -163,7 +164,7 @@ const documentFilePath = req.files?.map(file => path.join('uploads', file.filena
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      db.query(insertQuery, [workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, documentFilePath], (err) => {
+      db.query(insertQuery, [workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, documentFilePath, remarks], (err) => {
         if (err) {
           return db.rollback(() => {
             console.error('Error saving data:', err);
@@ -380,6 +381,7 @@ app.get("/api/stats", (req, res) => {
     const query = `
       SELECT 
         (SELECT COUNT(*) FROM work_receiving) AS work_receiving,
+        (SELECT COUNT(*) FROM emergency_and_maintainence) AS emergency_and_maintainence,
         (SELECT COUNT(*) FROM survey) AS survey,
         (SELECT COUNT(*) FROM permissions) AS permissions,
         (SELECT COUNT(*) FROM safety_department) AS safety,
@@ -480,6 +482,7 @@ app.use('/api/management', management);
 app.use('/api/store', store);
 app.use('/api/invoice', invoiceroute);
 app.use('/api/lab', labroute);
+app.use('/api/EAM', eam);
 app.use('/api/usermanagement', usermanagement);
 // Start server
 app.listen(port, () => {

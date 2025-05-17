@@ -32,7 +32,7 @@ const processWorkReceivingData = (data) => {
   });
 };
 
-const WorkReceiving = () => {
+const EmergencyMaintainence = () => {
   const [formData, setFormData] = useState({
     jobType: '',
     subSection: '',
@@ -66,7 +66,7 @@ const WorkReceiving = () => {
 
   const fetchWorkReceivingData = async () => {
     try {
-      const response = await axios.get("https://constructionproject-production.up.railway.app/api/work_receiving");
+      const response = await axios.get("https://constructionproject-production.up.railway.app/api/EAM/e&m");
       const updatedData = processWorkReceivingData(response.data);
       setData(updatedData);
   
@@ -77,7 +77,7 @@ const WorkReceiving = () => {
         showSnackbar('Warning: Some work orders are close to or past their deadline.', 'warning');
       }
     } catch (error) {
-      console.error("Error fetching work receiving data:", error);
+      console.error("Error fetchingEmergency & Maintainence data:", error);
     }
   };
 
@@ -90,7 +90,7 @@ const WorkReceiving = () => {
       const updatedData = processWorkReceivingData(response.data);
       setData(updatedData);
     } catch (error) {
-      console.error("Error refreshing work receiving data:", error);
+      console.error("Error refreshingEmergency & Maintainence data:", error);
     }
   };
 
@@ -141,7 +141,7 @@ const WorkReceiving = () => {
     try {
       const url = workOrderId
         ? `https://constructionproject-production.up.railway.app/api/edit-work-receiving/${workOrderId}`
-        : 'https://constructionproject-production.up.railway.app/api/save-work_receiving';
+        : 'https://constructionproject-production.up.railway.app/api/EAM/save-emergency_and_maintainence';
 
       const method = workOrderId ? 'PUT' : 'POST';
 
@@ -222,7 +222,7 @@ const handleDownload = async (workOrderId) => {
   }
 };
 const handleDelete = async (id) => {
-  const confirmDelete = window.confirm('Are you sure you want to delete this work receiving record?');
+  const confirmDelete = window.confirm('Are you sure you want to delete thisEmergency & Maintainence record?');
   if (!confirmDelete) return;
 
   try {
@@ -233,7 +233,7 @@ const handleDelete = async (id) => {
     setOpenSnackbar(true);
     fetchWorkReceivingData(); // Refresh data
   } catch (error) {
-    setSnackbarMessage('Failed to delete Work Receiving.');
+    setSnackbarMessage('Failed to deleteEmergency & Maintainence.');
     setOpenSnackbar(true);
   }
 };
@@ -260,7 +260,7 @@ const handleEdit = (item) => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        Work Receiving Department
+       Emergency & Maintainence Department
       </Typography>
 
       <Grid container spacing={3}>
@@ -268,7 +268,7 @@ const handleEdit = (item) => {
           <Paper elevation={4} sx={{ padding: 3 }}>
             <Grid container spacing={2}>
               {[
-                { label: 'Job Type', name: 'jobType', options: ['Extension', 'Emergency', 'Meters', 'Projects'] },
+                { label: 'Job Type', name: 'jobType', options: ['Cabinet',  'Meter'] },
                 { label: 'Sub Section', name: 'subSection', options: ['Overhead', 'Underground'] }
               ].map(({ label, name, options }) => (
                 <Grid item xs={12} key={name}>
@@ -360,7 +360,7 @@ const handleEdit = (item) => {
                             "❌ No File"
                           )}
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <Button
                             onClick={() => handleEdit(item)}
                             sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'darkgreen' } }}
@@ -375,7 +375,7 @@ const handleEdit = (item) => {
                           >
                             Delete
                           </Button>
-                        </TableCell>
+                        </TableCell> */}
 
 
 
@@ -400,4 +400,4 @@ const handleEdit = (item) => {
   );
 };
 
-export default WorkReceiving;
+export default EmergencyMaintainence;

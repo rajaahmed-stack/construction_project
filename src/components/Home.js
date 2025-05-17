@@ -16,6 +16,7 @@ import {
 
 const departments = [
   { name:  "Work Receiving Department", path: "/Departments/work-receiving-department" },
+  { name:  "Emergency & Maintainence", path: "/Departments/EmergencyMaintainence" },
   { name:   "Survey Department", path:"/Departments/survey-department" },
   { name:   "Permission Department",path: "/Departments/permission-department" },
   { name:   "Safety Department", path: "/Departments/safety-department" },
@@ -31,6 +32,7 @@ const departments = [
 
 const departmentCredentials = {
   "Work Receiving Department": { username: "workrecieving", password: "wr1" },
+  "Emergency & Maintainence": { username: "em", password: "em" },
   "Survey Department": { username: "survey", password: "s2" },
   "Permission Department": { username: "permission", password: "p3" },
   "Safety Department": { username: "safety", password: "sf4" },
@@ -82,6 +84,7 @@ const Home = () => {
         const stats = chartStatsRes.data;
         const formattedChartData = [
           { name: "Work Receiving", projects: stats.work_receiving },
+          { name: "Emergency & Maintainence", projects: stats.emergency_and_maintainence },
           { name: "Survey", projects: stats.survey },
           { name: "Permission", projects: stats.permissions },
           { name: "Safety", projects: stats.safety },

@@ -16,6 +16,7 @@ import GisDepartment from "./Departments/GisDepartment";
 import Store from "./Departments/StoreDepartment";
 import Invoice from "./Departments/Invoice";
 import Laboratory from "./Departments/Laboratory";
+import EmergencyMaintainence from "./Departments/EmergencyMaintainence";
 import Management from "./components/Management";
 import AIRecommendations from "./components/AIRecommendations";
 import UserManagement from "./components/UserManagement";
@@ -45,6 +46,7 @@ const App = () => (
         <Route path="/Departments/store" element={<Store />} />
         <Route path="/Departments/Invoice" element={<Invoice />} />
         <Route path="/Departments/Laboratory" element={<Laboratory />} />
+        <Route path="/Departments/EmergencyMaintainence" element={<EmergencyMaintainence />} />
         <Route path="/users" element={<UserManagement />} />
       </Routes>
     </Router>

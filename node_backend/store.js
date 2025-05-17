@@ -99,16 +99,38 @@ router.post('/upload-and-save-storedocument', upload.fields([
 // Fetch gis Department Coming Data
 router.get('/gisdepstore-coming', (req, res) => {
     const query = `
-      SELECT gis_department.work_order_id, 
-      gis_department.gis,
-      work_receiving.job_type, 
-      work_receiving.sub_section
-    FROM gis_department 
-    LEFT JOIN work_receiving 
-    ON gis_department.work_order_id = work_receiving.work_order_id
-    WHERE gis_department.work_order_id NOT IN 
-    (SELECT work_order_id FROM store) 
-    AND current_department = 'Store'
+    SELECT 
+    gis_department.work_order_id, 
+    NULL AS permission_number,                -- To match eam select
+    work_receiving.job_type, 
+    work_receiving.sub_section,
+    NULL AS file_path,                        -- gis_department doesn't have this
+    NULL AS survey_file_path,
+    gis_department.gis AS Document            -- You used gis field here
+  FROM gis_department 
+  LEFT JOIN work_receiving 
+  ON gis_department.work_order_id = work_receiving.work_order_id
+  WHERE gis_department.work_order_id NOT IN 
+  (SELECT work_order_id FROM store) 
+  AND work_receiving.current_department = 'Store'
+
+  UNION ALL
+
+  SELECT 
+    eam.work_order_id, 
+    NULL AS permission_number,
+    NULL AS job_type,
+    NULL AS sub_section,
+    eam.file_path,
+    NULL AS survey_file_path,
+    NULL AS Document
+  FROM emergency_and_maintainence eam
+  LEFT JOIN work_receiving wr 
+  ON eam.work_order_id = wr.work_order_id
+  WHERE eam.work_order_id NOT IN 
+  (SELECT work_order_id FROM store)
+  AND wr.current_department = 'Store';
+
       `;
   db.query(query, (err, results) => {
     if (err) {
