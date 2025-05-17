@@ -38,6 +38,8 @@ const PermissionClosing = () => {
   const [showForm, setShowForm] = useState(false);
   const [alertData, setAlertData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [files, setFiles] = useState([]);
+  const [files2, setFiles2] = useState([]);
   const [formData, setFormData] = useState({
     work_order_id: "",
     permission_number: "",
@@ -96,18 +98,11 @@ const PermissionClosing = () => {
     setShowForm(true);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      alert("Please select a file.");
-      return;
-    }
-  
-    const { name } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: file,
-    }));
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+    const newFiles2 = Array.from(e.target.files2);
+    setFiles2((prevFiles) => [...prevFiles, ...newFiles2]);
   };
 
 
@@ -150,6 +145,21 @@ const PermissionClosing = () => {
       formData.work_closing_certificate.forEach((file) => {
         formDataWithFile.append('work_closing_certificate', file);
       });
+    }
+    if (files.length === 0 || files2.length === 0) {
+      alert("Please select at least one file.");
+      return;
+    }
+    
+    
+    for (let i = 0; i < files.length; i++) {
+      formDataWithFile.append('work_closing_certificate', files[i]);
+    }
+   
+    
+    
+    for (let i = 0; i < files2.length; i++) {
+      formDataWithFile.append('final_closing_certificate', files2[i]);
     }
   
     // Append multiple files for final_closing_certificate
@@ -202,6 +212,8 @@ const PermissionClosing = () => {
           final_closing_certificate: null,
           isEditing: false,
         });
+        setFiles([]); // ✅ Clear selected files after successful save
+        setFiles2([]); // ✅ Clear selected files after successful save
         setShowForm(false);
       } else {
         alert('Operation failed');
@@ -471,22 +483,64 @@ const PermissionClosing = () => {
               />
             
              
-             <input
-                label="Work Closing Certificate"
-                type="file"
-                multiple
-                name="work_closing_certificate"
-                onChange={(e) => setFormData({ ...formData, work_closing_certificate: e.target.files })}
-                accept="image/*,application/pdf"
-              />
-             <input
-                label="Final Closing Certificate"
-                type="file"
-                multiple
-                name="final_closing_certificate"
-                onChange={(e) => setFormData({ ...formData, final_closing_certificate: e.target.files })}
-                accept="image/*,application/pdf"
-              />
+              <input
+                                           accept="*"
+                                           style={{ display: 'none' }}
+                                           id="upload-files"
+                                           type="file"
+                                           multiple
+                                           onChange={handleFileChange}
+                                         />
+                                         <label htmlFor="upload-files">
+                                           <Button variant="outlined" component="span">
+                                             + Add Files
+                                           </Button>
+                                         </label>
+                         
+                                         {/* Display selected file names */}
+                                         <div style={{ marginTop: 10 }}>
+                                           {files.length > 0 ? (
+                                             files.map((file, index) => (
+                                               <Typography key={index} variant="body2">
+                                                 📎 {file.name}
+                                               </Typography>
+                                             ))
+                                           ) : (
+                                             <Typography variant="body2" color="text.secondary">
+                                               No files selected.
+                                             </Typography>
+                                           )}
+                                         </div>
+                         
+              <input
+                                           accept="*"
+                                           style={{ display: 'none' }}
+                                           id="upload-files"
+                                           type="file"
+                                           multiple
+                                           onChange={handleFileChange}
+                                         />
+                                         <label htmlFor="upload-files">
+                                           <Button variant="outlined" component="span">
+                                             + Add Files
+                                           </Button>
+                                         </label>
+                         
+                                         {/* Display selected file names */}
+                                         <div style={{ marginTop: 10 }}>
+                                           {files2.length > 0 ? (
+                                             files2.map((file, index) => (
+                                               <Typography key={index} variant="body2">
+                                                 📎 {file.name}
+                                               </Typography>
+                                             ))
+                                           ) : (
+                                             <Typography variant="body2" color="text.secondary">
+                                               No files selected.
+                                             </Typography>
+                                           )}
+                                         </div>
+                         
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                 <Button type="submit" variant="contained" color="primary" fullWidth>
                   Save Changes

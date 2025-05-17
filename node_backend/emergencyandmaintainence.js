@@ -35,7 +35,7 @@ const storage = multer.diskStorage({
 
 // Create the upload object
 const upload = multer({ storage: storage });
-router.get('/api/e&m', (req, res) => {
+router.get('/e&m', (req, res) => {
   const query = 'SELECT * FROM emergency_and_maintainence';
   db.query(query, (err, results) => {
     if (err) {
@@ -110,7 +110,7 @@ const documentFilePath = req.files?.map(file => path.join('uploads', file.filena
               });
             }
 
-            res.status(200).send('Work Receiving data saved successfully');
+            res.status(200).send('Emergency & Maintainence data saved successfully');
           });
         });
       });

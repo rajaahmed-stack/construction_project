@@ -40,9 +40,10 @@ const DrawingDepartment = () => {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     work_order_id: "",
-    drawing: "",
-   
+    drawing: [],
   });
+  const [fileInputs, setFileInputs] = useState([0]); // Start with one file input
+
 
   // // Fetch data from the backend
   // useEffect(() => {
@@ -122,20 +123,15 @@ const DrawingDepartment = () => {
     setShowForm(true);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e, index) => {
     const files = Array.from(e.target.files);
-    if (files.length === 0) {
-      alert('Please select at least one file.');
-      return;
-    }
-  
-    if (e.target.name === 'drawing') {
-      setFormData((prevData) => ({
-        ...prevData,
-        drawing: files,
-      }));
-    }
+    setFormData((prevData) => {
+      const newDrawings = [...prevData.drawing];
+      newDrawings[index] = files[0]; // Only allow one file per input
+      return { ...prevData, drawing: newDrawings };
+    });
   };
+  
      const refreshDrawingData = async () => {
         try {
           const [comingResponse, permissionResponse] = await Promise.all([
@@ -334,17 +330,28 @@ const DrawingDepartment = () => {
                 readOnly
               />
             </Form.Group>
-            <Form.Group controlId="formFile">
-              <Form.Label>Drawing</Form.Label>
-              <Form.Control
-                type="file"
-                name="drawing"
-                multiple
-                onChange={handleFileUpload}
-                required
-              />
-
+            <Form.Group controlId="formDrawings">
+              <Form.Label>Upload Drawings</Form.Label>
+              {fileInputs.map((_, index) => (
+                <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: '8px' }}>
+                  <Form.Control
+                    type="file"
+                    name={`drawing_${index}`}
+                    onChange={(e) => handleFileUpload(e, index)}
+                    style={{ marginRight: "10px" }}
+                  />
+                  {index === fileInputs.length - 1 && (
+                    <Button
+                      variant="success"
+                      onClick={() => setFileInputs((prev) => [...prev, prev.length])}
+                    >
+                      +
+                    </Button>
+                  )}
+                </div>
+              ))}
             </Form.Group>
+
             
             <Button variant="secondary" type="submit" onClick={handleSave}>
               Save Data
