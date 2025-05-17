@@ -17,7 +17,7 @@ const processWorkReceivingData = (data) => {
       let statusColor = '';
       let deliveryStatus = 'on time';
 
-      if (item.current_department === 'Work Receiving') {
+      if (item.current_department === 'Emergency & Maintainence') {
         if (today > deadline) {
           statusColor = 'red';
           deliveryStatus = 'delayed';
@@ -333,7 +333,7 @@ const handleEdit = (item) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    {['Sr.No','Work Order', 'Job Type', 'Sub Section', 'Receiving Date', 'End Date', 'Value', 'Created At', 'Deadline',  'File', 'Action'].map(header => (
+                    {['Sr.No','Work Order', 'Job Type', 'Sub Section', 'Receiving Date', 'End Date', 'Value', 'Remarks',  'File', 'Action'].map(header => (
                       <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>
                     ))}
                   </TableRow>
@@ -348,8 +348,9 @@ const handleEdit = (item) => {
                       <TableCell>{new Date(item.receiving_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(item.end_date).toLocaleDateString()}</TableCell>
                       <TableCell>{item.estimated_value}</TableCell>
-                      <TableCell>{new Date(item.created_at).toLocaleString()}</TableCell>
-                      <TableCell>{item.deadline.toLocaleDateString()}</TableCell>
+                      <TableCell>{item.remarks}</TableCell>
+                      {/* <TableCell>{new Date(item.created_at).toLocaleString()}</TableCell>
+                      <TableCell>{item.deadline.toLocaleDateString()}</TableCell> */}
                       {/* <TableCell> {item.file_path ? "✅" : "❌"}</TableCell> */}
                       <TableCell>
                           {item.file_path ? (
