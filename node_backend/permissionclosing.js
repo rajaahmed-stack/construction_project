@@ -47,26 +47,26 @@ router.use(express.json());
 router.get('/permissionclosing-coming', (req, res) => {
     const query = `
     SELECT 
-    work_execution.work_order_id, 
-    work_execution.permission_number, 
+    lab.work_order_id, 
+    lab.permission_number, 
     work_receiving.job_type, 
     work_receiving.file_path, 
     work_receiving.sub_section, 
     survey.survey_file_path, 
     permissions.Document
     FROM 
-        work_execution
+        lab
     LEFT JOIN 
         work_receiving 
-        ON work_execution.work_order_id = work_receiving.work_order_id
+        ON lab.work_order_id = work_receiving.work_order_id
     LEFT JOIN 
         survey 
-        ON work_execution.work_order_id = survey.work_order_id
+        ON lab.work_order_id = survey.work_order_id
     LEFT JOIN 
         permissions 
-        ON work_execution.work_order_id = permissions.work_order_id
+        ON lab.work_order_id = permissions.work_order_id
     WHERE 
-        work_execution.work_order_id NOT IN 
+        lab.work_order_id NOT IN 
             (SELECT work_order_id FROM permission_closing) 
         AND work_receiving.current_department = 'PermissionClosing';
 
@@ -125,20 +125,20 @@ router.get('/PermissionClosing-data', (req, res) => {
 
 // Combined route for file upload and data saving
 router.post('/upload-and-save-pcdocument', upload.fields([
-  { name: 'Work_closing_certificate', maxCount: 1 },
-  { name: 'final_closing_certificate', maxCount: 1 }
+  { name: 'work_closing_certificate', maxCount: 20 },
+  { name: 'final_closing_certificate', maxCount: 20 }
 ]), (req, res) => {
   console.log(req.files);
   console.log(req.body);
 
   const { work_order_id, permission_number, closing_date, penalty_reason, penalty_amount } = req.body;
-  const workClosingCertificate = req.files['Work_closing_certificate'] ? req.files['Work_closing_certificate'][0].filename : null;
-  const finalClosingCertificate = req.files['final_closing_certificate'] ? req.files['final_closing_certificate'][0].filename : null;
+  const workClosingCertificate = req.files['work_closing_certificate'] ? req.files['work_closing_certificate'].map(file => file.filename) : null;
+  const finalClosingCertificate = req.files['final_closing_certificate'] ? req.files['final_closing_certificate'].map(file => file.filename) : null;
 
   // Insert file information and work order details into the database
   const insertQuery = `
     INSERT INTO permission_closing 
-    (work_order_id, permission_number, closing_date, penalty_reason, penalty_amount, Work_closing_certificate, final_closing_certificate)
+    (work_order_id, permission_number, closing_date, penalty_reason, penalty_amount, work_closing_certificate, final_closing_certificate)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   const insertValues = [work_order_id, permission_number, closing_date, penalty_reason, penalty_amount, workClosingCertificate, finalClosingCertificate];
@@ -305,8 +305,8 @@ router.get('/permissionclosing_download/:id', (req, res) => {
   });
 });
 router.put('/edit-permissionclosing/:id', upload.fields([
-  { name: 'work_closing_certificate', maxCount: 1 }, // Matches frontend
-  { name: 'final_closing_certificate', maxCount: 1 } // Matches frontend
+  { name: 'work_closing_certificate', maxCount: 20 }, // Matches frontend
+  { name: 'final_closing_certificate', maxCount: 20 } // Matches frontend
 ]), (req, res) => {
   const workOrderId = req.params.id;
   const { permission_number, closing_date, penalty_reason, penalty_amount } = req.body;
@@ -316,10 +316,10 @@ router.put('/edit-permissionclosing/:id', upload.fields([
   }
 
   const workClosingCertificate = req.files['work_closing_certificate']
-    ? req.files['work_closing_certificate'][0].filename
+    ? req.files['work_closing_certificate'].map(file => file.filename)
     : null;
   const finalClosingCertificate = req.files['final_closing_certificate']
-    ? req.files['final_closing_certificate'][0].filename
+    ? req.files['final_closing_certificate'].map(file => file.filename)
     : null;
 
   const query = `

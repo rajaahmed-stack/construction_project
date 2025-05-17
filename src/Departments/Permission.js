@@ -161,7 +161,10 @@ const Permission = () => {
   
     // Prepare form data for submission
     const formDataWithFile = new FormData();
-    formDataWithFile.append('Document', formData.Document);
+    for (let i = 0; i < formData.Document.length; i++) {
+      formDataWithFile.append('Document', formData.Document[i]);
+    }
+    
     formDataWithFile.append('work_order_id', formData.work_order_id);
     formDataWithFile.append('permission_number', formData.permission_number);
     formDataWithFile.append('request_date', formData.request_date);
@@ -196,10 +199,10 @@ const Permission = () => {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
         await refreshPermissionData();
         // Update the lowerData state with the new or updated record
-        const updatedRecord = {
-          ...formData,
-          Document: response.data.filePath || formData.Document, // Use the file path from the response if available
-        };
+        // const updatedRecord = {
+        //   ...formData,
+        //   Document: response.data.filePath || formData.Document, // Use the file path from the response if available
+        // };
   
         
   
@@ -209,10 +212,10 @@ const Permission = () => {
           permission_number: "",
           Document: "",
           request_date: "",
-          permission_renewal: "",
+          // permission_renewal: "",
           start_date: "",
           end_date: "",
-          remaining_days: 0,
+          // remaining_days: 0,
           isEditing: false,
         });
         setShowForm(false);
@@ -332,7 +335,7 @@ const Permission = () => {
                 <Table className="survey-table">
                   <TableHead>
                     <TableRow>
-                      {['Work Order ID', 'Job Type', 'Sub Section', 'Permission Number', 'Request Date', 'Start Date', 'End Date',  'Permission Renewal',  'Attachment', 'Action'].map((header) => (
+                      {['Sr.No.','Work Order ID', 'Job Type', 'Sub Section', 'Permission Number', 'Request Date', 'Start Date', 'End Date', 'Attachment', 'Action'].map((header) => (
                         <TableCell key={header} className="survey-table-header">
                           {header}
                         </TableCell>
@@ -340,9 +343,10 @@ const Permission = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {lowerData.map((record) => (
+                    {lowerData.map((record, index) => (
                       
                       <TableRow key={record.work_order_id}>
+                        <TableCell>{index+1}</TableCell>
                         <TableCell>{record.work_order_id}</TableCell>
                         <TableCell>{record.job_type}</TableCell>
                         <TableCell>{record.sub_section}</TableCell>
@@ -350,7 +354,7 @@ const Permission = () => {
                         <TableCell>{new Date(record.request_date).toLocaleDateString()}</TableCell>
                         <TableCell>{new Date(record.start_date).toLocaleDateString()}</TableCell>
                         <TableCell>{new Date(record.end_date).toLocaleDateString()}</TableCell>
-                        <TableCell>{record.permission_renewal}</TableCell>
+                        {/* <TableCell>{record.permission_renewal}</TableCell> */}
                         <TableCell> {record.Document_complete ? "✅" : "❌"}</TableCell>
                         <TableCell>
                           <Button
@@ -446,26 +450,9 @@ const Permission = () => {
                   InputLabelProps={{ shrink: true }}
 
                 />
-                {/* <TextField
-                  label="Request Status"
-                  name="request_status"
-                  value={formData.request_status}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                />
-                <TextField
-                  label="Sadad Payment"
-                  name="saadad_payment"
-                  value={formData.saadad_payment}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                /> */}
+               
               
-                <TextField
+                {/* <TextField
                   label="Permission Renewal"
                   name="permission_renewal"
                   value={formData.permission_renewal}
@@ -475,7 +462,7 @@ const Permission = () => {
                   variant="outlined"
                   type="date"
                   InputLabelProps={{ shrink: true }}
-                />
+                /> */}
                
                 <TextField
                   label="Start Date"
@@ -502,9 +489,11 @@ const Permission = () => {
                <input
                   type="file"
                   name="Document"
-                  onChange={(e) => setFormData({ ...formData, Document: e.target.files[0] })}
+                  multiple
+                  onChange={(e) => setFormData({ ...formData, Document: e.target.files })}
                   accept="image/*,application/pdf"
                 />
+
                 <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                   <Button type="submit" variant="contained" color="primary" fullWidth>
                     Save Changes

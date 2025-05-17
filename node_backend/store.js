@@ -54,24 +54,36 @@ router.post('/upload-store-file/:fieldName', upload.single('file'), (req, res) =
 });
 // Combined route for file upload and data saving
 router.post('/upload-and-save-storedocument', upload.fields([
-  { name: 'material_return', maxCount: 1 },
-  { name: 'material_receiving', maxCount: 1 },
-  { name: 'material_pending', maxCount: 1 },
+  { name: 'material_return', maxCount: 30 },
+  { name: 'material_receiving', maxCount: 30 },
+  { name: 'material_pending', maxCount: 30 },
 ]), (req, res) => {
-  console.log(req.files);
-  console.log(req.body);
-
   const { work_order_id } = req.body;
-  const material_return = req.files['material_return'] ? req.files['material_return'][0].filename : null;
-  const material_receiving = req.files['material_receiving'] ? req.files['material_receiving'][0].filename : null;
-  const material_pending = req.files['material_pending'] ? req.files['material_pending'][0].filename : null;
+
+  const material_return = req.files['material_return']
+    ? req.files['material_return'].map(f => f.filename)
+    : [];
+
+  const material_receiving = req.files['material_receiving']
+    ? req.files['material_receiving'].map(f => f.filename)
+    : [];
+
+  const material_pending = req.files['material_pending']
+    ? req.files['material_pending'].map(f => f.filename)
+    : [];
 
   const insertQuery = `
     INSERT INTO store 
     (work_order_id, material_return, material_receiving, material_pending)
     VALUES (?, ?, ?, ?)
   `;
-  const insertValues = [work_order_id, material_return, material_receiving, material_pending];
+
+  const insertValues = [
+    work_order_id,
+    JSON.stringify(material_return),
+    JSON.stringify(material_receiving),
+    JSON.stringify(material_pending)
+  ];
 
   db.query(insertQuery, insertValues, (err, result) => {
     if (err) {
@@ -79,8 +91,8 @@ router.post('/upload-and-save-storedocument', upload.fields([
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
 
-    console.log('Data saved successfully to store:', result);
-    return res.status(200).json({ success: true, message: 'Data saved successfully' });
+    console.log('Store data saved:', result);
+    return res.status(200).json({ success: true, message: 'Files and data saved successfully' });
   });
 });
 

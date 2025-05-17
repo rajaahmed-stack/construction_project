@@ -46,7 +46,7 @@ const upload = multer({ storage: storage });
 
 
 // Upload and Save Permission Document
-router.post('/upload-and-save-pdocument', upload.single('Document'), (req, res) => {
+router.post('/upload-and-save-pdocument', upload.array('Document'), (req, res) => {
   try {
     console.log('Request Body:', req.body);
     console.log('Uploaded File:', req.file);
@@ -57,7 +57,8 @@ router.post('/upload-and-save-pdocument', upload.single('Document'), (req, res) 
       return res.status(400).json({ success: false, message: 'No document uploaded.' });
     }
 
-    const documentFilePath = path.join('uploads', req.file.filename);
+    const documentFilePath = req.files.map(file => path.join('uploads', file.filename)).join(',');
+
 
     // Check all fields
     if (!work_order_id || !permission_number || !request_date || !permission_renewal || !start_date || !end_date) {
@@ -67,8 +68,8 @@ router.post('/upload-and-save-pdocument', upload.single('Document'), (req, res) 
 
     const insertQuery = `
       INSERT INTO permissions 
-      (work_order_id, permission_number, request_date, Document, permission_renewal, start_date, end_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (work_order_id, permission_number, request_date, Document, start_date, end_date)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     const insertValues = [work_order_id, permission_number, request_date, documentFilePath, permission_renewal, start_date, end_date];
 
@@ -220,52 +221,7 @@ router.put('/update-pdelivery-status', (req, res) => {
   });
 });
 
-// Download Permission File
-// Download Permission File
-// router.get('/permission_download/:id', (req, res) => {
-//   const fileId = req.params.id;
 
-//   db.query(`
-   
-//     SELECT survey_file_path FROM survey WHERE work_order_id = ?
-//   `, [fileId, fileId], (err, results) => {
-//     if (err) {
-//       console.error('Database error:', err);
-//       return res.status(500).send('Database error');
-//     }
-
-//     if (!results.length) {
-//       console.error('No results found for the work_order_id:', fileId);
-//       return res.status(404).send('File not found');
-//     }
-
-//     // Convert from Buffer to string
-//     const rawFilePath = results[0].file_path?.toString('utf8') || results[0].survey_file_path?.toString('utf8');
-//     if (!rawFilePath || typeof rawFilePath !== 'string' || rawFilePath.trim() === '') {
-//       console.error('File path is empty or invalid:', rawFilePath);
-//       return res.status(404).send('File path is empty or invalid');
-//     }
-
-//     const safeFilePath = path.normalize(rawFilePath);
-//     const absolutePath = path.join(__dirname, '..', safeFilePath);
-
-//     console.log('Raw DB file path:', rawFilePath);
-//     console.log('Normalized path:', safeFilePath);
-//     console.log('Absolute path:', absolutePath);
-
-//     if (!fs.existsSync(absolutePath)) {
-//       console.error('File does not actually exist on disk:', absolutePath);
-//       return res.status(404).send('File does not exist');
-//     }
-
-//     res.download(absolutePath, (err) => {
-//       if (err) {
-//         console.error('Error sending file:', err);
-//         return res.status(500).send('Error downloading file');
-//       }
-//     });
-//   });
-// });
 router.get('/permission_download/:id', (req, res) => {
   const fileId = req.params.id;
 
@@ -319,17 +275,17 @@ router.get('/permission_download/:id', (req, res) => {
     });
   });
 });
-router.put('/edit-permission/:id', upload.single('Document'), (req, res) => {
+router.put('/edit-permission/:id', upload.array('Document'), (req, res) => {
   const workOrderId = req.params.id;
   const { permission_number, request_date, permission_renewal, start_date, end_date } = req.body;
 
   // Handle the file path, or use null if no file is uploaded
-  const documentFilePath = req.file ? path.join('uploads', req.file.filename) : null;
+  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
 
   // Update query
   const query = `
     UPDATE permissions 
-    SET permission_number = ?, request_date = ?, permission_renewal = ?, start_date = ?,  end_date = ?, Document = ?
+    SET permission_number = ?, request_date = ?,  start_date = ?,  end_date = ?, Document = ?
     WHERE work_order_id = ?
   `;
 

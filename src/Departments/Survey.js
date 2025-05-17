@@ -94,48 +94,7 @@ const Survey = () => {
     setShowForm(true);
   };
 
-  // const handleSaveData = async (e) => {
-  //   const formDataWithFile = new FormData();
-  //   formDataWithFile.append('file_path', formData.file_path); 
-  
-  //   const requiredFields = ['work_order_id', 'handover_date', 'return_date', 'remark'];
-  //   for (const field of requiredFields) {
-  //     if (!formData[field]) {
-  //       alert(`Please fill all the fields. Missing: ${field}`);
-  //       return;
-  //     }
-  //   }
-  
-    // const today = new Date();
-    // const deadline = new Date();
-    // deadline.setDate(deadline.getDate() + 2);
-  
-    // let deliveryStatus = 'on time';
-    // if (today > deadline) {
-    //   deliveryStatus = 'delayed';
-    // } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-    //   deliveryStatus = 'nearing deadline';
-    // }
-  
-  //   // Ensure `delivery_status` is included in `formData`
-  //   const updatedFormData = { ...formData, delivery_status: deliveryStatus };
-  
-  //   try {
-  //     const response = await axios.post("https://constructionproject-production.up.railway.app/api/survey/save-survey", updatedFormData);
-  //     if (response.status === 200) {
-  //       alert("Data saved successfully!");
-  //       setShowForm(false);
-  //       setFormData({});
-  //       const updatedData = await axios.get("https://constructionproject-production.up.railway.app/api/survey/survey-data");
-  //       setLowerData(updatedData.data || []);
-  //     } else {
-  //       alert(`Failed to save data. Status Code: ${response.status}. ${response.data.message || 'Unknown error'}`);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving survey data:", error);
-  //     alert(`Error: ${error.response?.status || 'Unknown'} - ${error.response?.data?.message || 'Unknown error'}`);
-  //   }
-  // };
+ 
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
@@ -162,26 +121,27 @@ const Survey = () => {
   const handleSaveData = async (e) => {
     e.preventDefault();
   
-    // Validate required fields
     const requiredFields = ['work_order_id', 'handover_date', 'return_date', 'remark'];
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`Please fill all the fields. Missing: ${field}`);
-        showSnackbar('Please fill all fields and attach a valid file.');
-
         return;
       }
     }
   
-    if (!formData.survey_file_path) {
-      alert("Please upload a file.");
+    if (!formData.survey_file_path || formData.survey_file_path.length === 0) {
+      alert("Please upload at least one file.");
       return;
     }
   
-    // Prepare form data for submission
     const formDataWithFile = new FormData();
-    formDataWithFile.append('survey_file_path', formData.survey_file_path);
   
+    // Append multiple files
+    for (let i = 0; i < formData.survey_file_path.length; i++) {
+      formDataWithFile.append('survey_file_path', formData.survey_file_path[i]);
+    }
+  
+    // Append other fields
     Object.keys(formData).forEach((key) => {
       if (key !== 'survey_file_path') {
         formDataWithFile.append(key, formData[key]);
@@ -200,15 +160,6 @@ const Survey = () => {
       if (response.status === 200) {
         alert("Data saved successfully!");
         await refreshSurveyData();
-  
-        // Update the lowerData state with the new or updated record
-        const updatedRecord = {
-          ...formData,
-          survey_file_path: response.data.filePath || formData.survey_file_path, // Use the file path from the response if available
-        };
-  
-      
-        // Reset the form and close the modal
         setFormData({});
         setShowForm(false);
       } else {
@@ -219,6 +170,7 @@ const Survey = () => {
       alert("Error submitting data.");
     }
   };
+  
   const handleEdit = (record) => {
     setFormData({
       work_order_id: record.work_order_id,
@@ -316,7 +268,7 @@ const Survey = () => {
                 <Table className="survey-table">
                   <TableHead>
                     <TableRow>
-                      {['Work Order ID', 'Job Type', 'Sub Section', 'Hand Over Date', 'Return Date', 'Remarks','Created At', 'Created At Survey','Deadline','File', 'Action'].map((header) => (
+                      {['Sr.No','Work Order ID', 'Job Type', 'Sub Section', 'Hand Over Date', 'Return Date', 'Remarks', 'Action'].map((header) => (
                         <TableCell key={header} className="survey-table-header">
                           {header}
                         </TableCell>
@@ -324,8 +276,9 @@ const Survey = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {lowerData.map((record) => (
+                    {lowerData.map((record,index) => (
                       <TableRow key={record.work_order_id}>
+                        <TableCell className="survey-table-cell">{index + 1}</TableCell>
                         <TableCell className="survey-table-cell">
                           {record.work_order_id}
                         </TableCell>
@@ -356,17 +309,17 @@ const Survey = () => {
                             </Button>
                           )}
                         </TableCell> */}
-                       <TableCell>
+                       {/* <TableCell>
                         {record.created_at ? new Date(record.created_at).toLocaleString() : 'N/A'}
                       </TableCell>
                        <TableCell>
                        {record.survey_created_at ? new Date(record.survey_created_at).toLocaleString() : 'N/A'}
-                      </TableCell>
+                      </TableCell> */}
                        <TableCell>
-                       <TableCell>
+                       {/* <TableCell>
                         {record.deadline ? record.deadline.toLocaleDateString() : 'N/A'}
-                      </TableCell>
-                      <TableCell> {record.file_path ? "✅" : "❌"}</TableCell>
+                      </TableCell> */}
+                      {/* <TableCell> {record.file_path ? "✅" : "❌"}</TableCell> */}
                       <TableCell>
                           <Button
                             onClick={() => handleEdit(record)}
@@ -478,9 +431,11 @@ const Survey = () => {
                  <input
                   type="file"
                   name="survey_file_path"
-                  onChange={(e) => setFormData({ ...formData, survey_file_path: e.target.files[0] })}
+                  multiple
+                  onChange={(e) => setFormData({ ...formData, survey_file_path: e.target.files })}
                   accept="image/*,application/pdf"
                 />
+
                 <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                   <Button type="submit" variant="contained" color="primary" fullWidth>
                     Save Changes

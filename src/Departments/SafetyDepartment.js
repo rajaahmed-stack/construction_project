@@ -277,23 +277,41 @@ const SafetyDepartment = () => {
   
 
 
-  const handleFileUpload = async (fieldName, file) => {
-      const formDataWithFile = new FormData();
-      formDataWithFile.append("file", file);
-      console.log("File to be uploaded:", file);  // Log the file being uploaded
-    
-      try {
-        const response = await axios.post(`https://constructionproject-production.up.railway.app/api/safety/upload-safety-file/${fieldName}`, formDataWithFile);
-        console.log("File upload response:", response.data); // Log the response from backend
-        setFormData((prevData) => ({
-          ...prevData,
-          [fieldName]: response.data.filePath,  // Update state with file path
-        }));
-        handleTaskCompletion(`${fieldName}Completed`);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-      }
-    };
+  const handleFileUpload = async (fieldName, files) => {
+    if (!files || files.length === 0) return;
+  
+    const formDataWithFiles = new FormData();
+  
+    for (let i = 0; i < files.length; i++) {
+      formDataWithFiles.append("file", files[i]); // use plural "files" on backend side
+    }
+  
+    try {
+      const response = await axios.post(
+        `https://constructionproject-production.up.railway.app/api/safety/upload-safety-files/${fieldName}`,
+        formDataWithFiles,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
+      console.log("Files upload response:", response.data);
+  
+      // Save multiple file paths
+      setFormData((prevData) => ({
+        ...prevData,
+        [fieldName]: response.data.filePaths || [], // array of file paths expected
+      }));
+  
+      handleTaskCompletion(`${fieldName}Completed`);
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      alert("Failed to upload files. Please try again.");
+    }
+  };
+  
     const handleTaskCompletion = (fieldName) => {
       setFormData((prevData) => ({
         ...prevData,
@@ -757,7 +775,7 @@ return (
                         disabled={disabled}
                       >
                         Upload {label}
-                        <input type="file" hidden onChange={(e) => handleFileUpload(key, e.target.files[0])} />
+                        <input type="file" hidden multiple onChange={(e) => handleFileUpload(key, e.target.files)} />
                       </Button>
                       <Button
                         variant="outlined"

@@ -89,12 +89,12 @@ const upload = multer({ storage: storage });
 // we assume you exported `upload` from server.js
 // const { upload } = require('./server'); // Adjust the path if needed
 
-router.post('/save-survey', upload.single('survey_file_path'), (req, res) => {
+router.post('/save-survey', upload.array('survey_file_path'), (req, res) => {
   console.log('Uploaded File:', req.file);
   console.log('Form Data:', req.body);
 
   const { work_order_id, handover_date, return_date, remark } = req.body;
-  const documentFilePath = req.file ? req.file.path : null; // ✅ Correct: Get the relative path from Multer
+  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
 
   if (!work_order_id || !handover_date || !return_date || !remark) {
     return res.status(400).send('All fields are required');
@@ -244,12 +244,12 @@ router.get('/survey_download/:id', (req, res) => {
     });
   });
 });
-router.put('/edit-survey/:id', upload.single('survey_file_path'), (req, res) => {
+router.put('/edit-survey/:id', upload.array('survey_file_path'), (req, res) => {
   const workOrderId = req.params.id;
   const { handover_date, return_date, remark } = req.body;
 
   // Handle the file path, or use null if no file is uploaded
-  const documentFilePath = req.file ? path.join('uploads', req.file.filename) : null;
+  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
 
   // Update query
   const query = `

@@ -109,20 +109,16 @@ const GisDepartment = () => {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      alert('Please select a file.');
-      return;
-    }
-    
-    // Ensure both certificates are set separately
+    const files = Array.from(e.target.files); // Convert FileList to Array
+  
     if (e.target.name === 'gis') {
       setFormData((prevData) => ({
         ...prevData,
-        gis: file,
+        gis: files, // ✅ store as array
       }));
-    } 
+    }
   };
+  
   const refreshGisData = async () => {
     try {
       const [comingResponse, permissionResponse] = await Promise.all([
@@ -142,17 +138,18 @@ const GisDepartment = () => {
   const handleSave = async (e) => {
     e.preventDefault();
   
-    // Validate required fields
-    if (!formData.gis) {
-      alert('Please upload the GIS document.');
+    if (!formData.gis || formData.gis.length === 0) {
+      alert('Please upload at least one GIS document.');
       return;
     }
   
     try {
-      // Prepare form data for submission
       const formDataWithFile = new FormData();
-      formDataWithFile.append('gis', formData.gis);
       formDataWithFile.append('work_order_id', formData.work_order_id);
+  
+      formData.gis.forEach((file) => {
+        formDataWithFile.append('gis', file); // ✅ append each file
+      });
   
       const response = await axios.post(
         'https://constructionproject-production.up.railway.app/api/gis/upload-and-save-gisdocument',
@@ -161,25 +158,23 @@ const GisDepartment = () => {
       );
   
       if (response.data.success) {
-        alert('File uploaded and data saved successfully');
+        alert('Files uploaded and data saved successfully');
+        await refreshGisData();
   
-        // Update the lowerData state with the new record
-       await refreshGisData();
-  
-        // Reset the form and close the modal
         setFormData({
           work_order_id: "",
-          gis: "",
+          gis: [],
         });
         setShowForm(false);
       } else {
-        alert('Failed to upload the file');
+        alert('Failed to upload the files');
       }
     } catch (error) {
-      console.error('Error uploading file and saving data:', error);
-      alert('Failed to upload file and save data. Please try again.');
+      console.error('Error uploading files and saving data:', error);
+      alert('Failed to upload files and save data. Please try again.');
     }
   };
+  
   
   
   
@@ -327,9 +322,10 @@ const GisDepartment = () => {
                 type="file"
                 name="gis"
                 onChange={handleFileUpload}
-                // value={formData.Work_closing_certificate}
+                multiple // ✅ allow selecting multiple files
                 required
               />
+
             </Form.Group>
             
             <Button backgroundColor="#a200ff" type="submit" onClick={handleSave}>

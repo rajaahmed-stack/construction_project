@@ -146,12 +146,17 @@ const PermissionClosing = () => {
     formDataWithFile.append('penalty_reason', formData.penalty_reason || '');
     formDataWithFile.append('penalty_amount', formData.penalty_amount || '');
   
-    if (formData.work_closing_certificate) {
-      formDataWithFile.append('work_closing_certificate', formData.work_closing_certificate);
+    if (formData.work_closing_certificate && formData.work_closing_certificate.length > 0) {
+      formData.work_closing_certificate.forEach((file) => {
+        formDataWithFile.append('work_closing_certificate', file);
+      });
     }
   
-    if (formData.final_closing_certificate) {
-      formDataWithFile.append('final_closing_certificate', formData.final_closing_certificate);
+    // Append multiple files for final_closing_certificate
+    if (formData.final_closing_certificate && formData.final_closing_certificate.length > 0) {
+      formData.final_closing_certificate.forEach((file) => {
+        formDataWithFile.append('final_closing_certificate', file);
+      });
     }
   
     const url = formData.isEditing
@@ -167,7 +172,15 @@ const PermissionClosing = () => {
   
       if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
-        await refreshPermissionClosingData();
+        const [comingResponse, permissionResponse] = await Promise.all([
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing-coming"),
+          axios.get("https://constructionproject-production.up.railway.app/api/permission-closing/PermissionClosing-data"),
+        ]);
+        
+        const updatedData = processPermissionClosingData(permissionResponse.data);
+        
+        setUpperData(comingResponse.data || []);
+        setLowerData(updatedData);
   
         // Update the lowerData state with the new or updated record
         // const updatedRecord = {
@@ -235,7 +248,7 @@ const PermissionClosing = () => {
     updateRemainingDays(); // Initial calculation
 
     return () => clearInterval(interval); // Cleanup interval
-  }, [lowerData]);
+  }, []);
 
 
 
@@ -337,7 +350,7 @@ const PermissionClosing = () => {
               <Table className="survey-table">
                 <TableHead>
                   <TableRow>
-                    {['Work Order ID', 'Job Type', 'Sub Section', 'Permission Number','Closing Date', 'Penalty Reason', 'Penalty Amount', 'Work Closing Certificate', 'Final Closing Certificate', 'Action'].map((header) => (
+                    {['Sr.No','Work Order ID', 'Job Type', 'Sub Section', 'Permission Number','Closing Date', 'Penalty Reason', 'Penalty Amount', 'Work Closing Certificate', 'Final Closing Certificate', 'Action'].map((header) => (
                       <TableCell key={header} className="survey-table-header">
                         {header}
                       </TableCell>
@@ -345,8 +358,9 @@ const PermissionClosing = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {lowerData.map((record) => (
+                  {lowerData.map((record, index) => (
                     <TableRow key={record.work_order_id}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{record.work_order_id}</TableCell>
                       <TableCell>{record.job_type}</TableCell>
                       <TableCell>{record.sub_section}</TableCell>
@@ -460,15 +474,17 @@ const PermissionClosing = () => {
              <input
                 label="Work Closing Certificate"
                 type="file"
-                name="Work_closing_certificate"
-                onChange={(e) => setFormData({ ...formData, Work_closing_certificate: e.target.files[0] })}
+                multiple
+                name="work_closing_certificate"
+                onChange={(e) => setFormData({ ...formData, work_closing_certificate: e.target.files })}
                 accept="image/*,application/pdf"
               />
              <input
                 label="Final Closing Certificate"
                 type="file"
+                multiple
                 name="final_closing_certificate"
-                onChange={(e) => setFormData({ ...formData, final_closing_certificate: e.target.files[0] })}
+                onChange={(e) => setFormData({ ...formData, final_closing_certificate: e.target.files })}
                 accept="image/*,application/pdf"
               />
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>

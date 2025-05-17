@@ -113,13 +113,13 @@ router.get('/workClosing-data', (req, res) => {
 
 // Combined route for file upload and data saving
 router.post('/upload-and-save-wcdocument', upload.fields([
-  { name: 'mubahisa', maxCount: 1 },
+  { name: 'mubahisa', maxCount: 20 },
 ]), (req, res) => {
   console.log(req.files);
   console.log(req.body);
 
   const { work_order_id, submission_date, resubmission_date, approval_date } = req.body;
-  const Mubahisa = req.files['mubahisa'] ? req.files['mubahisa'][0].filename : null;
+  const Mubahisa = req.files['mubahisa'] ? req.files['mubahisa'].map(file => file.filename) : null;
 
   // Insert file information and work order details into the database
   const insertQuery = `
@@ -279,7 +279,7 @@ router.get('/workclosing_download/:id', (req, res) => {
   });
 });
 router.put('/edit-workclosing/:id', upload.fields([
-  { name: 'mubahisa', maxCount: 1 }
+  { name: 'mubahisa', maxCount: 20}
 ]), (req, res) => {
   const workOrderId = req.params.id;
   const { submission_date, resubmission_date, approval_date } = req.body;
@@ -291,7 +291,7 @@ router.put('/edit-workclosing/:id', upload.fields([
 
   // Handle file paths
   const mubahisaFile = req.files['mubahisa']
-    ? req.files['mubahisa'][0].filename
+    ? req.files['mubahisa'].map(file => file.filename)
     : null;
 
   // Update query

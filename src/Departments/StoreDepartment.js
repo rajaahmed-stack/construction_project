@@ -64,34 +64,43 @@ const StoreDepartment = () => {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      alert('Please select a file.');
+    const files = Array.from(e.target.files); // Convert FileList to Array
+    const name = e.target.name;
+  
+    if (!files.length) {
+      alert('Please select at least one file.');
       return;
     }
   
-    // Set only the specific file in formData
     setFormData((prevData) => ({
       ...prevData,
-      [e.target.name]: file, // Dynamically updating the field
+      [name]: files, // Store as array
     }));
   };
   
   const handleSave = async (e) => {
     e.preventDefault();
   
-    // Ensure all required files are selected
-    if (!formData.material_return || !formData.material_receiving || !formData.material_pending) {
-      alert('Please select all required files before uploading.');
+    const { material_return, material_receiving, material_pending, work_order_id } = formData;
+  
+    if (!material_return?.length || !material_receiving?.length || !material_pending?.length) {
+      alert('Please select all required files.');
       return;
     }
   
     try {
       const formDataWithFile = new FormData();
-      formDataWithFile.append('material_return', formData.material_return);
-      formDataWithFile.append('material_receiving', formData.material_receiving);
-      formDataWithFile.append('material_pending', formData.material_pending);
-      formDataWithFile.append('work_order_id', formData.work_order_id);
+      formDataWithFile.append('work_order_id', work_order_id);
+  
+      material_return.forEach(file => {
+        formDataWithFile.append('material_return', file);
+      });
+      material_receiving.forEach(file => {
+        formDataWithFile.append('material_receiving', file);
+      });
+      material_pending.forEach(file => {
+        formDataWithFile.append('material_pending', file);
+      });
   
       const response = await axios.post(
         'https://constructionproject-production.up.railway.app/api/store/upload-and-save-storedocument',
@@ -100,15 +109,13 @@ const StoreDepartment = () => {
       );
   
       if (response.data.success) {
-        alert('File uploaded and data saved successfully');
+        alert('Files uploaded and data saved successfully');
         setShowForm(false);
-  
-        // Reset formData correctly
         setFormData({
           work_order_id: "",
-          material_return: null,
-          material_receiving: null,
-          material_pending: null,
+          material_return: [],
+          material_receiving: [],
+          material_pending: [],
         });
   
         // Refresh data
@@ -119,13 +126,14 @@ const StoreDepartment = () => {
         setUpperData(comingResponse.data || []);
         setLowerData(permissionResponse.data || []);
       } else {
-        alert('Failed to upload the file');
+        alert('Failed to upload files');
       }
     } catch (error) {
-      console.error('Error uploading file and saving data:', error);
-      alert('Failed to upload file and save data. Please try again.');
+      console.error('Upload error:', error);
+      alert('Failed to upload. Please try again.');
     }
   };
+  
   
   
   
@@ -278,6 +286,7 @@ const StoreDepartment = () => {
                 type="file"
                 name="material_return"
                 onChange={handleFileUpload}
+                multiple
                 // value={formData.Work_closing_certificate}
                 required
               />
@@ -288,6 +297,7 @@ const StoreDepartment = () => {
                 type="file"
                 name="material_receiving"
                 onChange={handleFileUpload}
+                multiple
                 // value={formData.Work_closing_certificate}
                 required
               />
@@ -298,6 +308,7 @@ const StoreDepartment = () => {
                 type="file"
                 name="material_pending"
                 onChange={handleFileUpload}
+                multiple
                 // value={formData.Work_closing_certificate}
                 required
               />
