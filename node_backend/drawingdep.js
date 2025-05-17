@@ -124,6 +124,7 @@ router.get('/drawingdep-coming', (req, res) => {
     (SELECT work_order_id FROM drawing_department) 
     OR (work_receiving.current_department = 'PermissionClosing' 
           OR work_receiving.current_department = 'WorkClosing');
+          OR work_receiving.job_type = 'Meters';
 
 
 

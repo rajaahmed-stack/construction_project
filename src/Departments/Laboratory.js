@@ -4,7 +4,7 @@ import { Grid, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBo
   Modal, Box, TextField, Card, CardContent, FormControl, InputLabel, MenuItem, Select  } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";import "../styles/Laboratory.css";
+import CancelIcon from "@mui/icons-material/Cancel";import "../styles/workexecution.css";
 
 const processWorkExeData = (data) => {
   const today = new Date();

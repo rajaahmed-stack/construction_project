@@ -129,6 +129,7 @@ router.get('/permission-coming', (req, res) => {
     LEFT JOIN work_receiving ON survey.work_order_id = work_receiving.work_order_id
     WHERE survey.work_order_id NOT IN (SELECT work_order_id FROM permissions)
       AND work_receiving.current_department = 'Permission'
+       AND work_receiving.job_type != 'Meters';
   `;
   db.query(query, (err, results) => {
     if (err) {

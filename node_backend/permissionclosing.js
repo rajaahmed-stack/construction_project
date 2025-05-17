@@ -69,6 +69,7 @@ router.get('/permissionclosing-coming', (req, res) => {
         lab.work_order_id NOT IN 
             (SELECT work_order_id FROM permission_closing) 
         AND work_receiving.current_department = 'PermissionClosing';
+         AND work_receiving.job_type != 'Meters';
 
     `;
     db.query(query, (err, results) => {

@@ -33,6 +33,7 @@ router.get('/survey-coming', (req, res) => {
     WHERE work_order_id NOT IN 
       (SELECT work_order_id FROM survey) 
     AND current_department = 'Survey'
+    AND WHERE work_receiving.job_type != 'Meters';
   `;
   db.query(query, (err, results) => {
     if (err) {
