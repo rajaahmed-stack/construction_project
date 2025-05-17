@@ -46,22 +46,38 @@ const upload = multer({ storage: storage });
 // Fetch permissionclosing Coming Data
 router.get('/workclosing-coming', (req, res) => {
     const query = `
-    SELECT permission_closing.work_order_id, 
-    permission_closing.permission_number,
-    work_receiving.job_type, 
-    work_receiving.file_path, 
-    work_receiving.sub_section,
-    survey.survey_file_path,
-    permissions.Document
-    FROM permission_closing 
-    LEFT JOIN work_receiving 
-    ON permission_closing.work_order_id = work_receiving.work_order_id
-    LEFT JOIN survey ON permission_closing.work_order_id = survey.work_order_id
-    LEFT JOIN permissions ON permission_closing.work_order_id = permissions.work_order_id
-    WHERE permission_closing.work_order_id NOT IN 
-      (SELECT work_order_id FROM work_closing) 
-      AND current_department = 'WorkClosing';
-       AND work_receiving.job_type != 'Meters';
+    SELECT 
+    pc.work_order_id, 
+    pc.permission_number,
+    wr.job_type, 
+    wr.file_path, 
+    wr.sub_section,
+    s.survey_file_path,
+    p.Document
+  FROM permission_closing pc
+  LEFT JOIN work_receiving wr ON pc.work_order_id = wr.work_order_id
+  LEFT JOIN survey s ON pc.work_order_id = s.work_order_id
+  LEFT JOIN permissions p ON pc.work_order_id = p.work_order_id
+  WHERE pc.work_order_id NOT IN (SELECT work_order_id FROM work_closing)
+    AND wr.current_department = 'WorkClosing'
+    AND wr.job_type != 'Meters'
+)
+
+UNION ALL
+
+(
+  SELECT 
+    eam.work_order_id, 
+    NULL AS permission_number,
+    NULL AS job_type,
+    eam.file_path,
+    NULL AS sub_section,
+    NULL AS survey_file_path,
+    NULL AS Document
+  FROM emergency_and_maintainence eam
+  LEFT JOIN work_receiving wr ON eam.work_order_id = wr.work_order_id
+  WHERE eam.work_order_id NOT IN (SELECT work_order_id FROM work_closing)
+    AND wr.current_department = 'WorkClosing''
     `;
     db.query(query, (err, results) => {
       if (err) {

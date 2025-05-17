@@ -98,12 +98,15 @@ router.get('/search-filter', (req, res) => {
 
   const allowedValues = [
     'Work Receiving',
+    'Emergency & Maintainence',
     'Survey',
     'Permission',
     'Safety',
     'Work Execution',
+    'Laboratory',
     'Permission Closing',
     'Work Closing',
+    'Invoice',
     'Drawing',
     'GIS',
     'Store',
@@ -132,6 +135,10 @@ router.get('/search-filter', (req, res) => {
       query = `SELECT * FROM survey`;
       break;
 
+    case 'Emergency & Maintainence':
+      query = `SELECT * FROM emergency_and_maintainence`;
+      break;
+
     case 'Permission':
       query = `SELECT * FROM permissions`;
       break;
@@ -143,6 +150,9 @@ router.get('/search-filter', (req, res) => {
     case 'Work Execution':
       query = `SELECT * FROM work_execution`;
       break;
+    case 'Laboratory':
+      query = `SELECT * FROM lab`;
+      break;
 
     case 'Permission Closing':
       query = `SELECT * FROM permission_closing`;
@@ -150,6 +160,9 @@ router.get('/search-filter', (req, res) => {
 
     case 'Work Closing':
       query = `SELECT * FROM work_closing`;
+      break;
+    case 'Invoice':
+      query = `SELECT * FROM invoice`;
       break;
 
     case 'Drawing':

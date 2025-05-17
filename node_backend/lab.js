@@ -57,21 +57,24 @@ router.post('/upload-lab-file/:fieldName', upload.array('file'), (req, res) => {
 // Fetch workExecution Coming Data
 router.get('/Laboratory-coming', (req, res) => {
   const query = `
-      SELECT work_execution.work_order_id, 
-      work_execution.permission_number,
-      work_receiving.job_type, 
-      work_receiving.sub_section,
-      work_receiving.file_path,
-      survey.survey_file_path
+   SELECT 
+    work_execution.work_order_id, 
+    work_execution.permission_number,
+    work_receiving.job_type, 
+    work_receiving.sub_section,
+    work_receiving.file_path,
+    survey.survey_file_path
     FROM work_execution 
     LEFT JOIN work_receiving 
     ON work_execution.work_order_id = work_receiving.work_order_id
     LEFT JOIN survey 
     ON work_execution.work_order_id = survey.work_order_id
-    WHERE work_execution.work_order_id NOT IN 
-    (SELECT work_order_id FROM lab) 
-    AND work_receiving.current_department = 'Laboratory';
-     AND work_receiving.job_type != 'Meters';
+    WHERE work_execution.work_order_id NOT IN (
+    SELECT work_order_id FROM lab
+    )
+    AND work_receiving.current_department = 'Laboratory'
+    AND work_receiving.job_type != 'Meters';
+
 
   `;
   db.query(query, (err, results) => {
