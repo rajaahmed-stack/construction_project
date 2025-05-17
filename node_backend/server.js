@@ -136,7 +136,9 @@ app.post('/api/save-work_receiving', upload.array('file_path'), (req, res) => {
   const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, remarks } = req.body;
 const documentFilePath = req.files?.map(file => path.join('uploads', file.filename)).join(',') || null;
 
-  if (!workOrderList || !jobType || !subSection || !receivingDate || !endDate || !estimatedValue || !current_department || !remarks) {
+const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
+
+  if (!jobType || (isSubSectionRequired && !subSection) || !workOrderList || !receivingDate || !endDate || !estimatedValue || !remarks) {
     return res.status(400).send('All fields are required');
   }
 
