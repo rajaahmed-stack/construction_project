@@ -4,7 +4,9 @@ import { Grid, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBo
   Modal, Box, TextField, Card, CardContent, FormControl, InputLabel, MenuItem, Select  } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";import "../styles/workexecution.css";
+import CancelIcon from "@mui/icons-material/Cancel";
+import "../styles/workexecution.css";
+import AddIcon from "@mui/icons-material/Add";
 
 const processWorkExeData = (data) => {
   const today = new Date();
@@ -13,7 +15,7 @@ const processWorkExeData = (data) => {
       const workCreatedAt = new Date(record.safety_created_at);
       const surveyCreatedAt = new Date(record.workexe_created_at);
       const deadline = new Date(workCreatedAt);
-      deadline.setDate(deadline.getDate() + 2);
+      deadline.setDate(deadline.getDate() + 5);
 
       let statusColor = '';
       let deliveryStatus = 'On Time';
@@ -43,6 +45,7 @@ const Laboratory = () => {
   const [loading, setLoading] = useState(false);
   const [alertData, setAlertData] = useState([]);
   const [isRemarkUploaded, setIsRemarkUploaded] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState({});
   const [formData, setFormData] = useState({
     work_order_id: "",
     permission_number: "",
@@ -362,34 +365,79 @@ const handleSaveRemainingData = async (workOrderId) => {
 
   
 
+// const handleFileUpload = async (fieldName, files) => {
+//   const formDataWithFiles = new FormData();
+
+//   for (let i = 0; i < files.length; i++) {
+//     formDataWithFiles.append("files", files[i]); // use 'files' as the field name (plural)
+//   }
+
+//   console.log("Files to be uploaded:", files);
+
+//   try {
+//     const response = await axios.post(
+//       `https://constructionproject-production.up.railway.app/api/Laboratory/upload-Laboratory-file/${fieldName}`,
+//       formDataWithFiles
+//     );
+
+//     console.log("File upload response:", response.data);
+
+//     setFormData((prevData) => ({
+//       ...prevData,
+//       [fieldName]: response.data.filePaths, // expect multiple paths from backend
+//     }));
+
+//     handleTaskCompletion(`${fieldName}Completed`);
+//   } catch (error) {
+//     console.error("Error uploading files:", error);
+//   }
+// };
 const handleFileUpload = async (fieldName, files) => {
-  const formDataWithFiles = new FormData();
-
-  for (let i = 0; i < files.length; i++) {
-    formDataWithFiles.append("files", files[i]); // use 'files' as the field name (plural)
-  }
-
-  console.log("Files to be uploaded:", files);
-
-  try {
-    const response = await axios.post(
-      `https://constructionproject-production.up.railway.app/api/Laboratory/upload-Laboratory-file/${fieldName}`,
-      formDataWithFiles
-    );
-
-    console.log("File upload response:", response.data);
-
-    setFormData((prevData) => ({
-      ...prevData,
-      [fieldName]: response.data.filePaths, // expect multiple paths from backend
-    }));
-
-    handleTaskCompletion(`${fieldName}Completed`);
-  } catch (error) {
-    console.error("Error uploading files:", error);
-  }
-};
-
+    if (!files || files.length === 0) return;
+  
+    const formDataWithFiles = new FormData();
+  
+    for (let i = 0; i < files.length; i++) {
+      formDataWithFiles.append("file", files[i]);
+    }
+  
+    try {
+      const response = await axios.post(
+        `https://constructionproject-production.up.railway.app/api/Laboratory/upload-Laboratory-file/${fieldName}`,
+        formDataWithFiles,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
+      console.log("Files upload response:", response.data);
+  
+      // Append new file paths to the already uploaded files
+      setFormData((prevData) => ({
+        ...prevData,
+        [fieldName]: [
+          ...(prevData[fieldName] || []),
+          ...(response.data.filePaths || []),
+        ],
+      }));
+  
+      setUploadedFiles((prev) => ({
+        ...prev,
+        [fieldName]: [
+          ...(prev[fieldName] || []),
+          ...(response.data.filePaths || []),
+        ],
+      }));
+  
+      handleTaskCompletion(`${fieldName}Completed`);
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      alert("Failed to upload files. Please try again.");
+    }
+  };
+  
   const handleTaskCompletion = (fieldName) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -877,21 +925,44 @@ const handleFileUpload = async (fieldName, files) => {
                   :[]),
                 ].map(({ label, handler, key, disabled }) => (
                   <Grid item xs={6} key={key}>
-                    <Button
-                      variant="contained"
-                      component="label"
-                      startIcon={<CloudUploadIcon />}
-                      disabled={disabled}
+                     <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<CloudUploadIcon />}
+                        disabled={disabled}
+                        sx={{ marginRight: 1 }}
                     >
-                      Upload {label}
-                      <input
+                        Upload {label}
+                        <input
                         type="file"
                         hidden
                         multiple
                         onChange={(e) => handleFileUpload(key, e.target.files)}
-                      />
-
+                        />
                     </Button>
+
+                    {/* "+" Button to upload more files */}
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        startIcon={<AddIcon />}
+                        disabled={disabled}
+                    >
+                        +
+                        <input
+                        type="file"
+                        hidden
+                        multiple
+                        onChange={(e) => handleFileUpload(key, e.target.files)}
+                        />
+                    </Button>
+
+                    {/* Optional: Show uploaded file names */}
+                    {uploadedFiles[key]?.map((filePath, index) => (
+                        <div key={index} style={{ fontSize: "0.8rem" }}>
+                        ✅ {filePath.split("/").pop()}
+                        </div>
+                    ))}
                     <Button
                       variant="outlined"
                       sx={{ marginLeft: "10px" }}

@@ -49,6 +49,7 @@ const EmergencyMaintainence = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [files, setFiles] = useState([]);
 
  
   
@@ -93,7 +94,10 @@ const EmergencyMaintainence = () => {
       console.error("Error refreshingEmergency & Maintainence data:", error);
     }
   };
-
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+  };
   
   const handleSave = async () => {
     const { jobType, subSection, workOrderList, receivingDate, endDate, estimatedValue, file_path, remarks, workOrderId } = formData;
@@ -103,16 +107,16 @@ const EmergencyMaintainence = () => {
       return;
     }
 
-    if (!file_path || file_path.length === 0) {
-      alert("Please select at least one file.");
-      return;
-    }
-    
-    const formDataWithFile = new FormData();
-    
-    for (let i = 0; i < file_path.length; i++) {
-      formDataWithFile.append('file_path', file_path[i]);
-    }
+    if (files.length === 0) {
+        alert("Please select at least one file.");
+        return;
+      }
+      
+      const formDataWithFile = new FormData();
+      
+      for (let i = 0; i < files.length; i++) {
+        formDataWithFile.append('file_path', files[i]);
+      }
     
     formDataWithFile.append('jobType', jobType);
     formDataWithFile.append('subSection', subSection);
@@ -168,6 +172,7 @@ const EmergencyMaintainence = () => {
           remarks: '',
           workOrderId: null,
         });
+        setFiles([]); // ✅ Clear selected files after successful save
         console.log('Success! Reloading after 5 seconds...');
         setTimeout(() => {
           window.location.reload();
@@ -312,12 +317,33 @@ const handleEdit = (item) => {
               ))}
             </Grid>
             <input
-                  type="file"
-                  name="file_path"
-                  multiple
-                  onChange={(e) => setFormData({ ...formData, file_path: e.target.files })}
-                  accept="image/*,application/pdf"
-                />
+                              accept="*"
+                              style={{ display: 'none' }}
+                              id="upload-files"
+                              type="file"
+                              multiple
+                              onChange={handleFileChange}
+                            />
+                            <label htmlFor="upload-files">
+                              <Button variant="outlined" component="span">
+                                + Add Files
+                              </Button>
+                            </label>
+            
+                            {/* Display selected file names */}
+                            <div style={{ marginTop: 10 }}>
+                              {files.length > 0 ? (
+                                files.map((file, index) => (
+                                  <Typography key={index} variant="body2">
+                                    📎 {file.name}
+                                  </Typography>
+                                ))
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  No files selected.
+                                </Typography>
+                              )}
+                            </div>
             
 
             <Button fullWidth variant="contained" color="primary" startIcon={<Save />} onClick={handleSave} sx={{ mt: 3 }}>

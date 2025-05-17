@@ -13,9 +13,9 @@ const StoreDepartment = () => {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     work_order_id: "",
-    material_return: "",
-    material_receiving: "",
-    material_pending: "",
+    material_return: [],
+    material_receiving: [],
+    material_pending: [],
    
   });
 
@@ -63,20 +63,24 @@ const StoreDepartment = () => {
     setShowForm(true);
   };
 
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files); // Convert FileList to Array
-    const name = e.target.name;
-  
-    if (!files.length) {
-      alert('Please select at least one file.');
-      return;
-    }
-  
+  const handleFileUpload = (e, category, index) => {
+    const files = Array.from(e.target.files);
+    setFormData((prevData) => {
+      const updatedCategoryFiles = [...prevData[category]];
+      updatedCategoryFiles[index] = files[0]; // store one file per field
+      return {
+        ...prevData,
+        [category]: updatedCategoryFiles,
+      };
+    });
+  };
+  const handleAddFileField = (category) => {
     setFormData((prevData) => ({
       ...prevData,
-      [name]: files, // Store as array
+      [category]: [...prevData[category], ""],
     }));
   };
+    
   
   const handleSave = async (e) => {
     e.preventDefault();
@@ -92,15 +96,16 @@ const StoreDepartment = () => {
       const formDataWithFile = new FormData();
       formDataWithFile.append('work_order_id', work_order_id);
   
-      material_return.forEach(file => {
+      material_return.filter(Boolean).forEach(file => {
         formDataWithFile.append('material_return', file);
       });
-      material_receiving.forEach(file => {
+      material_receiving.filter(Boolean).forEach(file => {
         formDataWithFile.append('material_receiving', file);
       });
-      material_pending.forEach(file => {
+      material_pending.filter(Boolean).forEach(file => {
         formDataWithFile.append('material_pending', file);
       });
+      
   
       const response = await axios.post(
         'https://constructionproject-production.up.railway.app/api/store/upload-and-save-storedocument',
@@ -280,39 +285,46 @@ const StoreDepartment = () => {
                 readOnly
               />
             </Form.Group>
-            <Form.Group controlId="formFile">
+            <Form.Group controlId="formFileReturn">
               <Form.Label>Material Return</Form.Label>
-              <Form.Control
-                type="file"
-                name="material_return"
-                onChange={handleFileUpload}
-                multiple
-                // value={formData.Work_closing_certificate}
-                required
-              />
+              {formData.material_return.map((_, index) => (
+                <div key={index} className="d-flex mb-2">
+                  <Form.Control
+                    type="file"
+                    onChange={(e) => handleFileUpload(e, "material_return", index)}
+                    required
+                  />
+                </div>
+              ))}
+              <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_return")}>+</Button>
             </Form.Group>
-            <Form.Group controlId="formFile">
-              <Form.Label>Material Receiving</Form.Label>
-              <Form.Control
-                type="file"
-                name="material_receiving"
-                onChange={handleFileUpload}
-                multiple
-                // value={formData.Work_closing_certificate}
-                required
-              />
-            </Form.Group>
-            <Form.Group controlId="formFile">
-              <Form.Label>Material Pending</Form.Label>
-              <Form.Control
-                type="file"
-                name="material_pending"
-                onChange={handleFileUpload}
-                multiple
-                // value={formData.Work_closing_certificate}
-                required
-              />
-            </Form.Group>
+            <Form.Group controlId="formFileReceiving">
+                <Form.Label>Material Receiving</Form.Label>
+                {formData.material_receiving.map((_, index) => (
+                  <div key={index} className="d-flex mb-2">
+                    <Form.Control
+                      type="file"
+                      onChange={(e) => handleFileUpload(e, "material_receiving", index)}
+                      required
+                    />
+                  </div>
+                ))}
+                <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_receiving")}>+</Button>
+              </Form.Group>
+
+              <Form.Group controlId="formFilePending">
+                <Form.Label>Material Pending</Form.Label>
+                {formData.material_pending.map((_, index) => (
+                  <div key={index} className="d-flex mb-2">
+                    <Form.Control
+                      type="file"
+                      onChange={(e) => handleFileUpload(e, "material_pending", index)}
+                      required
+                    />
+                  </div>
+                ))}
+                <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_pending")}>+</Button>
+              </Form.Group>
             
             <Button variant="primary" type="submit" onClick={handleSave}>
               Save Data

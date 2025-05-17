@@ -41,9 +41,10 @@ const GisDepartment = () => {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     work_order_id: "",
-    gis: "",
+    gis: [],
    
   });
+  const [gisFiles, setGisFiles] = useState([[]]); // array of file arrays
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,16 +109,18 @@ const GisDepartment = () => {
     setShowForm(true);
   };
 
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files); // Convert FileList to Array
-  
-    if (e.target.name === 'gis') {
-      setFormData((prevData) => ({
-        ...prevData,
-        gis: files, // ✅ store as array
-      }));
-    }
+  const handleFileUpload = (e, index) => {
+    const files = Array.from(e.target.files);
+    setGisFiles(prevFiles => {
+      const updated = [...prevFiles];
+      updated[index] = files;
+      return updated;
+    });
   };
+  const handleAddFileInput = () => {
+    setGisFiles([...gisFiles, []]);
+  };
+    
   
   const refreshGisData = async () => {
     try {
@@ -138,7 +141,9 @@ const GisDepartment = () => {
   const handleSave = async (e) => {
     e.preventDefault();
   
-    if (!formData.gis || formData.gis.length === 0) {
+    const allFiles = gisFiles.flat(); // combine all file arrays
+  
+    if (allFiles.length === 0) {
       alert('Please upload at least one GIS document.');
       return;
     }
@@ -147,8 +152,8 @@ const GisDepartment = () => {
       const formDataWithFile = new FormData();
       formDataWithFile.append('work_order_id', formData.work_order_id);
   
-      formData.gis.forEach((file) => {
-        formDataWithFile.append('gis', file); // ✅ append each file
+      allFiles.forEach((file) => {
+        formDataWithFile.append('gis', file);
       });
   
       const response = await axios.post(
@@ -160,11 +165,8 @@ const GisDepartment = () => {
       if (response.data.success) {
         alert('Files uploaded and data saved successfully');
         await refreshGisData();
-  
-        setFormData({
-          work_order_id: "",
-          gis: [],
-        });
+        setFormData({ work_order_id: "", gis: [] });
+        setGisFiles([[]]); // reset
         setShowForm(false);
       } else {
         alert('Failed to upload the files');
@@ -316,16 +318,20 @@ const GisDepartment = () => {
                 readOnly
               />
             </Form.Group>
-            <Form.Group controlId="formFile">
-              <Form.Label>GIS</Form.Label>
-              <Form.Control
-                type="file"
-                name="gis"
-                onChange={handleFileUpload}
-                multiple // ✅ allow selecting multiple files
-                required
-              />
-
+            <Form.Group controlId="gisUpload">
+              <Form.Label>Upload GIS Documents</Form.Label>
+              {gisFiles.map((_, index) => (
+                <Form.Control
+                  key={index}
+                  type="file"
+                  multiple
+                  onChange={(e) => handleFileUpload(e, index)}
+                  className="mb-2"
+                />
+              ))}
+              <Button variant="outline-primary" size="sm" onClick={handleAddFileInput}>
+                + Add More Files
+              </Button>
             </Form.Group>
             
             <Button backgroundColor="#a200ff" type="submit" onClick={handleSave}>

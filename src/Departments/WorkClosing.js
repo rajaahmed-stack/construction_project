@@ -41,6 +41,7 @@ const WorkClosing = () => {
   const [showForm, setShowForm] = useState(false);
   const [alertData, setAlertData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     work_order_id: "",
     submission_date: "",
@@ -137,6 +138,11 @@ const WorkClosing = () => {
       setLoading(false);
     }
   };
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+  };
+  
   const handleSave = async (e) => {
     e.preventDefault();
   
@@ -154,10 +160,15 @@ const WorkClosing = () => {
     formDataWithFile.append('resubmission_date', formData.resubmission_date);
     formDataWithFile.append('approval_date', formData.approval_date);
  
-    if (formData.mubahisa && formData.mubahisa.length > 0) {
-      formData.mubahisa.forEach((file) => {
-        formDataWithFile.append('mubahisa', file);
-      });
+    if (files.length === 0) {
+      alert("Please select at least one file.");
+      return;
+    }
+    
+  
+    // Append multiple files
+    for (let i = 0; i < files.length; i++) {
+      formDataWithFile.append('mubahisa', files[i]);
     }
   
   
@@ -185,7 +196,8 @@ const WorkClosing = () => {
           mubahisa: null,
           isEditing: false,
         });
-  
+        setFiles([]); // ✅ Clear selected files after successful save
+
         // ✅ Close the modal
         setShowForm(false);
         setTimeout(() => {
@@ -568,13 +580,35 @@ const WorkClosing = () => {
                 InputLabelProps={{ shrink: true }}
 
               />     
-             <input
-                type="file"
-                name="mubahisa"
-                multiple
-                onChange={(e) => setFormData({ ...formData, mubahisa: e.target.files })}
-                accept="image/*,application/pdf"
-              />
+              <input
+                                               accept="*"
+                                               style={{ display: 'none' }}
+                                               id="upload-files"
+                                               type="file"
+                                               multiple
+                                               onChange={handleFileChange}
+                                             />
+                                             <label htmlFor="upload-files">
+                                               <Button variant="outlined" component="span">
+                                                 + Add Files
+                                               </Button>
+                                             </label>
+                             
+                                             {/* Display selected file names */}
+                                             <div style={{ marginTop: 10 }}>
+                                               {files.length > 0 ? (
+                                                 files.map((file, index) => (
+                                                   <Typography key={index} variant="body2">
+                                                     📎 {file.name}
+                                                   </Typography>
+                                                 ))
+                                               ) : (
+                                                 <Typography variant="body2" color="text.secondary">
+                                                   No files selected.
+                                                 </Typography>
+                                               )}
+                                             </div>
+             
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                 <Button type="submit" variant="contained" color="primary" fullWidth>
                   Save Changes

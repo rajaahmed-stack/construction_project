@@ -6,6 +6,7 @@ import {
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import AddIcon from "@mui/icons-material/Add";
 import ReactDOM from "react-dom";
 import "../styles/safety.css";
 
@@ -70,6 +71,8 @@ const SafetyDepartment = () => {
   const [totalTasks, setTotalTasks] = useState(12);
   const [isSendEnabled, setIsSendEnabled] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState({});
+
 
   // Check if timer is saved in localStorage or set it to 7 days if not
   const savedTimer = localStorage.getItem('safetyTimer');
@@ -283,7 +286,7 @@ const SafetyDepartment = () => {
     const formDataWithFiles = new FormData();
   
     for (let i = 0; i < files.length; i++) {
-      formDataWithFiles.append("file", files[i]); // use plural "files" on backend side
+      formDataWithFiles.append("file", files[i]);
     }
   
     try {
@@ -299,10 +302,21 @@ const SafetyDepartment = () => {
   
       console.log("Files upload response:", response.data);
   
-      // Save multiple file paths
+      // Append new file paths to the already uploaded files
       setFormData((prevData) => ({
         ...prevData,
-        [fieldName]: response.data.filePaths || [], // array of file paths expected
+        [fieldName]: [
+          ...(prevData[fieldName] || []),
+          ...(response.data.filePaths || []),
+        ],
+      }));
+  
+      setUploadedFiles((prev) => ({
+        ...prev,
+        [fieldName]: [
+          ...(prev[fieldName] || []),
+          ...(response.data.filePaths || []),
+        ],
       }));
   
       handleTaskCompletion(`${fieldName}Completed`);
@@ -311,6 +325,7 @@ const SafetyDepartment = () => {
       alert("Failed to upload files. Please try again.");
     }
   };
+  
   
     const handleTaskCompletion = (fieldName) => {
       setFormData((prevData) => ({
@@ -768,15 +783,44 @@ return (
                       :[]),
                   ].map(({ label, handler, key, disabled }) => (
                     <Grid item xs={6} key={key}>
-                      <Button
+                     <Button
                         variant="contained"
                         component="label"
                         startIcon={<CloudUploadIcon />}
                         disabled={disabled}
+                        sx={{ marginRight: 1 }}
                       >
                         Upload {label}
-                        <input type="file" hidden multiple onChange={(e) => handleFileUpload(key, e.target.files)} />
+                        <input
+                          type="file"
+                          hidden
+                          multiple
+                          onChange={(e) => handleFileUpload(key, e.target.files)}
+                        />
                       </Button>
+
+                      {/* "+" Button to upload more files */}
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        startIcon={<AddIcon />}
+                        disabled={disabled}
+                      >
+                        +
+                        <input
+                          type="file"
+                          hidden
+                          multiple
+                          onChange={(e) => handleFileUpload(key, e.target.files)}
+                        />
+                      </Button>
+
+                      {/* Optional: Show uploaded file names */}
+                      {uploadedFiles[key]?.map((filePath, index) => (
+                        <div key={index} style={{ fontSize: "0.8rem" }}>
+                          ✅ {filePath.split("/").pop()}
+                        </div>
+                      ))}
                       <Button
                         variant="outlined"
                         sx={{ marginLeft: "10px" }}

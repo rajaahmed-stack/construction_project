@@ -41,6 +41,7 @@ const Permission = () => {
   const [loading, setLoading] = useState(true);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     work_order_id: "",
     request_date: "",
@@ -154,15 +155,15 @@ const Permission = () => {
       }
     }
   
-    if (!formData.Document) {
-      alert("Please upload a file.");
+    if (files.length === 0) {
+      alert("Please select at least one file.");
       return;
     }
-  
-    // Prepare form data for submission
+    
     const formDataWithFile = new FormData();
-    for (let i = 0; i < formData.Document.length; i++) {
-      formDataWithFile.append('Document', formData.Document[i]);
+    
+    for (let i = 0; i < files.length; i++) {
+      formDataWithFile.append('Document', files[i]);
     }
     
     formDataWithFile.append('work_order_id', formData.work_order_id);
@@ -218,6 +219,7 @@ const Permission = () => {
           // remaining_days: 0,
           isEditing: false,
         });
+        setFiles([]); // ✅ Clear selected files after successful save
         setShowForm(false);
       } else {
         alert('Operation failed');
@@ -228,10 +230,8 @@ const Permission = () => {
     }
   };
   const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      Document: e.target.files[0], // Store actual file object
-    });
+    const newFiles = Array.from(e.target.files);
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
   };
   
   const handleEdit = (record) => {
@@ -487,12 +487,33 @@ const Permission = () => {
                   InputLabelProps={{ shrink: true }}
                 />
                <input
-                  type="file"
-                  name="Document"
-                  multiple
-                  onChange={(e) => setFormData({ ...formData, Document: e.target.files })}
-                  accept="image/*,application/pdf"
-                />
+                                 accept="*"
+                                 style={{ display: 'none' }}
+                                 id="upload-files"
+                                 type="file"
+                                 multiple
+                                 onChange={handleFileChange}
+                               />
+                               <label htmlFor="upload-files">
+                                 <Button variant="outlined" component="span">
+                                   + Add Files
+                                 </Button>
+                               </label>
+               
+                               {/* Display selected file names */}
+                               <div style={{ marginTop: 10 }}>
+                                 {files.length > 0 ? (
+                                   files.map((file, index) => (
+                                     <Typography key={index} variant="body2">
+                                       📎 {file.name}
+                                     </Typography>
+                                   ))
+                                 ) : (
+                                   <Typography variant="body2" color="text.secondary">
+                                     No files selected.
+                                   </Typography>
+                                 )}
+                               </div>
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                   <Button type="submit" variant="contained" color="primary" fullWidth>
