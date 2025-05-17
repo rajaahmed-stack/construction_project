@@ -14,6 +14,8 @@ import PermissionClosing from "./Departments/PermissionClosing";
 import WorkClosing from "./Departments/WorkClosing";
 import GisDepartment from "./Departments/GisDepartment";
 import Store from "./Departments/StoreDepartment";
+import Invoice from "./Departments/Invoice";
+import Laboratory from "./Departments/Laboratory";
 import Management from "./components/Management";
 import AIRecommendations from "./components/AIRecommendations";
 import UserManagement from "./components/UserManagement";
@@ -41,6 +43,8 @@ const App = () => (
         <Route path="/Departments/drawing" element={<DrawingDepartment />} />
         <Route path="/Departments/gis" element={<GisDepartment />} />
         <Route path="/Departments/store" element={<Store />} />
+        <Route path="/Departments/Invoice" element={<Invoice />} />
+        <Route path="/Departments/Laboratory" element={<Laboratory />} />
         <Route path="/users" element={<UserManagement />} />
       </Routes>
     </Router>
