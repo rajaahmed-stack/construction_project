@@ -17,7 +17,7 @@ const processSafetyData = (data) => {
       const workCreatedAt = new Date(record.permission_created_at);
       const surveyCreatedAt = new Date(record.safety_created_at);
       const deadline = new Date(workCreatedAt);
-      deadline.setDate(deadline.getDate() + 2);
+      deadline.setDate(deadline.getDate() + 5);
 
       let statusColor = '';
       let deliveryStatus = 'On Time';
