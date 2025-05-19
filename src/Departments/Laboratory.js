@@ -878,16 +878,16 @@ const handleFileUpload = async (fieldName, files) => {
                   <Typography variant="h6">Execution Status</Typography>
                   <Grid container direction="row" spacing={1}>
                 {[
-                  { label: "Asphalt", keys: ["asphalt", "asphalt_completed"] },
-                  { label: "Milling", keys: ["milling", "milling_completed"] },
-                  { label: "Concrete", keys: ["concrete", "concrete_completed"] },
-                  { label: "Deck3", keys: ["deck3", "deck3_completed"] },
-                  { label: "Deck2", keys: ["deck2", "deck2_completed"] },
-                  { label: "Deck1", keys: ["deck1", "deck1_completed"] },
-                  { label: "Sand", keys: ["sand", "sand_completed"] },
-                  { label: "Backfilling", keys: ["backfilling", "backfilling_completed"] },
-                  { label: "Cable Lying", keys: ["cable_lying", "cable_lying_completed"] },
-                  { label: "Trench", keys: ["trench", "trench_completed"] },
+                  { label: "Asphalt Testing", keys: ["asphalt", "asphalt_completed"] },
+                  { label: "Milling Testing", keys: ["milling", "milling_completed"] },
+                  { label: "Concrete Testing", keys: ["concrete", "concrete_completed"] },
+                  { label: "Deck3 Testing", keys: ["deck3", "deck3_completed"] },
+                  { label: "Deck2 Testing", keys: ["deck2", "deck2_completed"] },
+                  { label: "Deck1 Testing", keys: ["deck1", "deck1_completed"] },
+                  { label: "Sand Testing", keys: ["sand", "sand_completed"] },
+                  { label: "Backfilling Testing", keys: ["backfilling", "backfilling_completed"] },
+                  { label: "Cable Lying Testing", keys: ["cable_lying", "cable_lying_completed"] },
+                  { label: "Trench Testing", keys: ["trench", "trench_completed"] },
                 ].map(({ label, keys }) => {
                   const dataKey = keys.find(k => record[k] !== undefined);
                   const isDone = record[dataKey];

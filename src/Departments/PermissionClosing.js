@@ -98,13 +98,20 @@ const PermissionClosing = () => {
     setShowForm(true);
   };
 
-  const handleFileChange = (e) => {
+  const handleWorkClosingFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
     setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    const newFiles2 = Array.from(e.target.files2);
-    setFiles2((prevFiles) => [...prevFiles, ...newFiles2]);
   };
-
+  
+  const handleFinalClosingFileChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setFiles2((prevFiles) => [...prevFiles, ...newFiles]);
+  };
+  
+  const handleRemoveFinalFile = (indexToRemove) => {
+    setFiles2((prevFiles) => prevFiles.filter((_, i) => i !== indexToRemove));
+  };
+  
 
   const refreshPermissionClosingData = async () => {
         try {
@@ -485,76 +492,78 @@ const PermissionClosing = () => {
               />
             
              
-              <input
-                                           accept="*"
-                                           style={{ display: 'none' }}
-                                           id="upload-files"
-                                           type="file"
-                                           multiple
-                                           onChange={handleFileChange}
-                                         />
-                                         <label htmlFor="upload-files">
-                                           <Button variant="outlined" component="span">
-                                             + Add Files
-                                           </Button>
-                                         </label>
+            <input
+              accept="*"
+              style={{ display: 'none' }}
+              id="upload-work-closing-files"
+              type="file"
+              multiple
+              onChange={handleWorkClosingFileChange}
+            />
+            <label htmlFor="upload-work-closing-files">
+              <Button variant="outlined" component="span">
+                + Add Work Closing Certificate
+              </Button>
+            </label>
+                         
+                                         {/* Display selected file names */}
+            <div style={{ marginTop: 10 }}>
+              {files.length > 0 ? (
+                files.map((file, index) => (
+                  <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
+                    <Typography variant="body2" sx={{ marginRight: 1 }}>
+                      📎 {file.name}
+                    </Typography>
+                    <Button size="small" color="error" onClick={() => handleRemoveFile(index)}>
+                      ❌
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No files selected.
+                </Typography>
+              )}
+            </div>
+
+                      <input
+                        accept="*"
+                        style={{ display: 'none' }}
+                        id="upload-final-closing-files"
+                        type="file"
+                        multiple
+                        onChange={handleFinalClosingFileChange}
+                      />
+                      <label htmlFor="upload-final-closing-files">
+                        <Button variant="outlined" component="span">
+                          + Add Final Closing Certificate
+                        </Button>
+                      </label>
+
                          
                                          {/* Display selected file names */}
                                          <div style={{ marginTop: 10 }}>
-                                           {files.length > 0 ? (
-                                             files.map((file, index) => (
-                                               <Typography key={index} variant="body2">
-                                                 📎 {file.name}
-                                               </Typography>
-                                             ))
-                                           ) : (
-                                             <Typography variant="body2" color="text.secondary">
-                                               No files selected.
-                                             </Typography>
-                                           )}
-                                         </div>
-                         
-              <input
-                                           accept="*"
-                                           style={{ display: 'none' }}
-                                           id="upload-files"
-                                           type="file"
-                                           multiple
-                                           onChange={handleFileChange}
-                                         />
-                                         <label htmlFor="upload-files">
-                                           <Button variant="outlined" component="span">
-                                             + Add Files
-                                           </Button>
-                                         </label>
-                         
-                                         {/* Display selected file names */}
-                                         <div style={{ marginTop: 10 }}>
-                        {files.length > 0 ? (
-                          files.map((file, index) => (
-                            <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
-                              <Typography variant="body2" sx={{ marginRight: 1 }}>
-                                📎 {file.name}
-                              </Typography>
-                              <Button
-                                size="small"
-                                color="error"
-                                onClick={() => handleRemoveFile(index)}
-                              >
-                                ❌
-                              </Button>
-                            </div>
-                          ))
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            No files selected.
-                          </Typography>
-                        )}
-                      </div>
-                         
+                {files2.length > 0 ? (
+                  files2.map((file, index) => (
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
+                      <Typography variant="body2" sx={{ marginRight: 1 }}>
+                        📎 {file.name}
+                      </Typography>
+                      <Button size="small" color="error" onClick={() => handleRemoveFinalFile(index)}>
+                        ❌
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No files selected.
+                  </Typography>
+                )}
+              </div>
+
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                 <Button type="submit" variant="contained" color="primary" fullWidth>
-                  Save Changes
+                  Save Data
                 </Button>
                 <Button variant="contained" color="secondary" onClick={() => setShowForm(false)} fullWidth>
                   Cancel
