@@ -25,19 +25,16 @@ db.connect((err) => {
     console.log('Connected to the database');
   }
 });
+// Multer setup for storing files on disk
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Ensure this folder exists
+    cb(null, 'uploads/'); // Make sure 'uploads/' folder exists
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
   }
 });
-
-// Create the upload object
 const upload = multer({ storage: storage });
-// Serve static files from uploads directory
-router.use('/invoices', express.static(path.join(__dirname, '../uploads')));
 
 // Create the upload object
 router.get('/invoice-coming', (req, res) => {
@@ -170,34 +167,57 @@ router.get('/invoice-coming', (req, res) => {
   const { v4: uuidv4 } = require('uuid');
   
   router.post('/upload-and-save-invoice', upload.single('files'), async (req, res) => {
-    const { work_order_id, po_number } = req.body;
-  
-    if (!req.file) {
-      return res.status(400).send("No file uploaded.");
-    }
-  
-    const filePath = path.join('uploads', `${uuidv4()}-invoice.pdf`);
-    const absolutePath = path.join(__dirname, '..', filePath);
-  
     try {
-      await generateInvoicePDF({ work_order_id, po_number }, absolutePath);
+      const { work_order_id, po_number } = req.body;
   
-      // Save file path to DB
-      const insertQuery = `
-        INSERT INTO invoice (work_order_id, po_number, files) 
-        VALUES (?, ?, ?)
-      `;
-      db.query(insertQuery, [work_order_id, po_number, filePath], (err) => {
+      if (!work_order_id || !po_number) {
+        return res.status(400).json({ success: false, message: 'Missing required fields: work_order_id or po_number' });
+      }
+  
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+  
+      // The path of the uploaded file by multer
+      const uploadedFilePath = req.file.path;
+  
+      // Path where you want to save generated PDF
+      const generatedFileName = `${uuidv4()}-invoice.pdf`;
+      const generatedFilePath = path.join('uploads', generatedFileName);
+      const absoluteGeneratedPath = path.join(__dirname, '..', generatedFilePath);
+  
+      // Generate PDF invoice (assuming this function writes the PDF file to absoluteGeneratedPath)
+      await generateInvoicePDF({ work_order_id, po_number }, absoluteGeneratedPath);
+  
+      // Optionally: delete the uploaded file if you don't need it anymore
+      fs.unlink(uploadedFilePath, (err) => {
+        if (err) console.warn('Failed to delete uploaded file:', err);
+      });
+  
+      // Save record in DB with the generated PDF file path
+      const insertQuery = `INSERT INTO invoice (work_order_id, po_number, files) VALUES (?, ?, ?)`;
+      db.query(insertQuery, [work_order_id, po_number, generatedFilePath], (err) => {
         if (err) {
-          console.error("DB Insert Error:", err);
-          return res.status(500).send("Database error.");
+          console.error("Database insert error:", err);
+          return res.status(500).json({ success: false, message: 'Database error while saving invoice' });
         }
   
-        res.status(200).json({ message: "Invoice saved successfully." });
+        // Update work_receiving status
+        const updateQuery = `UPDATE work_receiving SET current_department = 'Completed' WHERE work_order_id = ?`;
+        db.query(updateQuery, [work_order_id], (err) => {
+          if (err) {
+            console.error("Database update error:", err);
+            return res.status(500).json({ success: false, message: 'Failed to update current department' });
+          }
+  
+          res.status(200).json({ success: true, message: 'Invoice uploaded and department updated successfully' });
+        });
       });
-    } catch (err) {
-      console.error("PDF Generation Error:", err);
-      res.status(500).send("PDF generation failed.");
+  
+    } catch (error) {
+      console.error("Error in /upload-and-save-invoice route:", error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
+  
   module.exports = router;
