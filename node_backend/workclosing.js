@@ -132,7 +132,7 @@ router.post('/upload-and-save-wcdocument', upload.fields([
   console.log(req.files);
   console.log(req.body);
 
-  const { work_order_id, submission_date, resubmission_date, approval_date } = req.body;
+  const { work_order_id } = req.body;
   const Mubahisa = req.files['mubahisa'] ? req.files['mubahisa'].map(file => file.filename) : null;
 
   // Insert file information and work order details into the database
@@ -141,7 +141,7 @@ router.post('/upload-and-save-wcdocument', upload.fields([
     (work_order_id, mubahisa)
     VALUES (?, ?)
   `;
-  const insertValues = [work_order_id, submission_date, resubmission_date, approval_date, Mubahisa];
+  const insertValues = [work_order_id,  Mubahisa];
 
   db.query(insertQuery, insertValues, (err, result) => {
     if (err) {
@@ -312,9 +312,7 @@ router.put('/edit-workclosing/:id', upload.fields([
   const query = `
     UPDATE work_closing 
     SET 
-      // submission_date = ?, 
-      // resubmission_date = ?, 
-      // approval_date = ?, 
+     
       mubahisa = ?
     WHERE work_order_id = ?
   `;

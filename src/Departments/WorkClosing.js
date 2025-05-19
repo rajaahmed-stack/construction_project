@@ -200,9 +200,9 @@ const WorkClosing = () => {
 
         // ✅ Close the modal
         setShowForm(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000); // 1-second delay
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 3000); // 1-second delay
       } else {
         alert('Operation failed');
       }
