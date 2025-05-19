@@ -241,7 +241,7 @@ const Survey = () => {
                   <Typography><strong>Work Order:</strong> {record.work_order_id}</Typography>
                   <Typography><strong>Job Type:</strong> {record.job_type}</Typography>
                   <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
-                  <Typography><strong>Send From W.R:</strong> {record.created_at}</Typography>
+                  {/* <Typography><strong>Send From W.R:</strong> {record.created_at}</Typography> */}
                   <Typography>
                       {record.file_path ? (
                         <a href={`https://constructionproject-production.up.railway.app/api/survey/survey_download/${record.work_order_id}`} download>

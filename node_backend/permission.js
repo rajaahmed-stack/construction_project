@@ -279,7 +279,7 @@ router.get('/permission_download/:id', (req, res) => {
 });
 router.put('/edit-permission/:id', upload.array('Document'), (req, res) => {
   const workOrderId = req.params.id;
-  const { permission_number, request_date, permission_renewal, start_date, end_date } = req.body;
+  const { permission_number, request_date,  start_date, end_date } = req.body;
 
   // Handle the file path, or use null if no file is uploaded
   const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
@@ -291,7 +291,7 @@ router.put('/edit-permission/:id', upload.array('Document'), (req, res) => {
     WHERE work_order_id = ?
   `;
 
-  db.query(query, [permission_number, request_date, permission_renewal, start_date, end_date,  documentFilePath, workOrderId], (err, results) => {
+  db.query(query, [permission_number, request_date,  start_date, end_date,  documentFilePath, workOrderId], (err, results) => {
     if (err) {
       console.error('Error updating work receiving:', err);
       return res.status(500).send('Error updating work receiving');

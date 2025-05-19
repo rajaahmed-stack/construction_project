@@ -527,7 +527,7 @@ const Permission = () => {
               </div>
                 <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                   <Button type="submit" variant="contained" color="primary" fullWidth>
-                    Save Changes
+                    Save Data
                   </Button>
                   <Button variant="contained" color="secondary" onClick={() => setShowForm(false)} fullWidth>
                     Cancel
