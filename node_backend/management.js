@@ -124,6 +124,7 @@ router.get('/search-filter', (req, res) => {
         SELECT 
           work_order_id, 
           current_department, 
+          previous_department, 
           sub_section, 
           job_type, 
           delivery_status 

@@ -124,6 +124,7 @@ const departmentColumns = {
     { header: "Work Order ID", accessor: "work_order_id" },
     { header: "Sub Section", accessor: "sub_section" },
     { header: "Job Type", accessor: "job_type" },
+    { header: "Previous Department", accessor: "previous_department" },
     { header: "Current Department", accessor: "current_department" },
     { header: "Delivery Status", accessor: "delivery_status" },
   ],
