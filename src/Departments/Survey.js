@@ -161,6 +161,7 @@ const Survey = () => {
         alert("Data saved successfully!");
         await refreshSurveyData();
         setFormData({});
+        setFiles([]);
         setShowForm(false);
       } else {
         alert(`Error: ${response.data.message || 'Failed to save data'}`);

@@ -49,9 +49,9 @@ const upload = multer({ storage: storage });
 router.post('/upload-and-save-pdocument', upload.array('Document'), (req, res) => {
   try {
     console.log('Request Body:', req.body);
-    console.log('Uploaded File:', req.file);
+    console.log('Uploaded File:', req.files);
 
-    const { work_order_id, permission_number, request_date, permission_renewal, start_date, end_date, delivery_status } = req.body;
+    const { work_order_id, permission_number, request_date, start_date, end_date, delivery_status } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No document uploaded.' });
@@ -61,7 +61,7 @@ router.post('/upload-and-save-pdocument', upload.array('Document'), (req, res) =
 
 
     // Check all fields
-    if (!work_order_id || !permission_number || !request_date || !permission_renewal || !start_date || !end_date) {
+    if (!work_order_id || !permission_number || !request_date ||   !start_date || !end_date) {
       console.error('Missing required fields.');
       return res.status(400).json({ success: false, message: 'Missing required fields.' });
     }
@@ -71,7 +71,7 @@ router.post('/upload-and-save-pdocument', upload.array('Document'), (req, res) =
       (work_order_id, permission_number, request_date, Document, start_date, end_date)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-    const insertValues = [work_order_id, permission_number, request_date, documentFilePath, permission_renewal, start_date, end_date];
+    const insertValues = [work_order_id, permission_number, request_date, documentFilePath, start_date, end_date];
 
     db.query(insertQuery, insertValues, (err, result) => {
       if (err) {

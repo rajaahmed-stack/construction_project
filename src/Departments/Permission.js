@@ -169,7 +169,7 @@ const Permission = () => {
     formDataWithFile.append('work_order_id', formData.work_order_id);
     formDataWithFile.append('permission_number', formData.permission_number);
     formDataWithFile.append('request_date', formData.request_date);
-    formDataWithFile.append('permission_renewal', formData.permission_renewal);
+    // formDataWithFile.append('permission_renewal', formData.permission_renewal);
     formDataWithFile.append('start_date', formData.start_date);
     formDataWithFile.append('end_date', formData.end_date);
   

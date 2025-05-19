@@ -21,7 +21,7 @@ const departmentColumns = {
     { header: "Hand Over Date", accessor: "handover_date" },
     { header: "Return Date", accessor: "return_date" },
     { header: "Remarks", accessor: "remark" },
-    { header: "Survey Created At", accessor: "survey_created_at" },
+    // { header: "Survey Created At", accessor: "survey_created_at" },
     // { header: "Survey Type", accessor: "survey_type" },
   ],
   "Permission": [
