@@ -92,17 +92,18 @@ const upload = multer({ storage: storage });
 // const { upload } = require('./server'); // Adjust the path if needed
 
 router.post('/save-survey', upload.array('survey_file_path'), (req, res) => {
-  console.log('Uploaded File:', req.file);
+  console.log('Uploaded Files:', req.files);
   console.log('Form Data:', req.body);
 
   const { work_order_id, handover_date, return_date, remark } = req.body;
-  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
 
   if (!work_order_id || !handover_date || !return_date || !remark) {
     return res.status(400).send('All fields are required');
   }
 
-  // Check for duplicate
+  // ✅ Save comma-separated file paths
+  const documentFilePath = req.files.map(file => file.path).join(',');
+
   const checkDuplicateQuery = `SELECT COUNT(*) AS count FROM survey WHERE work_order_id = ?`;
 
   db.query(checkDuplicateQuery, [work_order_id], (err, results) => {
@@ -121,52 +122,45 @@ router.post('/save-survey', upload.array('survey_file_path'), (req, res) => {
         return res.status(500).send('Transaction start error');
       }
 
-      fs.readFile(documentFilePath, (err, fileData) => {
+      const insertQuery = `
+        INSERT INTO survey (work_order_id, handover_date, return_date, remark, survey_file_path) 
+        VALUES (?, ?, ?, ?, ?)
+      `;
+
+      db.query(insertQuery, [work_order_id, handover_date, return_date, remark, documentFilePath], (err) => {
         if (err) {
-          console.error('Error reading file:', err);
-          return db.rollback(() => res.status(500).send('Error reading uploaded file'));
+          console.error('Error inserting survey data:', err);
+          return db.rollback(() => res.status(500).send('Error inserting survey data'));
         }
 
-        const insertQuery = `
-          INSERT INTO survey (work_order_id, handover_date, return_date, remark, survey_file_path) 
-          VALUES (?, ?, ?, ?, ?)
+        const updateQuery = `
+          UPDATE work_receiving 
+          SET current_department = 'Permission', 
+              previous_department = 'Survey'
+          WHERE work_order_id = ?
         `;
 
-        db.query(insertQuery, [work_order_id, handover_date, return_date, remark, fileData], (err) => {
+        db.query(updateQuery, [work_order_id], (err) => {
           if (err) {
-            console.error('Error inserting survey data:', err);
-            return db.rollback(() => res.status(500).send('Error inserting survey data'));
+            console.error('Error updating department:', err);
+            return db.rollback(() => res.status(500).send('Error updating department'));
           }
 
-          const updateQuery = `
-            UPDATE work_receiving 
-            SET current_department = 'Permission', 
-              previous_department = 'Survey'
-
-            WHERE work_order_id = ?
-          `;
-
-          db.query(updateQuery, [work_order_id], (err) => {
+          db.commit((err) => {
             if (err) {
-              console.error('Error updating department:', err);
-              return db.rollback(() => res.status(500).send('Error updating department'));
+              console.error('Error committing transaction:', err);
+              return db.rollback(() => res.status(500).send('Error committing transaction'));
             }
 
-            db.commit((err) => {
-              if (err) {
-                console.error('Error committing transaction:', err);
-                return db.rollback(() => res.status(500).send('Error committing transaction'));
-              }
-
-              console.log(`Survey data saved for Work Order: ${work_order_id}`);
-              res.status(200).send('Survey data saved and department updated successfully');
-            });
+            console.log(`Survey data saved for Work Order: ${work_order_id}`);
+            res.status(200).send('Survey data saved and department updated successfully');
           });
         });
       });
     });
   });
 });
+
 
 // Update Delivery Status
 router.put('/api/update-delivery-status', express.json(), (req, res) => {

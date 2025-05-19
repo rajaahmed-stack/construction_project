@@ -145,15 +145,18 @@ const Management = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    axios.get("https://constructionproject-production.up.railway.app/api/management/management-data")
+    axios
+      .get("https://constructionproject-production.up.railway.app/api/management/management-data")
       .then((response) => {
         setData(response.data);
-        setSearchResult(response.data);
+        // Automatically select and filter "Work Receiving" department
+        handleDepartmentFilter("Work Receiving");
       })
       .catch((error) => {
         console.error("Error fetching management data:", error);
       });
   }, []);
+  
 
   const handleSearch = () => {
     if (searchTerm.trim() === "") {
@@ -268,9 +271,17 @@ const Management = () => {
         <tr key={index}>
           {getColumns(selectedDept).map((col) => (
             <td key={col.accessor}>
-              {(() => {
+             {(() => {
                 const cellValue = row[col.accessor];
                 if (cellValue === null || cellValue === undefined) return '';
+                
+                // Check if the value looks like a date string and format it
+                if (typeof cellValue === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(cellValue)) {
+                  const date = new Date(cellValue);
+                  // Format to YYYY-MM-DD (or you can do any other format)
+                  return date.toISOString().slice(0, 10);
+                }
+                
                 if (typeof cellValue === 'object') return JSON.stringify(cellValue);
                 return cellValue;
               })()}
