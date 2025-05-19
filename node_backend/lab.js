@@ -117,7 +117,6 @@ router.get('/Laboratory-data', (req, res) => {
            lab.trench,
            lab.trench_completed,
            lab.remark,
-           lab.workexe_created_at,
            safety_department.safety_created_at,
            survey.survey_file_path
           
