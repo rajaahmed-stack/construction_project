@@ -85,31 +85,59 @@ const Invoice = () => {
   };
 
   const downloadInvoice = (fileData) => {
-    // Extract path or filename from object or string
-    const fileUrl = typeof fileData === "string"
-      ? fileData
-      : fileData?.path || fileData?.filename;
-  
-    if (!fileUrl) {
-      console.error("Invalid file URL");
+    if (!fileData) {
+      console.error("No file data provided.");
       return;
     }
-  
-    const fullUrl = fileUrl.startsWith("http")
-      ? fileUrl
-      : `https://constructionproject-production.up.railway.app/invoices/${fileUrl.replace(/^.*[\\/]/, '')}`; // removes any "uploads/" or other folder prefix
-  
-    const a = document.createElement("a");
-    a.href = fullUrl;
-    a.download = fullUrl.split("/").pop();
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+
+    if (typeof fileData === "string") {
+      const a = document.createElement("a");
+      a.href = fileData;
+      a.download = fileData.split("/").pop();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    if (fileData.type === 'Buffer' && Array.isArray(fileData.data)) {
+      const byteArray = new Uint8Array(fileData.data);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = 'invoice.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    console.error("Invalid file URL", fileData);
   };
-  
-  
-  
-  
+
+  const openInvoiceInNewTab = (fileData) => {
+    if (!fileData) {
+      console.error("No file data provided.");
+      return;
+    }
+
+    if (typeof fileData === "string") {
+      window.open(fileData, "_blank");
+      return;
+    }
+
+    if (fileData.type === 'Buffer' && Array.isArray(fileData.data)) {
+      const byteArray = new Uint8Array(fileData.data);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      return;
+    }
+
+    console.error("Invalid file format:", fileData);
+  };
 
   return (
     <Container>
@@ -157,18 +185,18 @@ const Invoice = () => {
             </TableHead>
             <TableBody>
               {lowerData.map((invoice) => (
-                <TableRow key={invoice.invoice_id}>
+                <TableRow
+                  key={invoice.invoice_id}
+                  onDoubleClick={() => openInvoiceInNewTab(invoice.files)}
+                  style={{ cursor: "pointer" }}
+                >
                   <TableCell>{invoice.invoice_id}</TableCell>
                   <TableCell>{invoice.work_order_id}</TableCell>
                   <TableCell>{invoice.po_number}</TableCell>
                   <TableCell>
-                  <Button
-                    onClick={() => downloadInvoice(invoice.files)}
-                    variant="outlined"
-                  >
-                    Download
-                  </Button>
-
+                    <Button variant="outlined" onClick={() => downloadInvoice(invoice.files)}>
+                      Download
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

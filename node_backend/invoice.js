@@ -166,26 +166,38 @@ router.get('/invoice-coming', (req, res) => {
   //     });
   //   });
   // });
-  router.post('/upload-and-save-invoice', upload.single('files'), (req, res) => {
+  const generateInvoicePDF = require('./generateInvoicePDF');
+  const { v4: uuidv4 } = require('uuid');
+  
+  router.post('/upload-and-save-invoice', upload.single('files'), async (req, res) => {
     const { work_order_id, po_number } = req.body;
-    const file = req.file;
   
-    if (!file) return res.status(400).send('No file uploaded.');
+    if (!req.file) {
+      return res.status(400).send("No file uploaded.");
+    }
   
-    const filePath = `/api/invoice/invoices/${file.filename}`; // public access path
+    const filePath = path.join('uploads', `${uuidv4()}-invoice.pdf`);
+    const absolutePath = path.join(__dirname, '..', filePath);
   
-    const insertQuery = `
-      INSERT INTO invoice (work_order_id, po_number, files)
-      VALUES (?, ?, ?)
-    `;
+    try {
+      await generateInvoicePDF({ work_order_id, po_number }, absolutePath);
   
-    db.query(insertQuery, [work_order_id, po_number, filePath], (err, result) => {
-      if (err) {
-        console.error("Database insert error:", err);
-        return res.status(500).send("Failed to save invoice.");
-      }
+      // Save file path to DB
+      const insertQuery = `
+        INSERT INTO invoice (work_order_id, po_number, files) 
+        VALUES (?, ?, ?)
+      `;
+      db.query(insertQuery, [work_order_id, po_number, filePath], (err) => {
+        if (err) {
+          console.error("DB Insert Error:", err);
+          return res.status(500).send("Database error.");
+        }
   
-      res.status(200).send("Invoice saved successfully.");
-    });
+        res.status(200).json({ message: "Invoice saved successfully." });
+      });
+    } catch (err) {
+      console.error("PDF Generation Error:", err);
+      res.status(500).send("PDF generation failed.");
+    }
   });
   module.exports = router;
