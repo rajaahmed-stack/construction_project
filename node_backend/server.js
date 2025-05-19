@@ -175,10 +175,15 @@ const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
         }
 
         const updateQuery = `
-          UPDATE work_receiving 
-          SET current_department = 'Survey' ,
-          previous_department = 'Work Receiving'
-          WHERE work_order_id = ?
+         UPDATE work_receiving
+          SET 
+              current_department = CASE 
+                  WHEN job_type = 'Meters' OR job_type = 'Emergency' THEN 'Drawing'
+                  ELSE 'Survey'
+              END,
+              previous_department = 'Work Receiving'
+          WHERE work_order_id = ?;
+
         `;
 
         db.query(updateQuery, [workOrderList], (err) => {

@@ -187,9 +187,9 @@ const WorkReceiving = () => {
         setFiles([]); // ✅ Clear selected files after successful save
         
         console.log('Success! Reloading after 5 seconds...');
-        setTimeout(() => {
-          window.location.reload();
-        }, 5000); // 10 seconds
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 5000); // 10 seconds
       } else {
         showSnackbar(message, 'info');
       }
