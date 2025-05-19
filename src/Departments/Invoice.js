@@ -84,14 +84,31 @@ const Invoice = () => {
     }
   };
 
-  const downloadInvoice = (fileUrl) => {
-    const link = document.createElement('a');
-    link.href = `https://constructionproject-production.up.railway.app${fileUrl}`;
-    link.setAttribute('download', 'invoice.pdf');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  const downloadInvoice = (fileData) => {
+    // Extract path or filename from object or string
+    const fileUrl = typeof fileData === "string"
+      ? fileData
+      : fileData?.path || fileData?.filename;
+  
+    if (!fileUrl) {
+      console.error("Invalid file URL");
+      return;
+    }
+  
+    const fullUrl = fileUrl.startsWith("http")
+      ? fileUrl
+      : `https://constructionproject-production.up.railway.app/invoices/${fileUrl.replace(/^.*[\\/]/, '')}`; // removes any "uploads/" or other folder prefix
+  
+    const a = document.createElement("a");
+    a.href = fullUrl;
+    a.download = fullUrl.split("/").pop();
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
+  
+  
+  
   
 
   return (
@@ -145,9 +162,13 @@ const Invoice = () => {
                   <TableCell>{invoice.work_order_id}</TableCell>
                   <TableCell>{invoice.po_number}</TableCell>
                   <TableCell>
-                    <Button onClick={() => downloadInvoice(invoice.file_url)} variant="outlined">
-                      Download
-                    </Button>
+                  <Button
+                    onClick={() => downloadInvoice(invoice.files)}
+                    variant="outlined"
+                  >
+                    Download
+                  </Button>
+
                   </TableCell>
                 </TableRow>
               ))}
