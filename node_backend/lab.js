@@ -37,7 +37,7 @@ const upload = multer({ storage: storage });
 
 
 // Backend route for handling file uploads
-router.post('/upload-lab-file/:fieldName', upload.array('file'), (req, res) => {
+router.post('/upload-Laboratory-file/:fieldName', upload.array('file'), (req, res) => {
   const files = req.files;
   const fieldName = req.params.fieldName;
 
