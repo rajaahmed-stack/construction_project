@@ -489,7 +489,7 @@ app.use('/api/gis', gisdepartment);
 app.use('/api/management', management);
 app.use('/api/store', store);
 app.use('/api/invoice', invoiceroute);
-app.use('/api/lab', labroute);
+app.use('/api/Laboratory', labroute);
 app.use('/api/EAM', eam);
 app.use('/api/usermanagement', usermanagement);
 // Start server
