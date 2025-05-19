@@ -588,7 +588,7 @@ router.post('/save-remainingdata', (req, res) => {
 
     const query2 = `
       UPDATE work_receiving 
-      SET current_department = 'Laboratory' 
+      SET current_department = 'Laboratory', previous_department = 'WorkExecution' 
       WHERE work_order_id = ?
     `;
 

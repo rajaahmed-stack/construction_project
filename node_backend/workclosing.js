@@ -155,7 +155,7 @@ router.post('/upload-and-save-wcdocument', upload.fields([
     // Update current department in work_receiving
     const query = `
       UPDATE work_receiving 
-      SET current_department = 'Invoice' 
+      SET current_department = 'Invoice', previous_department = 'WorkClosing' 
       WHERE work_order_id = ?
     `;
 

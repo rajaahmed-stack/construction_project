@@ -194,7 +194,7 @@ router.post('/update-Ddepartment', express.json(), (req, res) => {
   const { workOrderId } = req.body;
   const query = `
     UPDATE work_receiving 
-    SET current_department = 'GIS' 
+    SET current_department = 'GIS' ,  previous_department = 'Drawing'
     WHERE work_order_id = ?
   `;
   db.query(query, [workOrderId], (err, result) => {

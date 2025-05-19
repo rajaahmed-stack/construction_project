@@ -63,7 +63,7 @@ const EmergencyMaintainence = () => {
 
     // Clean up the interval when the component is unmounted
     return () => clearInterval(interval);
-  }, [refreshTrigger]);
+  }, []);
 
   const fetchWorkReceivingData = async () => {
     try {
@@ -160,6 +160,8 @@ const EmergencyMaintainence = () => {
       } else if (message.includes('Successfully created') || message.includes('updated successfully')) {
         showSnackbar('Work Order saved successfully!', 'success');
         setRefreshTrigger(prev => !prev);  // This will re-fetch data
+        fetchWorkReceivingData();
+
 
         setFormData({
           jobType: '',

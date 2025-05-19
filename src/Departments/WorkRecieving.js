@@ -65,7 +65,7 @@ const WorkReceiving = () => {
 
     // Clean up the interval when the component is unmounted
     return () => clearInterval(interval);
-  }, [refreshTrigger]);
+  }, []);
 
   const fetchWorkReceivingData = async () => {
     try {
@@ -106,7 +106,7 @@ const WorkReceiving = () => {
     const { jobType, subSection, workOrderList, receivingDate, endDate, estimatedValue, file_path, remarks, workOrderId } = formData;
 
      // Conditional check for subSection only if jobType is NOT 'Meters' or 'Emergency'
-    const isSubSectionRequired = !(jobType === 'New Meters' || jobType === 'Emergency');
+    const isSubSectionRequired = !(jobType === 'New Meters' || jobType === 'Emergency UG');
 
     if (
       !jobType ||
@@ -173,7 +173,7 @@ const WorkReceiving = () => {
         showSnackbar('Work Order already exists!', 'warning');
       } else if (message.includes('Successfully created') || message.includes('updated successfully')) {
         showSnackbar('Work Order saved successfully!', 'success');
-        setRefreshTrigger(prev => !prev);  // This will re-fetch data
+        fetchWorkReceivingData();
 
         setFormData({
           jobType: '',
@@ -303,7 +303,7 @@ const handleEdit = (item) => {
                   onChange={handleChange}
                   variant="outlined"
                 >
-                  {['Extension', 'Emergency', 'New Meters', 'Projects'].map((option) => (
+                  {['Extension', 'Emergency UG', 'New Meters', 'Projects'].map((option) => (
                     <MenuItem key={option} value={option}>
                       {option}
                     </MenuItem>
@@ -311,7 +311,7 @@ const handleEdit = (item) => {
                 </TextField>
               </Grid>
 
-              {formData.jobType !== 'New Meters' && formData.jobType !== 'Emergency' && (
+              {formData.jobType !== 'New Meters' && formData.jobType !== 'Emergency UG' && (
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
