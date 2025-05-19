@@ -36,7 +36,8 @@ const storage = multer.diskStorage({
 
 // Create the upload object
 const upload = multer({ storage: storage });
-router.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static files from uploads directory
+router.use('/invoices', express.static(path.join(__dirname, '../uploads')));
 
 // Create the upload object
 router.get('/invoice-coming', (req, res) => {
@@ -165,49 +166,26 @@ router.get('/invoice-coming', (req, res) => {
   //     });
   //   });
   // });
-  router.post('/upload-and-save-invoice', upload.fields([
-    { name: 'files', maxCount: 30 }, // allow up to 10 GIS files
-  ]), (req, res) => {
-    console.log(req.files);
-    console.log(req.body);
-  
+  router.post('/upload-and-save-invoice', upload.single('files'), (req, res) => {
     const { work_order_id, po_number } = req.body;
+    const file = req.file;
   
-    // Handle multiple files — save filenames as JSON string or comma-separated string
-    const fileBuffer = req.files['files'] ? req.files['files'].map(file => file.filename) : [];
+    if (!file) return res.status(400).send('No file uploaded.');
   
-    // Convert array to JSON string to store in DB
-    if (!work_order_id || !po_number || !fileBuffer) {
-      return res.status(400).json({ success: false, message: 'Missing required fields or file' });
-    }
-
+    const filePath = `/api/invoice/invoices/${file.filename}`; // public access path
+  
     const insertQuery = `
       INSERT INTO invoice (work_order_id, po_number, files)
       VALUES (?, ?, ?)
     `;
-    const insertValues = [work_order_id, po_number, fileBuffer];
   
-    db.query(insertQuery, insertValues, (err, result) => {
+    db.query(insertQuery, [work_order_id, po_number, filePath], (err, result) => {
       if (err) {
-        console.error('Error saving data to database:', err);
-        return res.status(500).json({ success: false, message: 'Error saving data to the database' });
+        console.error("Database insert error:", err);
+        return res.status(500).send("Failed to save invoice.");
       }
   
-      const updateQuery = `
-        UPDATE work_receiving
-          SET current_department = 'Completed', previous_department = 'Invoice'
-          WHERE work_order_id = ?
-      `;
-  
-      db.query(updateQuery, [work_order_id, po_number], (err, result) => {
-        if (err) {
-          console.error('Error updating department:', err);
-          return res.status(500).json({ success: false, message: 'Error updating department' });
-        }
-  
-        console.log('Department updated to Store for work order:', work_order_id);
-        res.status(200).json({ success: true, message: 'Files uploaded, data saved, and department updated successfully' });
-      });
+      res.status(200).send("Invoice saved successfully.");
     });
   });
   module.exports = router;
