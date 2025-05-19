@@ -160,18 +160,18 @@ router.post('/update-wedepartment', express.json(), (req, res) => {
 // Save workexection Data
 // Save Work Execution Work Order Data
 router.post("/save-Laboratory-workorder", (req, res) => {
-  const { work_order_id, permission_number, receiving_date, user_type, contractorName } = req.body;
+  const { work_order_id, permission_number } = req.body;
 
-  if (!work_order_id || !permission_number || !receiving_date || !user_type) {
+  if (!work_order_id || !permission_number ) {
     return res.status(400).json({ success: false, message: "All fields are required." });
   }
 
   const query = `
-    INSERT INTO lab (work_order_id, permission_number, receiving_date, user_type, contractor_name) 
+    INSERT INTO lab (work_order_id, permission_number) 
     VALUES (?, ?, ?, ?, ?);
   `;
 
-  db.query(query, [work_order_id, permission_number,  receiving_date, user_type, contractorName || "N/A"], (err) => {
+  db.query(query, [work_order_id, permission_number || "N/A"], (err) => {
     if (err) {
       console.error("Error saving work execution data:", err);
       return res.status(500).json({ success: false, message: "Database error. Failed to save data." });
