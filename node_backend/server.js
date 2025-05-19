@@ -136,7 +136,7 @@ app.post('/api/save-work_receiving', upload.array('file_path'), (req, res) => {
   const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, remarks } = req.body;
 const documentFilePath = req.files?.map(file => path.join('uploads', file.filename)).join(',') || null;
 
-const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
+const isSubSectionRequired = !(jobType === 'New Meters' || jobType === 'Emergency');
 
   if (!jobType || (isSubSectionRequired && !subSection) || !workOrderList || !receivingDate || !endDate || !estimatedValue || !remarks) {
     return res.status(400).send('All fields are required');
@@ -178,7 +178,7 @@ const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
          UPDATE work_receiving
           SET 
               current_department = CASE 
-                  WHEN job_type = 'Meters' OR job_type = 'Emergency' THEN 'Drawing'
+                  WHEN job_type = 'New Meters'  THEN 'Drawing'
                   ELSE 'Survey'
               END,
               previous_department = 'Work Receiving'

@@ -71,7 +71,7 @@ router.get('/workExecution-coming', (req, res) => {
     WHERE safety_department.work_order_id NOT IN 
     (SELECT work_order_id FROM work_execution) 
     AND work_receiving.current_department = 'WorkExecution'
-     AND work_receiving.job_type != 'Meters';
+     AND work_receiving.job_type != 'New Meters';
 
   `;
   db.query(query, (err, results) => {

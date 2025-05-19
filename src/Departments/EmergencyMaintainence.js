@@ -125,22 +125,22 @@ const EmergencyMaintainence = () => {
     formDataWithFile.append('endDate', endDate);
     formDataWithFile.append('estimatedValue', estimatedValue);
     formDataWithFile.append('remarks', remarks);
-    formDataWithFile.append('current_department', 'Work Receiving');
+    formDataWithFile.append('current_department', formData.current_department);
 
-    // const today = new Date();
-    // const deadline = new Date(receivingDate);
-    // deadline.setDate(deadline.getDate() + 2);
+    const today = new Date();
+    const deadline = new Date(receivingDate);
+    deadline.setDate(deadline.getDate() + 2);
 
-    // let deliveryStatus = 'on time';
-    // const daysDiff = (deadline - today) / (1000 * 60 * 60 * 24);
+    let deliveryStatus = 'on time';
+    const daysDiff = (deadline - today) / (1000 * 60 * 60 * 24);
 
-    // if (daysDiff < 0) {
-    //   deliveryStatus = 'delayed';
-    // } else if (daysDiff <= 1) {
-    //   deliveryStatus = 'nearing deadline';
-    // }
+    if (daysDiff < 0) {
+      deliveryStatus = 'delayed';
+    } else if (daysDiff <= 1) {
+      deliveryStatus = 'nearing deadline';
+    }
 
-    // formDataWithFile.append('delivery_status', deliveryStatus);
+    formDataWithFile.append('delivery_status', deliveryStatus);
 
     try {
       const url = workOrderId

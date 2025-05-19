@@ -126,7 +126,7 @@ AND wr.current_department IN ('PermissionClosing', 'WorkClosing'. 'Drawing')
 
 UNION
 
--- Part 2: Work Orders with job_type = 'Meters' directly from work_receiving
+-- Part 2: Work Orders with job_type = 'New Meters' directly from work_receiving
 SELECT  
     wr.work_order_id, 
     NULL AS permission_number,
@@ -138,7 +138,7 @@ SELECT
 FROM work_receiving wr
 LEFT JOIN survey s ON wr.work_order_id = s.work_order_id
 LEFT JOIN permissions p ON wr.work_order_id = p.work_order_id
-WHERE wr.job_type = 'Meters'
+WHERE wr.job_type = 'New Meters'
 AND wr.work_order_id NOT IN (
         SELECT work_order_id FROM drawing_department
     );

@@ -60,7 +60,7 @@ router.get('/workclosing-coming', (req, res) => {
   LEFT JOIN permissions p ON pc.work_order_id = p.work_order_id
   WHERE pc.work_order_id NOT IN (SELECT work_order_id FROM work_closing)
     AND wr.current_department = 'WorkClosing'
-    AND wr.job_type != 'Meters'
+    AND wr.job_type != 'New Meters'
 )
 
 UNION ALL

@@ -73,7 +73,7 @@ router.get('/Laboratory-coming', (req, res) => {
     SELECT work_order_id FROM lab
     )
     AND work_receiving.current_department = 'Laboratory'
-    AND work_receiving.job_type != 'Meters';
+    AND work_receiving.job_type != 'New Meters';
 
 
   `;

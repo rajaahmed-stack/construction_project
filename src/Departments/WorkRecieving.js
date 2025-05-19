@@ -41,6 +41,8 @@ const WorkReceiving = () => {
     endDate: '',
     estimatedValue: '',
     remarks: '',
+    delivery_status: '',                 // Optional: if you want to display it in form
+
   });
 
   const [file, setFile] = useState(null);
@@ -104,7 +106,7 @@ const WorkReceiving = () => {
     const { jobType, subSection, workOrderList, receivingDate, endDate, estimatedValue, file_path, remarks, workOrderId } = formData;
 
      // Conditional check for subSection only if jobType is NOT 'Meters' or 'Emergency'
-    const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
+    const isSubSectionRequired = !(jobType === 'New Meters' || jobType === 'Emergency');
 
     if (
       !jobType ||
@@ -128,8 +130,20 @@ const WorkReceiving = () => {
     for (let i = 0; i < files.length; i++) {
       formDataWithFile.append('file_path', files[i]);
     }
-    
-    
+    const today = new Date();
+    const deadline = new Date(receivingDate);
+    deadline.setDate(deadline.getDate() + 2);
+
+    let deliveryStatus = 'on time';
+    const daysDiff = (deadline - today) / (1000 * 60 * 60 * 24);
+
+    if (daysDiff < 0) {
+      deliveryStatus = 'delayed';
+    } else if (daysDiff <= 1) {
+      deliveryStatus = 'nearing deadline';
+    }
+
+    formDataWithFile.append('delivery_status', deliveryStatus);
     formDataWithFile.append('jobType', jobType);
     formDataWithFile.append('subSection', subSection);
     formDataWithFile.append('workOrderList', workOrderList);
@@ -137,22 +151,10 @@ const WorkReceiving = () => {
     formDataWithFile.append('endDate', endDate);
     formDataWithFile.append('estimatedValue', estimatedValue);
     formDataWithFile.append('remarks', remarks);
-    formDataWithFile.append('current_department', 'Work Receiving');
+    formDataWithFile.append('current_department', formData.current_department);
 
-    // const today = new Date();
-    // const deadline = new Date(receivingDate);
-    // deadline.setDate(deadline.getDate() + 2);
 
-    // let deliveryStatus = 'on time';
-    // const daysDiff = (deadline - today) / (1000 * 60 * 60 * 24);
-
-    // if (daysDiff < 0) {
-    //   deliveryStatus = 'delayed';
-    // } else if (daysDiff <= 1) {
-    //   deliveryStatus = 'nearing deadline';
-    // }
-
-    // formDataWithFile.append('delivery_status', deliveryStatus);
+   
 
     try {
       const url = workOrderId
@@ -182,6 +184,7 @@ const WorkReceiving = () => {
           estimatedValue: '',
           file_path: null,
           remarks: '',
+          delivery_status: '',                 // Optional: if you want to display it in form
           workOrderId: null,
         });
         setFiles([]); // ✅ Clear selected files after successful save
@@ -268,6 +271,8 @@ const handleEdit = (item) => {
       endDate: item.end_date,
       estimatedValue: item.estimated_value,
       remarks: item.remarks,
+      current_department: item.current_department,
+      delivery_status: item.delivery_status || '',
       workOrderId: item.work_order_id,  // Set the Work Order ID
   });
 };
@@ -298,7 +303,7 @@ const handleEdit = (item) => {
                   onChange={handleChange}
                   variant="outlined"
                 >
-                  {['Extension', 'Emergency', 'Meters', 'Projects'].map((option) => (
+                  {['Extension', 'Emergency', 'New Meters', 'Projects'].map((option) => (
                     <MenuItem key={option} value={option}>
                       {option}
                     </MenuItem>
@@ -306,7 +311,7 @@ const handleEdit = (item) => {
                 </TextField>
               </Grid>
 
-              {formData.jobType !== 'Meters' && formData.jobType !== 'Emergency' && (
+              {formData.jobType !== 'New Meters' && formData.jobType !== 'Emergency' && (
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
