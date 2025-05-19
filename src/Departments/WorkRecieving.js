@@ -106,11 +106,18 @@ const WorkReceiving = () => {
      // Conditional check for subSection only if jobType is NOT 'Meters' or 'Emergency'
     const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
 
-    if (!jobType || (isSubSectionRequired && !subSection) || !workOrderList || !receivingDate || !endDate || !estimatedValue || !remarks) {
+    if (
+      !jobType ||
+      (!subSection && isSubSectionRequired) ||
+      !workOrderList ||
+      !receivingDate ||
+      !endDate ||
+      !estimatedValue ||
+      !remarks
+    ) {
       showSnackbar('Please fill out all required fields', 'error');
       return;
     }
-
     if (files.length === 0) {
       alert("Please select at least one file.");
       return;

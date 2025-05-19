@@ -29,11 +29,12 @@ db.connect((err) => {
 // Fetch Work Orders Coming to Survey
 router.get('/survey-coming', (req, res) => {
   const query = `
-    SELECT * FROM work_receiving 
-    WHERE work_order_id NOT IN 
-      (SELECT work_order_id FROM survey) 
-    AND current_department = 'Survey'
-    AND WHERE work_receiving.job_type != 'Meters';
+    SELECT * 
+FROM work_receiving 
+WHERE work_order_id NOT IN (SELECT work_order_id FROM survey) 
+  AND current_department = 'Survey' 
+  AND job_type != 'Meters';
+
   `;
   db.query(query, (err, results) => {
     if (err) {
