@@ -168,6 +168,9 @@ router.get('/invoice-coming', (req, res) => {
   
   router.post('/upload-and-save-invoice', upload.single('files'), async (req, res) => {
     try {
+      console.log('Request body:', req.body);
+      console.log('Uploaded file:', req.file);
+  
       const { work_order_id, po_number } = req.body;
   
       if (!work_order_id || !po_number) {
@@ -178,33 +181,28 @@ router.get('/invoice-coming', (req, res) => {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
       }
   
-      // The path of the uploaded file by multer
       const uploadedFilePath = req.file.path;
-  
-      // Path where you want to save generated PDF
       const generatedFileName = `${uuidv4()}-invoice.pdf`;
       const generatedFilePath = path.join('uploads', generatedFileName);
       const absoluteGeneratedPath = path.join(__dirname, '..', generatedFilePath);
   
-      // Generate PDF invoice (assuming this function writes the PDF file to absoluteGeneratedPath)
+      console.log('Generating PDF at:', absoluteGeneratedPath);
       await generateInvoicePDF({ work_order_id, po_number }, absoluteGeneratedPath);
+      console.log('PDF generated successfully.');
   
-      // Optionally: delete the uploaded file if you don't need it anymore
       fs.unlink(uploadedFilePath, (err) => {
         if (err) console.warn('Failed to delete uploaded file:', err);
       });
   
-      // Save record in DB with the generated PDF file path
-      const insertQuery = `INSERT INTO invoice (work_order_id, po_number, files) VALUES (?, ?, ?)`;
-      db.query(insertQuery, [work_order_id, po_number, generatedFilePath], (err) => {
+      db.query(`INSERT INTO invoice (work_order_id, po_number, files) VALUES (?, ?, ?)`,
+        [work_order_id, po_number, generatedFilePath], (err) => {
         if (err) {
           console.error("Database insert error:", err);
           return res.status(500).json({ success: false, message: 'Database error while saving invoice' });
         }
   
-        // Update work_receiving status
-        const updateQuery = `UPDATE work_receiving SET current_department = 'Completed' WHERE work_order_id = ?`;
-        db.query(updateQuery, [work_order_id], (err) => {
+        db.query(`UPDATE work_receiving SET current_department = 'Completed' WHERE work_order_id = ?`,
+          [work_order_id], (err) => {
           if (err) {
             console.error("Database update error:", err);
             return res.status(500).json({ success: false, message: 'Failed to update current department' });
@@ -216,8 +214,9 @@ router.get('/invoice-coming', (req, res) => {
   
     } catch (error) {
       console.error("Error in /upload-and-save-invoice route:", error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
+      res.status(500).json({ success: false, message: error.message || 'Internal server error' });
     }
   });
+  
   
   module.exports = router;
