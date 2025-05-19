@@ -96,7 +96,6 @@ router.get('/Laboratory-data', (req, res) => {
            work_receiving.sub_section,
            work_receiving.current_department,
            work_receiving.file_path,
-           lab.receiving_date,
            lab.asphalt,
            lab.asphalt_completed,
            lab.milling,
