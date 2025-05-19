@@ -99,9 +99,9 @@ router.get('/workClosing-data', (req, res) => {
              work_receiving.file_path,
              survey.survey_file_path,
              permissions.Document,
-             work_closing.submission_date,
-             work_closing.resubmission_date,
-             work_closing.approval_date,
+            //  work_closing.submission_date,
+            //  work_closing.resubmission_date,
+            //  work_closing.approval_date,
              work_closing.mubahisa,
              permission_closing.pc_created_at,
              work_closing.wc_created_at
@@ -141,8 +141,8 @@ router.post('/upload-and-save-wcdocument', upload.fields([
   // Insert file information and work order details into the database
   const insertQuery = `
     INSERT INTO work_closing 
-    (work_order_id, submission_date, resubmission_date, approval_date, mubahisa)
-    VALUES (?, ?, ?, ?, ?)
+    (work_order_id, mubahisa)
+    VALUES (?, ?)
   `;
   const insertValues = [work_order_id, submission_date, resubmission_date, approval_date, Mubahisa];
 

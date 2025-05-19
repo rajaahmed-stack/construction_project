@@ -44,9 +44,9 @@ const WorkClosing = () => {
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     work_order_id: "",
-    submission_date: "",
-    resubmission_date: "",
-    approval_date: "",
+    // submission_date: "",
+    // resubmission_date: "",
+    // approval_date: "",
     mubahisa: ""
     
   });
@@ -146,7 +146,7 @@ const WorkClosing = () => {
   const handleSave = async (e) => {
     e.preventDefault();
   
-    const requiredFields = ['work_order_id', 'submission_date', 'resubmission_date', 'approval_date'];
+    const requiredFields = ['work_order_id'];
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`Please fill all the fields. Missing: ${field}`);
@@ -156,9 +156,9 @@ const WorkClosing = () => {
   
     const formDataWithFile = new FormData();
     formDataWithFile.append('work_order_id', formData.work_order_id);
-    formDataWithFile.append('submission_date', formData.submission_date);
-    formDataWithFile.append('resubmission_date', formData.resubmission_date);
-    formDataWithFile.append('approval_date', formData.approval_date);
+    // formDataWithFile.append('submission_date', formData.submission_date);
+    // formDataWithFile.append('resubmission_date', formData.resubmission_date);
+    // formDataWithFile.append('approval_date', formData.approval_date);
  
     if (files.length === 0) {
       alert("Please select at least one file.");
@@ -190,9 +190,9 @@ const WorkClosing = () => {
         // ✅ Reset the form
         setFormData({
           work_order_id: "",
-          submission_date: "",
-          resubmission_date: "",
-          approval_date: "",
+          // submission_date: "",
+          // resubmission_date: "",
+          // approval_date: "",
           mubahisa: null,
           isEditing: false,
         });
@@ -214,9 +214,9 @@ const WorkClosing = () => {
   const handleEdit = (record) => {
     setFormData({
       work_order_id: record.work_order_id,
-      submission_date: record.submission_date || "", // Set existing submission date or empty if not available
-      resubmission_date: record.resubmission_date || "", // Set existing resubmission date or empty
-      approval_date: record.approval_date || "", // Set existing approval date or empty
+      // submission_date: record.submission_date || "", // Set existing submission date or empty if not available
+      // resubmission_date: record.resubmission_date || "", // Set existing resubmission date or empty
+      // approval_date: record.approval_date || "", // Set existing approval date or empty
       mubahisa: null, // Reset file input for new upload
       isEditing: true, // Set edit mode flag
     });
@@ -472,7 +472,7 @@ const WorkClosing = () => {
               <Table className="survey-table">
                 <TableHead>
                   <TableRow>
-                    {['Sr.No','Work Order ID', 'Job Type', 'Sub Section', 'Submission Date','Resubmission Date', 'Approval Date', 'Mubahisa'].map((header) => (
+                    {['Sr.No','Work Order ID', 'Job Type', 'Sub Section',  'Mubahisa'].map((header) => (
                       <TableCell key={header} className="survey-table-header">
                         {header}
                       </TableCell>
@@ -486,9 +486,9 @@ const WorkClosing = () => {
                       <TableCell>{record.work_order_id}</TableCell>
                       <TableCell>{record.job_type}</TableCell>
                       <TableCell>{record.sub_section}</TableCell>
-                      <TableCell>{new Date(record.submission_date).toLocaleDateString()}</TableCell>
+                      {/* <TableCell>{new Date(record.submission_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(record.resubmission_date).toLocaleDateString()}</TableCell>
-                      <TableCell>{new Date(record.approval_date).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(record.approval_date).toLocaleDateString()}</TableCell> */}
                       <TableCell> {record.mubahisa ? "✅" : "❌"}</TableCell>
                         <TableCell>
                           <Button
@@ -546,7 +546,7 @@ const WorkClosing = () => {
                 readOnly
                 variant="outlined"
               />
-              <TextField
+              {/* <TextField
                 label="Submission Date"
                 name="submission_date"
                 value={formData.submission_date}
@@ -581,7 +581,7 @@ const WorkClosing = () => {
                 type="date"
                 InputLabelProps={{ shrink: true }}
 
-              />     
+              />      */}
               <input
                                                accept="*"
                                                style={{ display: 'none' }}

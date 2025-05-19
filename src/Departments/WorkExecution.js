@@ -60,20 +60,20 @@ const WorkExecution = () => {
     milling_completed: false,
     concrete: "",
     concrete_completed: false,
-    deck3: "",
-    deck3_completed: false,
-    deck2: "",
-    deck2_completed: false,
-    deck1: "",
-    deck1_completed: false,
+    // deck3: "",
+    // deck3_completed: false,
+    // deck2: "",
+    // deck2_completed: false,
+    // deck1: "",
+    // deck1_completed: false,
     sand: "",
     sand_completed: false,
-    backfilling: "",
-    backfilling_completed: false,
+    // backfilling: "",
+    // backfilling_completed: false,
     cable_lying: "",
     cable_lying_completed: false,
-    trench: "",
-    trench_completed: false,
+    // trench: "",
+    // trench_completed: false,
     remark: "",
   });
   const workOrderId = lowerData[0]?.work_order_id;
@@ -265,20 +265,20 @@ const WorkExecution = () => {
           milling_completed: false,
           concrete: "",
           concrete_completed: false,
-          deck3: "",
-          deck3_completed: false,
-          deck2: "",
-          deck2_completed: false,
-          deck1: "",
-          deck1_completed: false,
+          // deck3: "",
+          // deck3_completed: false,
+          // deck2: "",
+          // deck2_completed: false,
+          // deck1: "",
+          // deck1_completed: false,
           sand: "",
           sand_completed: false,
-          backfilling: "",
-          backfilling_completed: false,
+          // backfilling: "",
+          // backfilling_completed: false,
           cable_lying: "",
           cable_lying_completed: false,
-          trench: "",
-          trench_completed: false,
+          // trench: "",
+          // trench_completed: false,
           remark: "",
         });
       }
@@ -864,13 +864,13 @@ const handleFileUpload = async (fieldName, files) => {
                   { label: "Asphalt", keys: ["asphalt", "asphalt_completed"] },
                   { label: "Milling", keys: ["milling", "milling_completed"] },
                   { label: "Concrete", keys: ["concrete", "concrete_completed"] },
-                  { label: "Deck3", keys: ["deck3", "deck3_completed"] },
-                  { label: "Deck2", keys: ["deck2", "deck2_completed"] },
-                  { label: "Deck1", keys: ["deck1", "deck1_completed"] },
+                  // { label: "Deck3", keys: ["deck3", "deck3_completed"] },
+                  // { label: "Deck2", keys: ["deck2", "deck2_completed"] },
+                  // { label: "Deck1", keys: ["deck1", "deck1_completed"] },
                   { label: "Sand", keys: ["sand", "sand_completed"] },
-                  { label: "Backfilling", keys: ["backfilling", "backfilling_completed"] },
+                  // { label: "Backfilling", keys: ["backfilling", "backfilling_completed"] },
                   { label: "Cable Lying", keys: ["cable_lying", "cable_lying_completed"] },
-                  { label: "Trench", keys: ["trench", "trench_completed"] },
+                  // { label: "Trench", keys: ["trench", "trench_completed"] },
                 ].map(({ label, keys }) => {
                   const dataKey = keys.find(k => record[k] !== undefined);
                   const isDone = record[dataKey];
@@ -896,27 +896,27 @@ const handleFileUpload = async (fieldName, files) => {
                 ...(record.concrete_completed !==1
                   ?[{ label: "Concrete", handler: handleSaveConcrete, key: "concrete",  disabled: record.concrete_completed || record.concrete}]
                   :[]),
-                ...(record.deck3_completed !==1
-                  ?[{ label: "Deck 3", handler: handleSaveDeck3, key: "deck3",  disabled: record.deck3_completed || record.deck3}]
-                  :[]),
-                ...(record.deck2_completed !==1
-                  ?[{ label: "Deck 2", handler: handleSaveDeck2, key: "deck2",  disabled: record.deck2_completed || record.deck2}]
-                  :[]),
-                ...(record.deck1_completed !==1
-                  ?[{ label: "Deck 1", handler: handleSaveDeck1, key: "deck1",  disabled: record.deck1_completed || record.deck1}]
-                  :[]),
+                // ...(record.deck3_completed !==1
+                //   ?[{ label: "Deck 3", handler: handleSaveDeck3, key: "deck3",  disabled: record.deck3_completed || record.deck3}]
+                //   :[]),
+                // ...(record.deck2_completed !==1
+                //   ?[{ label: "Deck 2", handler: handleSaveDeck2, key: "deck2",  disabled: record.deck2_completed || record.deck2}]
+                //   :[]),
+                // ...(record.deck1_completed !==1
+                //   ?[{ label: "Deck 1", handler: handleSaveDeck1, key: "deck1",  disabled: record.deck1_completed || record.deck1}]
+                //   :[]),
                 ...(record.sand_completed !==1
                   ?[{ label: "Sand", handler: handleSaveSand, key: "sand",  disabled: record.sand_completed || record.sand}]
                   :[]),
-                ...(record.backfilling_completed !==1
-                  ?[{ label: "Backfilling", handler: handleSaveBackFilling, key: "backfilling",  disabled: record.backfilling_completed || record.backfilling}]
-                  :[]),
+                // ...(record.backfilling_completed !==1
+                //   ?[{ label: "Backfilling", handler: handleSaveBackFilling, key: "backfilling",  disabled: record.backfilling_completed || record.backfilling}]
+                //   :[]),
                 ...(record.cable_lying_completed !==1
                   ?[{ label: "Cable Lying", handler: handleSaveCableLying, key: "cable_lying",  disabled: record.cable_lying_completed || record.cable_lying}]
                   :[]),
-                ...(record.trench_completed !== 1
-                  ?[{ label: "Trench", handler: handleSaveTrench, key: "trench",  disabled: record.trench_completed || record.trench}]
-                  :[]),
+                // ...(record.trench_completed !== 1
+                //   ?[{ label: "Trench", handler: handleSaveTrench, key: "trench",  disabled: record.trench_completed || record.trench}]
+                //   :[]),
                 ].map(({ label, handler, key, disabled }) => (
                   <Grid item xs={6} key={key}>
                    <Button
