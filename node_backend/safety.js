@@ -233,7 +233,9 @@ router.post('/save-safety-signs', (req, res) => {
   if (!work_order_id) {
     return res.status(400).send("Missing work_order_id");
   }
-
+  if (Array.isArray(safety_signs)) {
+    safety_signs = JSON.stringify(safety_signs); // OR use `.join(',')` if preferred
+  }
   const updateQuery = `
     UPDATE safety_department 
     SET safety_signs = ?, safety_signs_completed = ? 
@@ -271,6 +273,9 @@ router.post('/save-safety-barriers', (req, res) => {
   const { safety_barriers, safety_barriers_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_barriers:", safety_barriers); // Debug: log received file path
 
+  if (Array.isArray(safety_barriers)) {
+    safety_barriers = JSON.stringify(safety_barriers); // OR use `.join(',')` if preferred
+  }
   const updateQuery = `
     UPDATE safety_department 
     SET safety_barriers = ?, safety_barriers_completed = ? 
@@ -305,7 +310,9 @@ router.post('/save-safety-barriers', (req, res) => {
 router.post('/save-safety-lights', (req, res) => {
   const { safety_lights, safety_lights_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_lights:", safety_lights); // Debug: log received file path
-
+  if (Array.isArray(safety_lights)) {
+    safety_lights = JSON.stringify(safety_lights); // OR use `.join(',')` if preferred
+  }
   const updateQuery = `
     UPDATE safety_department 
     SET safety_lights = ?, safety_lights_completed = ? 
@@ -341,6 +348,9 @@ router.post('/save-safety-boards', (req, res) => {
   const { safety_boards, safety_board_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_boards:", safety_boards); // Debug: log received file path
 
+  if (Array.isArray(safety_boards)) {
+    safety_boards = JSON.stringify(safety_boards); // OR use `.join(',')` if preferred
+  }
   const updateQuery = `
     UPDATE safety_department 
     SET safety_boards = ?, safety_board_completed = ? 
@@ -376,6 +386,9 @@ router.post('/save-safety-document', (req, res) => {
   const { safety_documentation, safety_documentation_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_documentation:", safety_documentation); // Debug: log received file path
 
+  if (Array.isArray(safety_documentation)) {
+    safety_documentation = JSON.stringify(safety_documentation); // OR use `.join(',')` if preferred
+  }
   const updateQuery = `
     UPDATE safety_department 
     SET safety_documentation = ?, safety_documentation_completed = ? 
@@ -411,6 +424,9 @@ router.post('/save-safety-permission', (req, res) => {
   const { permissions, permissions_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received permissions:", permissions); // Debug: log received file path
 
+  if (Array.isArray(permissions)) {
+    permissions = JSON.stringify(permissions); // OR use `.join(',')` if preferred
+  }
   const updateQuery = `
     UPDATE safety_department 
     SET permissions = ?, permissions_completed = ? 
