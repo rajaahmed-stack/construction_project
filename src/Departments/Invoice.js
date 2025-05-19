@@ -137,8 +137,8 @@ const Invoice = () => {
             </TableHead>
             <TableBody>
               {lowerData.map((invoice) => (
-                <TableRow key={invoice.invoive_id}>
-                  <TableCell>{invoice.invoive_id}</TableCell>
+                <TableRow key={invoice.invoice_id}>
+                  <TableCell>{invoice.invoice_id}</TableCell>
                   <TableCell>{invoice.work_order_id}</TableCell>
                   <TableCell>{invoice.po_number}</TableCell>
                   <TableCell>
@@ -158,11 +158,11 @@ const Invoice = () => {
           <Typography variant="h6">Generate Invoice</Typography>
           <TextField fullWidth margin="normal" label="Work Order ID" value={formData.work_order_id} disabled />
           <TextField fullWidth margin="normal" label="PO Number" name="po_number" value={formData.po_number} onChange={handleChange} />
-          <Button component="label" fullWidth variant="outlined" sx={{ my: 2 }}>
+          <Button component="label" fullWidth variant="contained" sx={{ my: 2 }}>
             Upload Invoice File
             <input type="file" hidden onChange={handleFileChange} />
           </Button>
-          <Button variant="contained" fullWidth onClick={handleSubmit}>Save</Button>
+          <Button variant="outlined" fullWidth onClick={handleSubmit}>Save</Button>
         </Box>
       </Modal>
 
