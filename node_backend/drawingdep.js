@@ -122,7 +122,7 @@ LEFT JOIN permissions p ON we.work_order_id = p.work_order_id
 WHERE we.work_order_id NOT IN (
         SELECT work_order_id FROM drawing_department
     )
-AND wr.current_department IN ('PermissionClosing', 'WorkClosing', 'Drawing')
+AND wr.current_department IN ('PermissionClosing', 'WorkClosing', 'Drawing', 'Laboratory')
 
 UNION
 
