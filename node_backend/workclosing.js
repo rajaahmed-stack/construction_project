@@ -99,9 +99,6 @@ router.get('/workClosing-data', (req, res) => {
              work_receiving.file_path,
              survey.survey_file_path,
              permissions.Document,
-            //  work_closing.submission_date,
-            //  work_closing.resubmission_date,
-            //  work_closing.approval_date,
              work_closing.mubahisa,
              permission_closing.pc_created_at,
              work_closing.wc_created_at
@@ -315,9 +312,9 @@ router.put('/edit-workclosing/:id', upload.fields([
   const query = `
     UPDATE work_closing 
     SET 
-      submission_date = ?, 
-      resubmission_date = ?, 
-      approval_date = ?, 
+      // submission_date = ?, 
+      // resubmission_date = ?, 
+      // approval_date = ?, 
       mubahisa = ?
     WHERE work_order_id = ?
   `;
