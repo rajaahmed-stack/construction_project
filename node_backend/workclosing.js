@@ -296,12 +296,12 @@ router.put('/edit-workclosing/:id', upload.fields([
   { name: 'mubahisa', maxCount: 20}
 ]), (req, res) => {
   const workOrderId = req.params.id;
-  const { submission_date, resubmission_date, approval_date } = req.body;
+  // const { submission_date, resubmission_date, approval_date } = req.body;
 
   // Validate required fields
-  if (!workOrderId || !submission_date || !resubmission_date || !approval_date) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+  // if (!workOrderId || !submission_date || !resubmission_date || !approval_date) {
+    // return res.status(400).json({ error: 'Missing required fields' });
+  // }
 
   // Handle file paths
   const mubahisaFile = req.files['mubahisa']
@@ -318,10 +318,7 @@ router.put('/edit-workclosing/:id', upload.fields([
   `;
 
   const queryValues = [
-    submission_date,
-    resubmission_date,
-    approval_date,
-    mubahisaFile,
+    JSON.stringify(mubahisaFile), // Assuming mubahisa is an array of file names
     workOrderId
   ];
 

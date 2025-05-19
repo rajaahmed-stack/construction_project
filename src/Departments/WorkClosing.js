@@ -220,6 +220,7 @@ const WorkClosing = () => {
       mubahisa: null, // Reset file input for new upload
       isEditing: true, // Set edit mode flag
     });
+    setFiles([]); // ✅ Clear selected files after successful save
     setShowForm(true); // Open the form modal
   };
 
