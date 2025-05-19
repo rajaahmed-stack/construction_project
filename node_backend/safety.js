@@ -233,8 +233,10 @@ router.post('/save-safety-signs', (req, res) => {
   if (!work_order_id) {
     return res.status(400).send("Missing work_order_id");
   }
+  let safetySignsStr = safety_signs;
+
   if (Array.isArray(safety_signs)) {
-    safety_signs = JSON.stringify(safety_signs); // OR use `.join(',')` if preferred
+    safetySignsStr = JSON.stringify(safety_signs); // OR use `.join(',')` if preferred
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -247,14 +249,14 @@ router.post('/save-safety-signs', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [safety_signs, safety_signs_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safetySignsStr, safety_signs_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
 
     if (result.affectedRows === 0) {
-      db.query(insertQuery, [work_order_id, safety_signs, safety_signs_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safetySignsStr, safety_signs_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
@@ -273,8 +275,9 @@ router.post('/save-safety-barriers', (req, res) => {
   const { safety_barriers, safety_barriers_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_barriers:", safety_barriers); // Debug: log received file path
 
+  let safetyBarriers = safety_barriers;
   if (Array.isArray(safety_barriers)) {
-    safety_barriers = JSON.stringify(safety_barriers); // OR use `.join(',')` if preferred
+    safetyBarriers = JSON.stringify(safety_barriers); // OR use `.join(',')` if preferred
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -287,7 +290,7 @@ router.post('/save-safety-barriers', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [safety_barriers, safety_barriers_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safetyBarriers, safety_barriers_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
@@ -295,7 +298,7 @@ router.post('/save-safety-barriers', (req, res) => {
 
     if (result.affectedRows === 0) {
       // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, safety_barriers, safety_barriers_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safetyBarriers, safety_barriers_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
@@ -310,8 +313,9 @@ router.post('/save-safety-barriers', (req, res) => {
 router.post('/save-safety-lights', (req, res) => {
   const { safety_lights, safety_lights_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_lights:", safety_lights); // Debug: log received file path
+  let safetylights = safety_lights;
   if (Array.isArray(safety_lights)) {
-    safety_lights = JSON.stringify(safety_lights); // OR use `.join(',')` if preferred
+    safetylights = JSON.stringify(safety_lights); // OR use `.join(',')` if preferred
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -324,7 +328,7 @@ router.post('/save-safety-lights', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [safety_lights, safety_lights_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safetylights, safety_lights_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
@@ -332,7 +336,7 @@ router.post('/save-safety-lights', (req, res) => {
 
     if (result.affectedRows === 0) {
       // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, safety_lights, safety_lights_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safetylights, safety_lights_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
@@ -348,8 +352,10 @@ router.post('/save-safety-boards', (req, res) => {
   const { safety_boards, safety_board_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_boards:", safety_boards); // Debug: log received file path
 
+  let safetyBoards = safety_boards;
+
   if (Array.isArray(safety_boards)) {
-    safety_boards = JSON.stringify(safety_boards); // OR use `.join(',')` if preferred
+    safetyBoards = JSON.stringify(safety_boards); // OR use `.join(',')` if preferred
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -362,7 +368,7 @@ router.post('/save-safety-boards', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [safety_boards, safety_board_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safetyBoards, safety_board_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
@@ -370,7 +376,7 @@ router.post('/save-safety-boards', (req, res) => {
 
     if (result.affectedRows === 0) {
       // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, safety_boards, safety_board_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safetyBoards, safety_board_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
@@ -386,8 +392,10 @@ router.post('/save-safety-document', (req, res) => {
   const { safety_documentation, safety_documentation_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received safety_documentation:", safety_documentation); // Debug: log received file path
 
+  let safetyDocument = safety_documentation;
+
   if (Array.isArray(safety_documentation)) {
-    safety_documentation = JSON.stringify(safety_documentation); // OR use `.join(',')` if preferred
+    safetyDocument = JSON.stringify(safety_documentation); // OR use `.join(',')` if preferred
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -400,7 +408,7 @@ router.post('/save-safety-document', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [safety_documentation, safety_documentation_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safetyDocument, safety_documentation_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
@@ -408,7 +416,7 @@ router.post('/save-safety-document', (req, res) => {
 
     if (result.affectedRows === 0) {
       // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, safety_documentation, safety_documentation_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safetyDocument, safety_documentation_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
@@ -424,8 +432,9 @@ router.post('/save-safety-permission', (req, res) => {
   const { permissions, permissions_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received permissions:", permissions); // Debug: log received file path
 
+  let permis = permissions;
   if (Array.isArray(permissions)) {
-    permissions = JSON.stringify(permissions); // OR use `.join(',')` if preferred
+    permis = JSON.stringify(permissions); // OR use `.join(',')` if preferred
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -438,7 +447,7 @@ router.post('/save-safety-permission', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [permissions, permissions_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [permis, permissions_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
@@ -446,7 +455,7 @@ router.post('/save-safety-permission', (req, res) => {
 
     if (result.affectedRows === 0) {
       // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, permissions, permissions_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, permis, permissions_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
