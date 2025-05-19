@@ -168,7 +168,7 @@ router.post("/save-Laboratory-workorder", (req, res) => {
 
   const query = `
     INSERT INTO lab (work_order_id, permission_number) 
-    VALUES (?, ?, ?, ?, ?);
+    VALUES (?, ?);
   `;
 
   db.query(query, [work_order_id, permission_number || "N/A"], (err) => {
