@@ -53,9 +53,10 @@ router.post('/upload-and-save-pdocument', upload.array('Document'), (req, res) =
 
     const { work_order_id, permission_number, request_date, start_date, end_date, delivery_status } = req.body;
 
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({ success: false, message: 'No document uploaded.' });
     }
+    
 
     const documentFilePath = req.files.map(file => path.join('uploads', file.filename)).join(',');
 
