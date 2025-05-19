@@ -137,7 +137,14 @@ const GisDepartment = () => {
       console.error("Error refreshing survey data:", error);
     }
   };
-
+  const handleRemoveFile = (groupIndex, fileIndex) => {
+    setGisFiles((prevFiles) => {
+      const updated = [...prevFiles];
+      updated[groupIndex] = updated[groupIndex].filter((_, i) => i !== fileIndex);
+      return updated;
+    });
+  };
+  
   const handleSave = async (e) => {
     e.preventDefault();
   
@@ -318,21 +325,38 @@ const GisDepartment = () => {
                 readOnly
               />
             </Form.Group>
-            <Form.Group controlId="gisUpload">
+            <Form.Group>
               <Form.Label>Upload GIS Documents</Form.Label>
-              {gisFiles.map((_, index) => (
-                <Form.Control
-                  key={index}
-                  type="file"
-                  multiple
-                  onChange={(e) => handleFileUpload(e, index)}
-                  className="mb-2"
-                />
+              {gisFiles.map((fileGroup, index) => (
+                <div key={index} style={{ marginBottom: "10px" }}>
+                  <Form.Control
+                    type="file"
+                    multiple
+                    onChange={(e) => handleFileUpload(e, index)}
+                  />
+                  {fileGroup.length > 0 && (
+                    <ul>
+                      {fileGroup.map((file, fileIndex) => (
+                        <li key={fileIndex} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span>{file.name}</span>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleRemoveFile(index, fileIndex)}
+                          >
+                            ❌
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               ))}
-              <Button variant="outline-primary" size="sm" onClick={handleAddFileInput}>
-                + Add More Files
+              <Button variant="secondary" onClick={handleAddFileInput}>
+                ➕ Add More Files
               </Button>
             </Form.Group>
+
             
             <Button backgroundColor="#a200ff" type="submit" onClick={handleSave}>
               Save Data

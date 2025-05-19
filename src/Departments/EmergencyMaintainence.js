@@ -19,10 +19,10 @@ const processWorkReceivingData = (data) => {
 
       if (item.current_department === 'Emergency & Maintainence') {
         if (today > deadline) {
-          statusColor = 'red';
+        //   statusColor = 'red';
           deliveryStatus = 'delayed';
         } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-          statusColor = 'yellow';
+        //   statusColor = 'yellow';
         }
       }
 
@@ -75,7 +75,7 @@ const EmergencyMaintainence = () => {
       setAlertData(urgentOrders);
   
       if (urgentOrders.length > 0) {
-        showSnackbar('Warning: Some work orders are close to or past their deadline.', 'warning');
+        // showSnackbar('Warning: Some work orders are close to or past their deadline.', 'warning');
       }
     } catch (error) {
       console.error("Error fetchingEmergency & Maintainence data:", error);
@@ -242,7 +242,10 @@ const handleDelete = async (id) => {
     setOpenSnackbar(true);
   }
 };
-
+const handleRemoveFile = (indexToRemove) => {
+    setFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
+  };
+  
 const handleEdit = (item) => {
   setFormData({
       workOrderList: item.work_order_id,
@@ -332,18 +335,27 @@ const handleEdit = (item) => {
             
                             {/* Display selected file names */}
                             <div style={{ marginTop: 10 }}>
-                              {files.length > 0 ? (
-                                files.map((file, index) => (
-                                  <Typography key={index} variant="body2">
+                            {files.length > 0 ? (
+                            files.map((file, index) => (
+                                <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
+                                <Typography variant="body2" sx={{ marginRight: 1 }}>
                                     📎 {file.name}
-                                  </Typography>
-                                ))
-                              ) : (
-                                <Typography variant="body2" color="text.secondary">
-                                  No files selected.
                                 </Typography>
-                              )}
-                            </div>
+                                <Button
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleRemoveFile(index)}
+                                >
+                                    ❌
+                                </Button>
+                                </div>
+                            ))
+                            ) : (
+                            <Typography variant="body2" color="text.secondary">
+                                No files selected.
+                            </Typography>
+                            )}
+                        </div>
             
 
             <Button fullWidth variant="contained" color="primary" startIcon={<Save />} onClick={handleSave} sx={{ mt: 3 }}>

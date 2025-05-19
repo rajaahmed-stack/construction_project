@@ -7,6 +7,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import "../styles/workexecution.css";
 import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from '@mui/icons-material/Close'; // Make sure this is imported
 
 
 const processWorkExeData = (data) => {
@@ -22,13 +23,13 @@ const processWorkExeData = (data) => {
       let deliveryStatus = 'On Time';
 
       if (surveyCreatedAt > deadline) {
-        statusColor = 'red';
+        // statusColor = 'red';
         deliveryStatus = 'Delayed';
       } else if (surveyCreatedAt < deadline) {
-        statusColor = 'green';
+        // statusColor = 'green';
         deliveryStatus = 'On Time';
       } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-        statusColor = 'yellow';
+        // statusColor = 'yellow';
         deliveryStatus = 'Near Deadline';
       }
 
@@ -772,7 +773,17 @@ const handleFileUpload = async (fieldName, files) => {
     }
   };
   
-    
+  const handleRemoveFile = (key, index) => {
+    setUploadedFiles((prev) => {
+      const updated = [...(prev[key] || [])];
+      updated.splice(index, 1);
+      return {
+        ...prev,
+        [key]: updated
+      };
+    });
+  };
+   
   
   return (
     <Grid container spacing={3} sx={{ padding: "20px" }}>
@@ -944,6 +955,15 @@ const handleFileUpload = async (fieldName, files) => {
                     {uploadedFiles[key]?.map((filePath, index) => (
                       <div key={index} style={{ fontSize: "0.8rem" }}>
                         ✅ {filePath.split("/").pop()}
+                        <CloseIcon
+                          onClick={() => handleRemoveFile(key, index)}
+                          sx={{
+                            fontSize: 16,
+                            color: "red",
+                            marginLeft: 1,
+                            cursor: "pointer"
+                          }}
+                        />
                       </div>
                     ))}
                     <Button

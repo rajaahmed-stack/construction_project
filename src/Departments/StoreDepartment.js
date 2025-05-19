@@ -164,7 +164,17 @@ const StoreDepartment = () => {
 
     return () => clearInterval(interval); // Cleanup interval
   }, [lowerData]);
-
+  const handleRemoveFileField = (category, index) => {
+    setFormData((prevData) => {
+      const updatedFiles = [...prevData[category]];
+      updatedFiles.splice(index, 1); // Remove file at index
+      return {
+        ...prevData,
+        [category]: updatedFiles,
+      };
+    });
+  };
+  
 
 
   
@@ -288,15 +298,17 @@ const StoreDepartment = () => {
             <Form.Group controlId="formFileReturn">
               <Form.Label>Material Return</Form.Label>
               {formData.material_return.map((_, index) => (
-                <div key={index} className="d-flex mb-2">
-                  <Form.Control
-                    type="file"
-                    onChange={(e) => handleFileUpload(e, "material_return", index)}
-                    required
-                  />
-                </div>
-              ))}
-              <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_return")}>+</Button>
+              <div key={index} className="d-flex align-items-center mb-2 gap-2">
+                <Form.Control
+                  type="file"
+                  onChange={(e) => handleFileUpload(e, "material_return", index)}
+                  required
+                />
+                <Button variant="outline-danger" size="sm" onClick={() => handleRemoveFileField("material_return", index)}>❌</Button>
+              </div>
+            ))}
+            <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_return")}>+</Button>
+
             </Form.Group>
             <Form.Group controlId="formFileReceiving">
                 <Form.Label>Material Receiving</Form.Label>
@@ -307,6 +319,8 @@ const StoreDepartment = () => {
                       onChange={(e) => handleFileUpload(e, "material_receiving", index)}
                       required
                     />
+                    <Button variant="outline-danger" size="sm" onClick={() => handleRemoveFileField("material_receiving", index)}>❌</Button>
+
                   </div>
                 ))}
                 <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_receiving")}>+</Button>
@@ -321,6 +335,7 @@ const StoreDepartment = () => {
                       onChange={(e) => handleFileUpload(e, "material_pending", index)}
                       required
                     />
+                    <Button variant="outline-danger" size="sm" onClick={() => handleRemoveFileField("material_pending", index)}>❌</Button>
                   </div>
                 ))}
                 <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_pending")}>+</Button>

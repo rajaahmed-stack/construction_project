@@ -19,10 +19,10 @@ const processWorkReceivingData = (data) => {
 
       if (item.current_department === 'Work Receiving') {
         if (today > deadline) {
-          statusColor = 'red';
+          // statusColor = 'red';
           deliveryStatus = 'delayed';
         } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-          statusColor = 'yellow';
+          // statusColor = 'yellow';
         }
       }
 
@@ -191,7 +191,10 @@ const WorkReceiving = () => {
       showSnackbar('Error saving data. Try again!', 'error');
     }
   };
-
+  const handleRemoveFile = (indexToRemove) => {
+    setFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
+  };
+  
 const handleDownload = async (workOrderId) => {
   if (!workOrderId) {
     console.error("No Work Order ID provided");
@@ -354,19 +357,28 @@ const handleEdit = (item) => {
 
                 {/* Display selected file names */}
                 <div style={{ marginTop: 10 }}>
-                  {files.length > 0 ? (
-                    files.map((file, index) => (
-                      <Typography key={index} variant="body2">
+                {files.length > 0 ? (
+                  files.map((file, index) => (
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
+                      <Typography variant="body2" sx={{ marginRight: 1 }}>
                         📎 {file.name}
                       </Typography>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No files selected.
-                    </Typography>
-                  )}
-                </div>
-              </Grid>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleRemoveFile(index)}
+                      >
+                        ❌
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No files selected.
+                  </Typography>
+                )}
+              </div>
+            </Grid>
 
 
               <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>

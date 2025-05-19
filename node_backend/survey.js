@@ -91,72 +91,57 @@ const upload = multer({ storage: storage });
 // const { upload } = require('./server'); // Adjust the path if needed
 
 router.post('/save-survey', upload.array('survey_file_path'), (req, res) => {
-  console.log('Uploaded File:', req.file);
-  console.log('Form Data:', req.body);
-
   const { work_order_id, handover_date, return_date, remark } = req.body;
-  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
+  const documentFilePath = req.files.map(file => file.path).join(',');
 
   if (!work_order_id || !handover_date || !return_date || !remark) {
     return res.status(400).send('All fields are required');
   }
 
-  // Check for duplicate
-  const checkDuplicateQuery = `SELECT COUNT(*) AS count FROM survey WHERE work_order_id = ?`;
+  // First check if current department is allowed to proceed
+  const checkCurrentDeptQuery = `SELECT current_department FROM work_receiving WHERE work_order_id = ?`;
 
-  db.query(checkDuplicateQuery, [work_order_id], (err, results) => {
-    if (err) {
-      console.error('Error checking duplicate:', err);
-      return res.status(500).send('Error checking duplicate');
+  db.query(checkCurrentDeptQuery, [work_order_id], (err, results) => {
+    if (err) return res.status(500).send('Error checking current department');
+
+    const currentDept = results[0]?.current_department;
+    if (currentDept !== 'Survey') {
+      return res.status(400).send(`Cannot proceed. Current department is ${currentDept}`);
     }
 
-    if (results[0].count > 0) {
-      return res.status(400).send('Duplicate entry: Work order already exists in survey');
-    }
+    // Duplicate check
+    const checkDuplicateQuery = `SELECT COUNT(*) AS count FROM survey WHERE work_order_id = ?`;
+    db.query(checkDuplicateQuery, [work_order_id], (err, results) => {
+      if (err) return res.status(500).send('Error checking duplicate');
 
-    db.beginTransaction((err) => {
-      if (err) {
-        console.error('Transaction start error:', err);
-        return res.status(500).send('Transaction start error');
+      if (results[0].count > 0) {
+        return res.status(400).send('Duplicate entry: Work order already exists in survey');
       }
 
-      fs.readFile(documentFilePath, (err, fileData) => {
-        if (err) {
-          console.error('Error reading file:', err);
-          return db.rollback(() => res.status(500).send('Error reading uploaded file'));
-        }
+      db.beginTransaction((err) => {
+        if (err) return res.status(500).send('Transaction start error');
 
         const insertQuery = `
           INSERT INTO survey (work_order_id, handover_date, return_date, remark, survey_file_path) 
           VALUES (?, ?, ?, ?, ?)
         `;
 
-        db.query(insertQuery, [work_order_id, handover_date, return_date, remark, fileData], (err) => {
-          if (err) {
-            console.error('Error inserting survey data:', err);
-            return db.rollback(() => res.status(500).send('Error inserting survey data'));
-          }
+        db.query(insertQuery, [work_order_id, handover_date, return_date, remark, documentFilePath], (err) => {
+          if (err) return db.rollback(() => res.status(500).send('Error inserting survey data'));
 
+          // Update to next department
           const updateQuery = `
             UPDATE work_receiving 
-            SET current_department = 'Permission' 
+            SET current_department = 'Permission'
             WHERE work_order_id = ?
           `;
 
           db.query(updateQuery, [work_order_id], (err) => {
-            if (err) {
-              console.error('Error updating department:', err);
-              return db.rollback(() => res.status(500).send('Error updating department'));
-            }
+            if (err) return db.rollback(() => res.status(500).send('Error updating department'));
 
             db.commit((err) => {
-              if (err) {
-                console.error('Error committing transaction:', err);
-                return db.rollback(() => res.status(500).send('Error committing transaction'));
-              }
-
-              console.log(`Survey data saved for Work Order: ${work_order_id}`);
-              res.status(200).send('Survey data saved and department updated successfully');
+              if (err) return db.rollback(() => res.status(500).send('Error committing transaction'));
+              res.status(200).send('Survey data saved and department updated');
             });
           });
         });
@@ -164,6 +149,7 @@ router.post('/save-survey', upload.array('survey_file_path'), (req, res) => {
     });
   });
 });
+
 
 // Update Delivery Status
 router.put('/api/update-delivery-status', express.json(), (req, res) => {

@@ -18,13 +18,13 @@ const processSurveyData = (data) => {
       let deliveryStatus = 'On Time';
 
       if (surveyCreatedAt > deadline) {
-        statusColor = 'red';
+        // statusColor = 'red';
         deliveryStatus = 'Delayed';
       } else if (surveyCreatedAt < deadline) {
-        statusColor = 'green';
+        // statusColor = 'green';
         deliveryStatus = 'On Time';
       } else if ((deadline - today) / (1000 * 60 * 60 * 24) <= 1) {
-        statusColor = 'yellow';
+        // statusColor = 'yellow';
         deliveryStatus = 'Near Deadline';
       }
 
@@ -218,7 +218,9 @@ const Survey = () => {
     setSnackbarMessage(msg);
     setOpenSnackbar(true);
   };
-
+  const handleRemoveFile = (indexToRemove) => {
+    setFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
+  };
   return (
     <Container className="survey-container">
       <Box className="survey-header">
@@ -445,19 +447,27 @@ const Survey = () => {
                 
                                 {/* Display selected file names */}
                                 <div style={{ marginTop: 10 }}>
-                                  {files.length > 0 ? (
-                                    files.map((file, index) => (
-                                      <Typography key={index} variant="body2">
-                                        📎 {file.name}
-                                      </Typography>
-                                    ))
-                                  ) : (
-                                    <Typography variant="body2" color="text.secondary">
-                                      No files selected.
-                                    </Typography>
-                                  )}
-                                </div>
-
+                {files.length > 0 ? (
+                  files.map((file, index) => (
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
+                      <Typography variant="body2" sx={{ marginRight: 1 }}>
+                        📎 {file.name}
+                      </Typography>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleRemoveFile(index)}
+                      >
+                        ❌
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No files selected.
+                  </Typography>
+                )}
+              </div>
                 <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                   <Button type="submit" variant="contained" color="primary" fullWidth>
                     Save Changes

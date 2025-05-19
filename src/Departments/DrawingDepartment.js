@@ -233,6 +233,13 @@ const DrawingDepartment = () => {
       return updatedData;
     });
   };
+  const removeFile = (index) => {
+    setFormData((prevData) => {
+      const newDrawings = [...prevData.drawing];
+      newDrawings.splice(index, 1);
+      return { ...prevData, drawing: newDrawings };
+    });
+  };
   
   const handleSendToNext = async (workOrderId) => {
     try {
@@ -350,6 +357,23 @@ const DrawingDepartment = () => {
                   )}
                 </div>
               ))}
+              {formData.drawing.length > 0 && (
+                <ul>
+                  {formData.drawing.map((file, index) => (
+                    <li key={index} style={{ display: "flex", alignItems: "center" }}>
+                      <span style={{ marginRight: "10px" }}>{file.name}</span>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                      >
+                        ❌
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
             </Form.Group>
 
             
