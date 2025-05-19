@@ -96,7 +96,7 @@ router.post('/upload-and-save-pdocument', upload.array('Document'), (req, res) =
 
         const departmentUpdateQuery = `
           UPDATE work_receiving
-          SET current_department = 'Safety', delivery_status = ?
+          SET current_department = 'Safety', delivery_status = ?,previous_department = 'Permission'
           WHERE work_order_id = ?
         `;
         db.query(departmentUpdateQuery, [delivery_status, work_order_id], (err, departmentUpdateResult) => {

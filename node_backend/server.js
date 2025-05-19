@@ -176,7 +176,8 @@ const isSubSectionRequired = !(jobType === 'Meters' || jobType === 'Emergency');
 
         const updateQuery = `
           UPDATE work_receiving 
-          SET current_department = 'Survey' 
+          SET current_department = 'Survey' ,
+          previous_department = 'Work Receiving'
           WHERE work_order_id = ?
         `;
 
