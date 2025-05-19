@@ -25,7 +25,6 @@ db.connect((err) => {
     console.log('Connected to the database');
   }
 });
-// Setup multer for file storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/'); // Ensure this folder exists
@@ -37,6 +36,9 @@ const storage = multer.diskStorage({
 
 // Create the upload object
 const upload = multer({ storage: storage });
+router.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Create the upload object
 router.get('/invoice-coming', (req, res) => {
     const query = `
      SELECT 
