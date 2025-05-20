@@ -3,7 +3,7 @@ const router = express.Router();
 const mysql = require('mysql2');
 const path = require('path');
 const fs = require('fs');
-
+const PDFDocument = require('pdfkit');
 const multer = require('multer');
 const archiver = require('archiver'); // Ensure archiver is imported
 
@@ -26,17 +26,13 @@ db.connect((err) => {
   }
 });
 // Setup multer for file storage
+// Multer setup
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Ensure this folder exists
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
+const upload = multer({ storage });
 
-// Create the upload object
-const upload = multer({ storage: storage });
 router.get('/invoice-coming', (req, res) => {
     const query = `
      SELECT 
@@ -163,49 +159,63 @@ router.get('/invoice-coming', (req, res) => {
   //     });
   //   });
   // });
-  router.post('/upload-and-save-invoice', upload.fields([
-    { name: 'files', maxCount: 30 }, // allow up to 10 GIS files
-  ]), (req, res) => {
-    console.log(req.files);
-    console.log(req.body);
+  const generateInvoicePDF = (invoiceData, savePath) => {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument();
+      const stream = fs.createWriteStream(savePath);
+      doc.pipe(stream);
   
+      doc.fontSize(20).text("ConstructionPro Pvt Ltd", { align: 'center' });
+      doc.fontSize(14).text("Empowering the Future of Infrastructure", { align: 'center' }).moveDown();
+      doc.fontSize(16).text(`Invoice ID: ${invoiceData.invoice_id || 'TBD'}`);
+      doc.text(`Work Order ID: ${invoiceData.work_order_id}`);
+      doc.text(`PO Number: ${invoiceData.po_number}`).moveDown();
+      doc.text("Thank you for your business!", { align: "center" });
+      doc.end();
+  
+      stream.on('finish', () => resolve());
+      stream.on('error', reject);
+    });
+  };
+  
+  // Upload and save invoice route
+  router.post('/upload-and-save-invoice', upload.array('files', 10), async (req, res) => {
     const { work_order_id, po_number } = req.body;
+    const files = req.files.map(f => f.filename);
   
-    // Handle multiple files — save filenames as JSON string or comma-separated string
-    const fileBuffer = req.files['files'] ? req.files['files'].map(file => file.filename) : [];
-  
-    // Convert array to JSON string to store in DB
-    if (!work_order_id || !po_number || !fileBuffer) {
-      return res.status(400).json({ success: false, message: 'Missing required fields or file' });
+    if (!work_order_id || !po_number || files.length === 0) {
+      return res.status(400).json({ success: false, message: 'Missing fields or files' });
     }
-
-    const insertQuery = `
-      INSERT INTO invoice (work_order_id, po_number, files)
-      VALUES (?, ?, ?)
-    `;
-    const insertValues = [work_order_id, po_number, fileBuffer];
   
-    db.query(insertQuery, insertValues, (err, result) => {
-      if (err) {
-        console.error('Error saving data to database:', err);
-        return res.status(500).json({ success: false, message: 'Error saving data to the database' });
-      }
+    const invoiceData = { work_order_id, po_number };
+    const savePath = path.join(__dirname, `../invoices/invoice-${work_order_id}.pdf`);
   
-      const updateQuery = `
-        UPDATE work_receiving
-          SET current_department = 'Completed', previous_department = 'Invoice'
-          WHERE work_order_id = ?
-      `;
+    try {
+      await generateInvoicePDF(invoiceData, savePath);
   
-      db.query(updateQuery, [work_order_id, po_number], (err, result) => {
-        if (err) {
-          console.error('Error updating department:', err);
-          return res.status(500).json({ success: false, message: 'Error updating department' });
-        }
+      const insertQuery = `INSERT INTO invoice (work_order_id, po_number, files) VALUES (?, ?, ?)`;
+      db.query(insertQuery, [work_order_id, po_number, JSON.stringify(files)], (err) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB insert error' });
   
-        console.log('Department updated to Store for work order:', work_order_id);
-        res.status(200).json({ success: true, message: 'Files uploaded, data saved, and department updated successfully' });
+        const updateQuery = `UPDATE work_receiving SET current_department = 'Completed', previous_department = 'Invoice' WHERE work_order_id = ?`;
+        db.query(updateQuery, [work_order_id]);
+  
+        res.json({ success: true, message: 'Invoice saved and PDF generated' });
       });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'PDF generation failed' });
+    }
+  });
+  
+  // Download invoice PDF route
+  router.get('/download-invoice/:work_order_id', (req, res) => {
+    const filePath = path.join(__dirname, `../invoices/invoice-${req.params.work_order_id}.pdf`);
+  
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) return res.status(404).send('Invoice not found');
+      res.download(filePath);
     });
   });
+  
   module.exports = router;
