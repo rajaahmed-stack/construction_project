@@ -25,18 +25,18 @@ db.connect((err) => {
     console.log('Connected to the database');
   }
 });
-// Multer setup for storing files on disk
+// Setup multer for file storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Make sure 'uploads/' folder exists
+    cb(null, 'uploads/'); // Ensure this folder exists
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
   }
 });
-const upload = multer({ storage: storage });
 
 // Create the upload object
+const upload = multer({ storage: storage });
 router.get('/invoice-coming', (req, res) => {
     const query = `
      SELECT 
@@ -163,60 +163,49 @@ router.get('/invoice-coming', (req, res) => {
   //     });
   //   });
   // });
-  const generateInvoicePDF = require('./generateInvoicePDF');
-  const { v4: uuidv4 } = require('uuid');
+  router.post('/upload-and-save-invoice', upload.fields([
+    { name: 'files', maxCount: 30 }, // allow up to 10 GIS files
+  ]), (req, res) => {
+    console.log(req.files);
+    console.log(req.body);
   
-  router.post('/upload-and-save-invoice', upload.single('files'), async (req, res) => {
-    try {
-      console.log('Request body:', req.body);
-      console.log('Uploaded file:', req.file);
+    const { work_order_id, po_number } = req.body;
   
-      const { work_order_id, po_number } = req.body;
+    // Handle multiple files — save filenames as JSON string or comma-separated string
+    const fileBuffer = req.files['files'] ? req.files['files'].map(file => file.filename) : [];
   
-      if (!work_order_id || !po_number) {
-        return res.status(400).json({ success: false, message: 'Missing required fields: work_order_id or po_number' });
+    // Convert array to JSON string to store in DB
+    if (!work_order_id || !po_number || !fileBuffer) {
+      return res.status(400).json({ success: false, message: 'Missing required fields or file' });
+    }
+
+    const insertQuery = `
+      INSERT INTO invoice (work_order_id, po_number, files)
+      VALUES (?, ?, ?)
+    `;
+    const insertValues = [work_order_id, po_number, fileBuffer];
+  
+    db.query(insertQuery, insertValues, (err, result) => {
+      if (err) {
+        console.error('Error saving data to database:', err);
+        return res.status(500).json({ success: false, message: 'Error saving data to the database' });
       }
   
-      if (!req.file) {
-        return res.status(400).json({ success: false, message: 'No file uploaded' });
-      }
+      const updateQuery = `
+        UPDATE work_receiving
+          SET current_department = 'Completed', previous_department = 'Invoice'
+          WHERE work_order_id = ?
+      `;
   
-      const uploadedFilePath = req.file.path;
-      const generatedFileName = `${uuidv4()}-invoice.pdf`;
-      const generatedFilePath = path.join('uploads', generatedFileName);
-      const absoluteGeneratedPath = path.join(__dirname, '..', generatedFilePath);
-  
-      console.log('Generating PDF at:', absoluteGeneratedPath);
-      await generateInvoicePDF({ work_order_id, po_number }, absoluteGeneratedPath);
-      console.log('PDF generated successfully.');
-  
-      fs.unlink(uploadedFilePath, (err) => {
-        if (err) console.warn('Failed to delete uploaded file:', err);
-      });
-  
-      db.query(`INSERT INTO invoice (work_order_id, po_number, files) VALUES (?, ?, ?)`,
-        [work_order_id, po_number, generatedFilePath], (err) => {
+      db.query(updateQuery, [work_order_id, po_number], (err, result) => {
         if (err) {
-          console.error("Database insert error:", err);
-          return res.status(500).json({ success: false, message: 'Database error while saving invoice' });
+          console.error('Error updating department:', err);
+          return res.status(500).json({ success: false, message: 'Error updating department' });
         }
   
-        db.query(`UPDATE work_receiving SET current_department = 'Completed' WHERE work_order_id = ?`,
-          [work_order_id], (err) => {
-          if (err) {
-            console.error("Database update error:", err);
-            return res.status(500).json({ success: false, message: 'Failed to update current department' });
-          }
-  
-          res.status(200).json({ success: true, message: 'Invoice uploaded and department updated successfully' });
-        });
+        console.log('Department updated to Store for work order:', work_order_id);
+        res.status(200).json({ success: true, message: 'Files uploaded, data saved, and department updated successfully' });
       });
-  
-    } catch (error) {
-      console.error("Error in /upload-and-save-invoice route:", error);
-      res.status(500).json({ success: false, message: error.message || 'Internal server error' });
-    }
+    });
   });
-  
-  
   module.exports = router;
