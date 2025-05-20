@@ -194,7 +194,7 @@ router.get('/invoice-coming', (req, res) => {
     }
   
     const invoiceData = { work_order_id, po_number };
-    const savePath = path.join(__dirname, `../invoices/invoice-${work_order_id}.pdf`);
+    const savePath = path.join(__dirname, `../uploads/invoice-${work_order_id}.pdf`);
   
     try {
       await generateInvoicePDF(invoiceData, savePath);
@@ -216,7 +216,7 @@ router.get('/invoice-coming', (req, res) => {
   
   // Download invoice PDF route
   router.get('/download-invoice/:work_order_id', (req, res) => {
-    const filePath = path.join(__dirname, `../invoices/invoice-${req.params.work_order_id}.pdf`);
+    const filePath = path.join(__dirname, `../uploads/invoice-${req.params.work_order_id}.pdf`);
   
     fs.access(filePath, fs.constants.F_OK, (err) => {
       if (err) return res.status(404).send('Invoice not found');
