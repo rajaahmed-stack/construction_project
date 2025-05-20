@@ -63,26 +63,38 @@ const Invoice = () => {
       setOpenSnackbar(true);
       return;
     }
-
+  
     const uploadData = new FormData();
     uploadData.append("work_order_id", formData.work_order_id);
     uploadData.append("po_number", formData.po_number);
     uploadData.append("files", formData.files);
-
+  
     try {
-      await axios.post("https://constructionproject-production.up.railway.app/api/invoice/upload-and-save-invoice", uploadData);
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/invoice/upload-and-save-invoice",
+        uploadData
+      );
+  
       setSnackbarMessage("Invoice generated successfully.");
       setOpenSnackbar(true);
       setShowForm(false);
-
+  
+      // Refresh the lower table
       const refresh = await axios.get("https://constructionproject-production.up.railway.app/api/invoice/invoice-data");
       setLowerData(refresh.data);
+  
+      // Auto-display the newly uploaded invoice
+      const newInvoice = refresh.data.find(item => item.work_order_id === formData.work_order_id);
+      if (newInvoice && newInvoice.files) {
+        openInvoiceInNewTab(newInvoice.files);
+      }
     } catch (error) {
       console.error("Invoice submission error:", error);
       setSnackbarMessage("Error generating invoice.");
       setOpenSnackbar(true);
     }
   };
+  
 
   const downloadInvoice = (fileData) => {
     if (!fileData) {
