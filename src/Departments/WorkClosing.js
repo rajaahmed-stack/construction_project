@@ -104,6 +104,20 @@ const WorkClosing = () => {
 
   //   fetchData();
   // }, []);
+  const retryFetchData = async (retries = 3, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await refreshWorkClosingData();
+        return; // Exit if successful
+      } catch (error) {
+        console.error(`Retry ${i + 1} failed:`, error);
+        if (i < retries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delay)); // Wait before retrying
+        }
+      }
+    }
+    alert("Failed to fetch updated data after saving. Please refresh the page.");
+  };
   const refreshWorkClosingData = async () => {
     try {
       setLoading(true);
@@ -156,21 +170,16 @@ const WorkClosing = () => {
   
     const formDataWithFile = new FormData();
     formDataWithFile.append('work_order_id', formData.work_order_id);
-    // formDataWithFile.append('submission_date', formData.submission_date);
-    // formDataWithFile.append('resubmission_date', formData.resubmission_date);
-    // formDataWithFile.append('approval_date', formData.approval_date);
- 
+  
     if (files.length === 0) {
       alert("Please select at least one file.");
       return;
     }
-    
   
     // Append multiple files
     for (let i = 0; i < files.length; i++) {
       formDataWithFile.append('mubahisa', files[i]);
     }
-  
   
     const url = formData.isEditing
       ? `https://constructionproject-production.up.railway.app/api/work-closing/edit-workclosing/${formData.work_order_id}`
@@ -184,25 +193,28 @@ const WorkClosing = () => {
       if (response.status === 200) {
         alert(formData.isEditing ? 'Record updated successfully' : 'Data saved successfully');
   
-        // ✅ Refresh data using shared function
-        await refreshWorkClosingData();
+        // ✅ Update the lowerData state locally
+        setLowerData((prevData) => [
+          ...prevData,
+          {
+            work_order_id: formData.work_order_id,
+            mubahisa: true, // Mark as uploaded
+          },
+        ]);
+  
+        // ✅ Refresh data from the backend with retries
+        await retryFetchData();
   
         // ✅ Reset the form
         setFormData({
           work_order_id: "",
-          // submission_date: "",
-          // resubmission_date: "",
-          // approval_date: "",
           mubahisa: null,
           isEditing: false,
         });
-        setFiles([]); // ✅ Clear selected files after successful save
-
+        setFiles([]); // Clear selected files after successful save
+  
         // ✅ Close the modal
         setShowForm(false);
-        // setTimeout(() => {
-        //   window.location.reload();
-        // }, 3000); // 1-second delay
       } else {
         alert('Operation failed');
       }

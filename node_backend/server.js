@@ -229,7 +229,7 @@ app.get('/api/download/:id', (req, res) => {
       filePath = filePath.toString('utf8');
     }
 
-    const absolutePath = path.join(__dirname, filePath);
+    const absolutePath = path.resolve('uploads', path.basename(filePath));
     res.download(absolutePath, (err) => {
       if (err) {
         console.error('Error sending file:', err);
