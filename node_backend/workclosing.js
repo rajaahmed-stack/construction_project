@@ -72,9 +72,9 @@ UNION ALL
   SELECT 
     eam.work_order_id, 
     NULL AS permission_number,
-    NULL AS job_type,
+    eam.job_type,
     eam.file_path,
-    NULL AS sub_section,
+    eam.sub_section,
     NULL AS survey_file_path,
     NULL AS Document
   FROM emergency_and_maintainence eam
