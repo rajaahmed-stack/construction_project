@@ -135,6 +135,9 @@ app.get('/api/work_receiving', (req, res) => {
 app.post('/api/save-work_receiving', upload.array('file_path'), (req, res) => {
   const { workOrderList, jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, remarks } = req.body;
 const documentFilePath = req.files?.map(file => path.join('uploads', file.filename)).join(',') || null;
+console.log('Saved file paths:', documentFilePath);
+console.log('Actual req.files:', req.files);
+
 
 const isSubSectionRequired = !(jobType === 'New Meters' || jobType === 'Emergency UG');
 
