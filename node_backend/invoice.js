@@ -249,7 +249,7 @@ WHERE (
   
       const updateQuery = `
         UPDATE work_receiving
-        SET current_department = 'Completed', previous_department = 'Invoice'
+        SET current_department = 'Store', previous_department = 'Invoice'
         WHERE work_order_id = ?
       `;
   
