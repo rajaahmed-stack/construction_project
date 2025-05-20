@@ -61,20 +61,41 @@ router.get('/invoice-coming', (req, res) => {
 
     UNION ALL
 
-    SELECT 
+   SELECT 
+    work_closing.work_order_id, 
+    NULL AS permission_number,
+    work_receiving.job_type, 
+    work_receiving.sub_section,
+    work_receiving.file_path,
+    survey.survey_file_path,
+    NULL AS Document
+FROM work_closing 
+LEFT JOIN work_receiving 
+  ON work_closing.work_order_id = work_receiving.work_order_id
+LEFT JOIN survey 
+  ON work_closing.work_order_id = survey.work_order_id
+WHERE work_closing.work_order_id NOT IN 
+  (SELECT work_order_id FROM invoice) 
+  AND work_receiving.current_department = 'Invoice'
+
+UNION ALL
+
+SELECT 
     eam.work_order_id, 
     NULL AS permission_number,
-    NULL AS job_type,
-    NULL AS sub_section,
+    wr.job_type,
+    wr.sub_section,
     eam.file_path,
     NULL AS survey_file_path,
     NULL AS Document
-    FROM emergency_and_maintainence eam
-    LEFT JOIN work_receiving wr 
-    ON eam.work_order_id = wr.work_order_id
-    WHERE eam.work_order_id NOT IN 
-    (SELECT work_order_id FROM invoice)
-    AND wr.current_department = 'Invoice';
+FROM emergency_and_maintainence eam
+LEFT JOIN work_receiving wr 
+  ON eam.work_order_id = wr.work_order_id 
+  AND wr.current_department = 'Invoice'
+WHERE (
+    eam.work_order_id NOT IN (SELECT work_order_id FROM invoice)
+    OR eam.work_order_id IN (SELECT work_order_id FROM work_closing)
+);
 
   
     `;

@@ -106,7 +106,10 @@ router.get('/workClosing-data', (req, res) => {
              permissions.Document,
              work_closing.mubahisa,
              permission_closing.pc_created_at,
-             work_closing.wc_created_at
+             work_closing.wc_created_at,
+             emergency_and_maintainence.job_type AS eam_job_type,
+             emergency_and_maintainence.sub_section AS eam_sub_section,
+             emergency_and_maintainence.file_path AS eam_file_path
 
       FROM work_closing
       LEFT JOIN work_receiving 
@@ -117,6 +120,8 @@ router.get('/workClosing-data', (req, res) => {
       ON work_closing.work_order_id = permissions.work_order_id
       LEFT JOIN permission_closing 
       ON work_closing.work_order_id = permission_closing.work_order_id
+      LEFT JOIN emergency_and_maintainence 
+      ON work_closing.work_order_id = emergency_and_maintainence.work_order_id
     `;
     db.query(query, (err, results) => {
       if (err) {

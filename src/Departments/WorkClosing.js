@@ -485,8 +485,8 @@ const WorkClosing = () => {
                     <TableRow key={record.work_order_id}>
                       <TableCell>{index +1}</TableCell>
                       <TableCell>{record.work_order_id}</TableCell>
-                      <TableCell>{record.job_type}</TableCell>
-                      <TableCell>{record.sub_section}</TableCell>
+                      <TableCell>{record.job_type || record.eam_job_type}</TableCell>
+                      <TableCell>{record.sub_section || record.eam_sub_section}</TableCell>
                       {/* <TableCell>{new Date(record.submission_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(record.resubmission_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(record.approval_date).toLocaleDateString()}</TableCell> */}
