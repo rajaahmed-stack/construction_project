@@ -224,37 +224,41 @@ app.get('/api/download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePaths = results[0].file_path;
-    if (Buffer.isBuffer(filePaths)) {
-      filePaths = filePaths.toString('utf8');
+    let filePath = results[0].file_path;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
     }
 
-    const files = filePaths.split(',').map(p => path.resolve(__dirname, p.trim()));
+    const filePaths = filePath.split(',');
 
-    // Check if all files exist
-    const missingFiles = files.filter(file => !fs.existsSync(file));
-    if (missingFiles.length > 0) {
-      console.error('Missing files:', missingFiles);
-      return res.status(404).send('One or more files not found on server');
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
     }
-
-    // Create zip and pipe to response
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileId}.zip"`);
-
-    archive.on('error', (err) => {
-      console.error('Archiving error:', err);
-      res.status(500).send('Error zipping files');
-    });
-
-    archive.pipe(res);
-
-    files.forEach(file => {
-      archive.file(file, { name: path.basename(file) });
-    });
-
-    archive.finalize();
   });
 });
 
