@@ -32,6 +32,12 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage });
+const uploadDir = path.join(__dirname, 'uploads');
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
 
 router.get('/invoice-coming', (req, res) => {
     const query = `
