@@ -224,20 +224,40 @@ app.get('/api/download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].file_path;
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
+    let filePaths = results[0].file_path;
+    if (Buffer.isBuffer(filePaths)) {
+      filePaths = filePaths.toString('utf8');
     }
 
-    const absolutePath = path.resolve('uploads', path.basename(filePath));
-    res.download(absolutePath, (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-        res.status(500).send('Error downloading file');
-      }
+    const files = filePaths.split(',').map(p => path.resolve(__dirname, p.trim()));
+
+    // Check if all files exist
+    const missingFiles = files.filter(file => !fs.existsSync(file));
+    if (missingFiles.length > 0) {
+      console.error('Missing files:', missingFiles);
+      return res.status(404).send('One or more files not found on server');
+    }
+
+    // Create zip and pipe to response
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileId}.zip"`);
+
+    archive.on('error', (err) => {
+      console.error('Archiving error:', err);
+      res.status(500).send('Error zipping files');
     });
+
+    archive.pipe(res);
+
+    files.forEach(file => {
+      archive.file(file, { name: path.basename(file) });
+    });
+
+    archive.finalize();
   });
 });
+
 
 // Update current department
 app.post('/api/update-current-department', (req, res) => {
