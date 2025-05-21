@@ -310,9 +310,18 @@ const Permission = () => {
                   <Typography><strong>Work Order:</strong> {record.work_order_id}</Typography>
                   <Typography><strong>Job Type:</strong> {record.job_type}</Typography>
                   <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
-                  <Typography>
-                      {record.file_path  || record.survey_file_path ? (
-                        <a href={`https://constructionproject-production.up.railway.app/api/permission/permission_download/${record.work_order_id}`} download>
+                  <Typography><strong>Work Receiving Files</strong>
+                      {record.file_path  ? (
+                        <a href={`https://constructionproject-production.up.railway.app/api/permission/permission1_download/${record.work_order_id}`} download>
+                          ✅ 📂 Download
+                        </a>
+                      ) : (
+                        "❌ No File"
+                      )}
+                    </Typography>
+                  <Typography><strong>Survey Files</strong>
+                      {record.survey_file_path ? (
+                        <a href={`https://constructionproject-production.up.railway.app/api/permission/permission2_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>
                       ) : (

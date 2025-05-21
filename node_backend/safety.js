@@ -547,58 +547,155 @@ router.put("/update-sdelivery-status", (req, res) => {
 //     }
 //   );
 // });
-router.get('/Safety_download/:id', (req, res) => {
+
+router.get('/Safety1_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  const queries = [
-    { sql: 'SELECT file_path FROM work_receiving WHERE work_order_id = ?', key: 'file_path' },
-    { sql: 'SELECT survey_file_path FROM survey WHERE work_order_id = ?', key: 'survey_file_path' },
-    { sql: 'SELECT Document FROM permissions WHERE work_order_id = ?', key: 'Document' }
-  ];
+  db.query('SELECT file_path FROM work_receiving WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
 
-  let files = [];
-  let completed = 0;
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
 
-  queries.forEach((q, index) => {
-    db.query(q.sql, [fileId], (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send('Database error');
+    let filePath = results[0].file_path;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
 
-      if (results.length > 0 && results[0][q.key]) {
-        let filePath = results[0][q.key];
-        if (Buffer.isBuffer(filePath)) {
-          filePath = filePath.toString('utf8');
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
         }
-        const absolutePath = path.join(__dirname, '..', filePath);
-        files.push({ path: absolutePath, name: path.basename(absolutePath) });
+      });
+
+      archive.finalize();
+    }
+  });
+});
+router.get('/Safety2_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT survey_file_path FROM survey WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].file_path;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
 
-      completed++;
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
 
-      // After both queries finish
-      if (completed === queries.length) {
-        if (files.length === 0) {
-          return res.status(404).send('No files found to download');
+      res.attachment(`files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
         }
+      });
 
-        // Create zip archive
-        res.setHeader('Content-Disposition', 'attachment; filename=documents.zip');
-        res.setHeader('Content-Type', 'application/zip');
+      archive.finalize();
+    }
+  });
+});
+router.get('/Safety3_download/:id', (req, res) => {
+  const fileId = req.params.id;
 
-        const archive = archiver('zip');
-        archive.pipe(res);
+  db.query('SELECT Document FROM permissions WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
 
-        files.forEach(file => {
-          if (fs.existsSync(file.path)) {
-            archive.file(file.path, { name: file.name });
-          }
-        });
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
 
-        archive.finalize();
+    let filePath = results[0].file_path;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
-    });
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
   });
 });
 

@@ -33,7 +33,7 @@ const processWorkReceivingData = (data) => {
 };
 
 const WorkReceiving = () => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     jobType: '',
     subSection: '',
     workOrderList: '',
@@ -41,9 +41,9 @@ const WorkReceiving = () => {
     endDate: '',
     estimatedValue: '',
     remarks: '',
-    delivery_status: '',                 // Optional: if you want to display it in form
-
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
+  const [formKey, setFormKey] = useState(0); // <--- This key will force remount
 
   const [file, setFile] = useState(null);
   const [data, setData] = useState([]);
@@ -54,6 +54,12 @@ const WorkReceiving = () => {
   const [files, setFiles] = useState([]);
 
  
+  useEffect(() => {
+    fetchWorkReceivingData();
+    setFormData(initialFormData);
+    setFiles([]);
+    setFormKey(prev => prev + 1);
+  }, [refreshTrigger]);
   
   useEffect(() => {
     fetchWorkReceivingData();
@@ -174,20 +180,10 @@ const WorkReceiving = () => {
       } else if (message.includes('Successfully created') || message.includes('updated successfully')) {
         showSnackbar('Work Order saved successfully!', 'success');
         fetchWorkReceivingData();
-
-        setFormData({
-          jobType: '',
-          subSection: '',
-          workOrderList: '',
-          receivingDate: '',
-          endDate: '',
-          estimatedValue: '',
-          file_path: null,
-          remarks: '',
-          delivery_status: '',                 // Optional: if you want to display it in form
-          workOrderId: null,
-        });
-        setFiles([]); // ✅ Clear selected files after successful save
+        setRefreshTrigger(prev => !prev); 
+        setFormData(initialFormData);
+      setFiles([]);
+      setFormKey(prev => prev + 1); // This forces the form to remount & reset input fields, including <input type="file">
         
         console.log('Success! Reloading after 5 seconds...');
         // setTimeout(() => {
@@ -289,9 +285,9 @@ const handleEdit = (item) => {
         Work Receiving Department
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} key={formKey}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={4} sx={{ padding: 3 }}>
+          <Paper elevation={4} sx={{ padding: 3 }}  key={formKey}>
             <Grid container spacing={2}>
             <Grid item xs={12}>
                 <TextField

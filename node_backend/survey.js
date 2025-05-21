@@ -212,7 +212,7 @@ router.post('/update-department', express.json(), (req, res) => {
   });
 });
 
-// Download Survey File
+
 router.get('/survey_download/:id', (req, res) => {
   const fileId = req.params.id;
 
@@ -228,20 +228,42 @@ router.get('/survey_download/:id', (req, res) => {
 
     let filePath = results[0].file_path;
 
+    // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
     }
 
-    const absolutePath = path.join(__dirname, filePath);
+    const filePaths = filePath.split(',');
 
-    res.download(absolutePath, (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-        res.status(500).send('Error downloading file');
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
-    });
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
   });
 });
+
 router.put('/edit-survey/:id', upload.array('survey_file_path'), (req, res) => {
   const workOrderId = req.params.id;
   const { handover_date, return_date, remark } = req.body;

@@ -691,29 +691,54 @@ return (
       <Typography color="error">No safety coming data available.</Typography>
     ) : (
       <Table sx={{ minWidth: "100%" }}>
-        <TableHead>
-          <TableRow>
-            {["Work Order ID", "Job Type", "Sub Section", "Permission No.", "File", "Action"].map((header) => (
-              <TableCell key={header} sx={{ fontWeight: "bold" }}>{header}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {upperData.map((record) => (
-            <TableRow key={record.work_order_id}>
-              <TableCell>{record.work_order_id}</TableCell>
-              <TableCell>{record.job_type}</TableCell>
-              <TableCell>{record.sub_section}</TableCell>
-              <TableCell>{record.permission_number}</TableCell>
-              <TableCell>
-                {record.Document ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/safety/Safety_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
+  <TableHead>
+    <TableRow>
+      {["Work Order ID", "Job Type", "Sub Section", "Permission No.", "Files", "Action"].map((header) => (
+        <TableCell key={header} sx={{ fontWeight: "bold" }}>{header}</TableCell>
+      ))}
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {upperData.map((record) => (
+      <TableRow key={record.work_order_id}>
+        <TableCell>{record.work_order_id}</TableCell>
+        <TableCell>{record.job_type}</TableCell>
+        <TableCell>{record.sub_section}</TableCell>
+        <TableCell>{record.permission_number}</TableCell>
+        
+        {/* Combined file section */}
+        <TableCell>
+          <div><strong>Work Receiving Files: </strong>
+            {record.file_path ? (
+              <a
+                href={`https://constructionproject-production.up.railway.app/api/safety/Safety1_download/${record.work_order_id}`}
+                download
+              >
+                ✅ 📂 Download
+              </a>
+            ) : "❌ No File"}
+          </div>
+          <div><strong>Survey Files: </strong>
+            {record.survey_file_path ? (
+              <a
+                href={`https://constructionproject-production.up.railway.app/api/safety/Safety2_download/${record.work_order_id}`}
+                download
+              >
+                ✅ 📂 Download
+              </a>
+            ) : "❌ No File"}
+          </div>
+          <div><strong>Permission Files: </strong>
+            {record.Document ? (
+              <a
+                href={`https://constructionproject-production.up.railway.app/api/safety/Safety3_download/${record.work_order_id}`}
+                download
+              >
+                ✅ 📂 Download
+              </a>
+            ) : "❌ No File"}
+          </div>
+        </TableCell>
               {/* Check if Document is a Buffer or a valid image, then convert or render accordingly */}
               <TableCell>
                 <Button variant="contained" color="primary" onClick={() => handleAddData(record)}>

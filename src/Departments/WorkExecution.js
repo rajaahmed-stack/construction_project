@@ -818,9 +818,36 @@ const handleFileUpload = async (fieldName, files) => {
               <TableCell sx={{ padding: "8px" }}>{record.job_type}</TableCell>
               <TableCell sx={{ padding: "8px" }}>{record.sub_section}</TableCell>
               <TableCell sx={{ padding: "8px" }}>{record.permission_number}</TableCell>
-              <TableCell sx={{ padding: "8px" }}>
-                {(record.file_path || record.survey_file_path) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe_download/${record.work_order_id}`} download>
+              <TableCell sx={{ padding: "8px" }}><strong>Work Receiving Files</strong>
+                {(record.file_path) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe1_download/${record.work_order_id}`} download>
+                    ✅ 📂 Download
+                  </a>
+                ) : (
+                  "❌ No File"
+                )}
+              </TableCell>
+              <TableCell sx={{ padding: "8px" }}><strong>Survey Files</strong>
+                {(record.survey_file_path) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe2_download/${record.work_order_id}`} download>
+                    ✅ 📂 Download
+                  </a>
+                ) : (
+                  "❌ No File"
+                )}
+              </TableCell>
+              <TableCell sx={{ padding: "8px" }}><strong>Permission Files</strong>
+                {(record.Document) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe3_download/${record.work_order_id}`} download>
+                    ✅ 📂 Download
+                  </a>
+                ) : (
+                  "❌ No File"
+                )}
+              </TableCell>
+              <TableCell sx={{ padding: "8px" }}><strong>Safety Files</strong>
+                {(record.safety_signs) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe4_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (
