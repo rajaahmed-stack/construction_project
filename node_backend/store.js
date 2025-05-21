@@ -121,9 +121,9 @@ UNION ALL
 SELECT 
     i.work_order_id, 
     NULL AS permission_number,
-    eam.job_type,
-    eam.sub_section,
-    eam.file_path,
+    NULL AS job_type,
+    NULL AS sub_section,
+    NULL AS file_path,
     NULL AS survey_file_path,
     NULL AS Document
 FROM invoice i
