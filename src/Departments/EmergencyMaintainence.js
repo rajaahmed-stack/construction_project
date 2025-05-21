@@ -144,7 +144,7 @@ const EmergencyMaintainence = () => {
 
     try {
       const url = workOrderId
-        ? `https://constructionproject-production.up.railway.app/api/edit-work-receiving/${workOrderId}`
+        ? `https://constructionproject-production.up.railway.app/api/EAM/edit-emergency-maintainence/${workOrderId}`
         : 'https://constructionproject-production.up.railway.app/api/EAM/save-emergency_and_maintainence';
 
       const method = workOrderId ? 'PUT' : 'POST';
@@ -233,14 +233,14 @@ const handleDelete = async (id) => {
   if (!confirmDelete) return;
 
   try {
-    await fetch(`https://constructionproject-production.up.railway.app/api/delete-work-receiving/${id}`, {
+    await fetch(`https://constructionproject-production.up.railway.app/api/EAM/delete-emergency-maintainence/${id}`, {
       method: 'DELETE',
     });
-    setSnackbarMessage('Work Receiving deleted successfully!');
+    setSnackbarMessage('Emergency & Maintainence deleted successfully!');
     setOpenSnackbar(true);
     fetchWorkReceivingData(); // Refresh data
   } catch (error) {
-    setSnackbarMessage('Failed to deleteEmergency & Maintainence.');
+    setSnackbarMessage('Failed to delete Emergency & Maintainence.');
     setOpenSnackbar(true);
   }
 };
@@ -401,7 +401,7 @@ const handleEdit = (item) => {
                             "❌ No File"
                           )}
                         </TableCell>
-                        {/* <TableCell>
+                        <TableCell>
                           <Button
                             onClick={() => handleEdit(item)}
                             sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'darkgreen' } }}
@@ -416,7 +416,7 @@ const handleEdit = (item) => {
                           >
                             Delete
                           </Button>
-                        </TableCell> */}
+                        </TableCell>
 
 
 

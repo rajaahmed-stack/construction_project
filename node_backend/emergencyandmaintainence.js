@@ -167,5 +167,58 @@ router.get('/api/em_download/:id', (req, res) => {
     }
   });
 });
+router.delete('/delete-emergency-maintainence/:id', (req, res) => {
+  const workOrderId = req.params.id;
+
+  const queries = [
+    'DELETE FROM store WHERE work_order_id = ?',
+    'DELETE FROM invoice WHERE work_order_id = ?',
+    'DELETE FROM work_closing WHERE work_order_id = ?',
+    'DELETE FROM emergency_and_maintainence WHERE work_order_id = ?'
+  ];
+
+  let completed = 0;
+  let hasError = false;
+
+  queries.forEach((sql) => {
+    if (hasError) return;
+
+    db.query(sql, [workOrderId], (err, result) => {
+      if (err) {
+        hasError = true;
+        console.error('Error deleting work receiving:', err);
+        return res.status(500).send('Error deleting work receiving');
+      }
+
+      completed++;
+      if (completed === queries.length && !hasError) {
+        res.status(200).send('Emergency & Maintainence deleted successfully');
+      }
+    });
+  });
+});
+
+router.put('/edit-emergency-maintainence/:id', upload.array('file_path'), (req, res) => {
+  const workOrderId = req.params.id;
+  const { jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status,remarks } = req.body;
+  const documentFilePath = req.files.map(file => file.path).join(','); // ✅ Correct: Get the relative path from Multer
+
+  const query = `
+    UPDATE emergency_and_maintainence 
+    SET job_type = ?, sub_section = ?, receiving_date = ?, end_date = ?, estimated_value = ?, 
+   file_path = ?, remarks = ?
+    WHERE work_order_id = ?
+  `;
+
+  db.query(query, [jobType, subSection, receivingDate, endDate, estimatedValue, current_department, delivery_status, documentFilePath, remarks, workOrderId], (err, results) => {
+    if (err) {
+      console.error('Error updating work receiving:', err);
+      return res.status(500).send('Error updating work receiving');
+    }
+
+    res.status(200).send('Work receiving updated successfully');
+  });
+});
+
 
 module.exports = router;
