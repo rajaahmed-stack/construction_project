@@ -72,12 +72,13 @@ SELECT
 FROM emergency_and_maintainence eam
 LEFT JOIN work_receiving wr 
     ON eam.work_order_id = wr.work_order_id
-WHERE eam.work_order_id NOT IN 
-    (SELECT work_order_id FROM store)
-  AND eam.work_order_id IN 
+WHERE eam.work_order_id IN 
+    (SELECT work_order_id FROM work_closing)
+  AND eam.work_order_id NOT IN 
     (SELECT work_order_id FROM invoice)
-  AND (wr.current_department = 'Store' OR wr.current_department IS NULL);
-  AND eam.job_type = 'Cabinet','Meter'
+  AND (wr.current_department IS NULL OR wr.current_department != 'Store')
+  AND eam.job_type IN ('Cabinet', 'Meter');
+
 
 
   
