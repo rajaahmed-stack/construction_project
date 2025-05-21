@@ -99,7 +99,8 @@ router.post('/upload-and-save-storedocument', upload.fields([
 // Fetch gis Department Coming Data
 router.get('/gisdepstore-coming', (req, res) => {
     const query = `
-  ( SELECT 
+ (
+  SELECT 
     gis_department.work_order_id, 
     NULL AS permission_number,                
     work_receiving.job_type, 
@@ -107,18 +108,18 @@ router.get('/gisdepstore-coming', (req, res) => {
     NULL AS file_path,                        
     NULL AS survey_file_path,
     gis_department.gis AS Document            
-FROM gis_department 
-LEFT JOIN work_receiving 
-    ON gis_department.work_order_id = work_receiving.work_order_id
-WHERE gis_department.work_order_id NOT IN 
-    (SELECT work_order_id FROM store) 
-  AND gis_department.work_order_id IN 
-    (SELECT work_order_id FROM invoice)
-  AND work_receiving.current_department = 'Store'
+  FROM gis_department 
+  LEFT JOIN work_receiving 
+      ON gis_department.work_order_id = work_receiving.work_order_id
+  WHERE gis_department.work_order_id NOT IN 
+      (SELECT work_order_id FROM store) 
+    AND gis_department.work_order_id IN 
+      (SELECT work_order_id FROM invoice)
+    AND work_receiving.current_department = 'Store'
 )
 UNION ALL
-
-(SELECT 
+(
+  SELECT 
     gis_department.work_order_id, 
     NULL AS permission_number,                
     work_receiving.job_type, 
@@ -127,15 +128,16 @@ UNION ALL
     NULL AS survey_file_path,
     gis_department.gis AS Document,
     work_receiving.current_department AS debug_current_dept
-FROM gis_department 
-LEFT JOIN work_receiving 
-    ON gis_department.work_order_id = work_receiving.work_order_id
-WHERE gis_department.work_order_id NOT IN 
-    (SELECT work_order_id FROM store) 
-  AND gis_department.work_order_id IN 
-    (SELECT work_order_id FROM invoice)
-  AND work_receiving.current_department = 'Store';
-)
+  FROM gis_department 
+  LEFT JOIN work_receiving 
+      ON gis_department.work_order_id = work_receiving.work_order_id
+  WHERE gis_department.work_order_id NOT IN 
+      (SELECT work_order_id FROM store) 
+    AND gis_department.work_order_id IN 
+      (SELECT work_order_id FROM invoice)
+    AND work_receiving.current_department = 'Store'
+);
+
       `;
   db.query(query, (err, results) => {
     if (err) {
