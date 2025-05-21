@@ -127,10 +127,7 @@ SELECT
     NULL AS survey_file_path,
     NULL AS Document
 FROM invoice i
-JOIN emergency_and_maintainence eam 
-    ON i.work_order_id = eam.work_order_id
-JOIN work_receiving wr 
-    ON eam.work_order_id = wr.work_order_id
+LEFT JOIN work_receiving wr
 WHERE i.work_order_id NOT IN (SELECT work_order_id FROM store)
   AND wr.current_department = 'Store';
 
