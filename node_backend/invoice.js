@@ -42,40 +42,41 @@ const upload = multer({ storage: storage });
 
 router.get('/invoice-coming', (req, res) => {
     const query = `
-     -- 1. From work_closing with left joins to work_receiving and survey
-SELECT DISTINCT
-    wc.work_order_id, 
-    NULL AS permission_number,
-    wr.job_type, 
-    wr.sub_section,
-    wr.file_path,
-    s.survey_file_path,
-    NULL AS Document
-FROM work_closing wc
-LEFT JOIN work_receiving wr 
-    ON wc.work_order_id = wr.work_order_id
-LEFT JOIN survey s 
-    ON wc.work_order_id = s.work_order_id
-WHERE wc.work_order_id NOT IN (SELECT work_order_id FROM invoice) 
-  AND wr.current_department = 'Invoice'
+    SELECT  
+    gis_department.work_order_id, 
+    NULL AS permission_number,                
+    work_receiving.job_type, 
+    work_receiving.sub_section,
+    NULL AS file_path,                        
+    NULL AS survey_file_path,
+    gis_department.gis AS Document            
+FROM gis_department 
+LEFT JOIN work_receiving 
+    ON gis_department.work_order_id = work_receiving.work_order_id
+WHERE gis_department.work_order_id NOT IN 
+    (SELECT work_order_id FROM store) 
+  AND gis_department.work_order_id IN 
+    (SELECT work_order_id FROM invoice)
+  AND work_receiving.current_department = 'Store'
 
 UNION ALL
 
--- 2. From emergency_and_maintainence with left join to work_receiving
-SELECT DISTINCT
+SELECT 
     eam.work_order_id, 
     NULL AS permission_number,
-    wr.job_type,
-    wr.sub_section,
+    eam.job_type,
+    eam.sub_section,
     eam.file_path,
     NULL AS survey_file_path,
     NULL AS Document
 FROM emergency_and_maintainence eam
 LEFT JOIN work_receiving wr 
-    ON eam.work_order_id = wr.work_order_id 
-    AND wr.current_department = 'Invoice'
-WHERE eam.work_order_id NOT IN (SELECT work_order_id FROM invoice)
-   OR eam.work_order_id IN (SELECT work_order_id FROM work_closing);
+    ON eam.work_order_id = wr.work_order_id
+WHERE eam.work_order_id NOT IN 
+    (SELECT work_order_id FROM store)
+  AND eam.work_order_id IN 
+    (SELECT work_order_id FROM invoice)
+  AND (wr.current_department = 'Store' OR wr.current_department IS NULL);
 
 
   
