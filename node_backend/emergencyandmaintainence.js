@@ -117,4 +117,55 @@ const documentFilePath = req.files?.map(file => path.join('uploads', file.filena
     });
   });
 });
+router.get('/api/em_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT file_path FROM emergency_and_maintainence WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].file_path;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+
 module.exports = router;

@@ -228,7 +228,7 @@ const StoreDepartment = () => {
                   <strong>Sub Section:</strong> {record.sub_section}
                 </div>
                 <div>
-                      {( record.gis) ? (
+                      {( record.file_path) ? (
                         <a href={`https://constructionproject-production.up.railway.app/api/store/store_download/${record.work_order_id}`} download>
                           ✅ 📂 Download
                         </a>

@@ -76,7 +76,11 @@ const Invoice = () => {
         setLowerData(lowerResponse.data || []);
 
         const upperResponse = await axios.get("https://constructionproject-production.up.railway.app/api/invoice/invoice-coming");
-        setUpperData(upperResponse.data || []);
+        const filteredUpperData = upperResponse.data.filter(
+          (item) => !lowerResponse.data.some(invoice => invoice.work_order_id === item.work_order_id)
+        );
+        setUpperData(filteredUpperData);
+
 
         const newInvoice = lowerResponse.data.find(item => item.work_order_id === formData.work_order_id);
         if (newInvoice && newInvoice.files) {
@@ -163,10 +167,9 @@ const Invoice = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {lowerData.map((invoice) => (
+                {lowerData.map((invoice, index) => (
                   <TableRow key={invoice.invoice_id} hover>
-                    <TableCell>{invoice.invoice_id}</TableCell>
-                    <TableCell>{invoice.work_order_id}</TableCell>
+                  <TableCell>{index + 1}</TableCell> {/* Serial Number */}                    <TableCell>{invoice.work_order_id}</TableCell>
                     <TableCell>{invoice.po_number}</TableCell>
                     <TableCell>
                       <Button variant="outlined" size="small" onClick={() => openInvoicePreview(invoice)}>View</Button>

@@ -394,7 +394,7 @@ const handleEdit = (item) => {
                       {/* <TableCell> {item.file_path ? "✅" : "❌"}</TableCell> */}
                       <TableCell>
                           {item.file_path ? (
-                            <a href={`https://constructionproject-production.up.railway.app/api/download/${item.work_order_id}`} download>
+                            <a href={`https://constructionproject-production.up.railway.app/api/em_download/${item.work_order_id}`} download>
                               ✅ 📂 Download
                             </a>
                           ) : (

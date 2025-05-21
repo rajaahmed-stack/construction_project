@@ -459,14 +459,30 @@ const WorkClosing = () => {
                 <Typography><strong>Job Type:</strong> {record.job_type}</Typography>
                 <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
                 <Typography>
-                      {(record.file_path || record.survey_file_path || record.Document) ? (
-                        <a href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing_download/${record.work_order_id}`} download>
-                          ✅ 📂 Download
-                        </a>
-                      ) : (
-                        "❌ No File"
-                      )}
-                    </Typography>
+                  {record.eam_job_type === "Cabinet" || record.eam_job_type === "Meter" ? (
+                    record.file_path ? (
+                      <a
+                        href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing2_download/${record.work_order_id}`}
+                        download
+                      >
+                        ✅ 📂 E&M Download
+                      </a>
+                    ) : (
+                      "❌ No File"
+                    )
+                  ) : (
+                    record.file_path || record.survey_file_path || record.Document ? (
+                      <a
+                        href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing1_download/${record.work_order_id}`}
+                        download
+                      >
+                        ✅ 📂 WR Download
+                      </a>
+                    ) : (
+                      "❌ No File"
+                    )
+                  )}
+                </Typography>
                 <Button onClick={() => handleAddData(record)} variant="contained" color="success">
                   Add Data
                 </Button>
