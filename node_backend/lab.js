@@ -60,6 +60,7 @@ router.get('/Laboratory-coming', (req, res) => {
    SELECT 
     work_execution.work_order_id, 
     work_execution.permission_number,
+    work_execution.asphalt,
     work_receiving.job_type, 
     work_receiving.sub_section,
     work_receiving.file_path,
