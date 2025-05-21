@@ -842,57 +842,121 @@ router.get('/lab4_download/:id', (req, res) => {
   });
 });
 
+// router.get('/lab5_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+
+//   db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
+//     if (err) {
+//       console.error('Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).send('File not found');
+//     }
+
+//     let filePath = results[0].file_path;
+
+//     // Convert buffer to string if needed
+//     if (Buffer.isBuffer(filePath)) {
+//       filePath = filePath.toString('utf8');
+//     }
+
+//     const filePaths = filePath.split(',');
+
+//     if (filePaths.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`files_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//   });
+// });
+
 router.get('/lab5_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    let filePath = results[0].file_path;
-
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-
-    const filePaths = filePath.split(',');
-
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+  db.query(
+    `SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?`,
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
+      if (results.length === 0) {
+        return res.status(404).send('File not found');
+      }
 
-      res.attachment(`files_${fileId}.zip`);
-      archive.pipe(res);
+      const row = results[0];
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
+      // Collect all file paths into one array
+      let filePaths = [
+        row.asphalt,
+        row.milling,
+        row.concrete,
+        row.sand,
+        row.cable_lying
+      ]
+        .filter(Boolean) // remove null or undefined values
+        .flatMap(fp => {
+          if (Buffer.isBuffer(fp)) fp = fp.toString('utf8');
+          return fp.split(','); // in case of multiple files per field
+        });
+
+      if (filePaths.length === 0) {
+        return res.status(404).send('No files available');
+      }
+
+      if (filePaths.length === 1) {
+        // Single file
+        const absolutePath = path.resolve(__dirname, '..', filePaths[0]);
+        if (!fs.existsSync(absolutePath)) {
+          return res.status(404).send('File not found on server');
         }
-      });
+        return res.download(absolutePath);
+      } else {
+        // Multiple files — zip and send
+        const archive = archiver('zip', {
+          zlib: { level: 9 }
+        });
 
-      archive.finalize();
+        res.attachment(`WorkExe_files_${fileId}.zip`);
+        archive.pipe(res);
+
+        filePaths.forEach(p => {
+          const absPath = path.resolve(__dirname, '..', p);
+          if (fs.existsSync(absPath)) {
+            archive.file(absPath, { name: path.basename(p) });
+          }
+        });
+
+        archive.finalize();
+      }
     }
-  });
+  );
 });
-
 
 
 

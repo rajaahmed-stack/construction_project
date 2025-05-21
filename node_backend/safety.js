@@ -691,7 +691,7 @@ router.get('/Safety3_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`files_${fileId}.zip`);
+      res.attachment(`Permission_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {

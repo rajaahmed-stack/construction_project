@@ -797,10 +797,10 @@ router.get('/workexe3_download/:id', (req, res) => {
 router.get('/workexe4_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query(`
-    SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation 
-    FROM safety_department 
-    WHERE work_order_id = ?`,
+  db.query(
+    `SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation 
+     FROM safety_department 
+     WHERE work_order_id = ?`,
     [fileId],
     (err, results) => {
       if (err) {
@@ -809,43 +809,50 @@ router.get('/workexe4_download/:id', (req, res) => {
       }
 
       if (results.length === 0) {
-        return res.status(404).send('No files found for this work order ID');
+        return res.status(404).send('File not found');
       }
 
-      const fileColumns = results[0];
+      const row = results[0];
 
-      // Extract non-null file paths
-      const filePaths = Object.values(fileColumns).filter(val => val != null).flatMap(val => {
-        if (Buffer.isBuffer(val)) {
-          return val.toString('utf8').split(','); // Split if multiple files in a string
-        } else if (typeof val === 'string') {
-          return val.split(',');
-        }
-        return [];
-      });
+      // Collect all file paths into one array
+      let filePaths = [
+        row.safety_signs,
+        row.safety_barriers,
+        row.safety_lights,
+        row.safety_boards,
+        row.permissions,
+        row.safety_documentation
+      ]
+        .filter(Boolean) // remove null or undefined values
+        .flatMap(fp => {
+          if (Buffer.isBuffer(fp)) fp = fp.toString('utf8');
+          return fp.split(','); // in case of multiple files per field
+        });
 
       if (filePaths.length === 0) {
-        return res.status(404).send('No valid files to download');
+        return res.status(404).send('No files available');
       }
 
       if (filePaths.length === 1) {
         // Single file
-        const absolutePath = path.resolve(filePaths[0]);
+        const absolutePath = path.resolve(__dirname, '..', filePaths[0]);
         if (!fs.existsSync(absolutePath)) {
           return res.status(404).send('File not found on server');
         }
         return res.download(absolutePath);
       } else {
-        // Multiple files — ZIP them
-        const archive = archiver('zip', { zlib: { level: 9 } });
+        // Multiple files — zip and send
+        const archive = archiver('zip', {
+          zlib: { level: 9 }
+        });
 
-        res.attachment(`safety_files_${fileId}.zip`);
+        res.attachment(`files_${fileId}.zip`);
         archive.pipe(res);
 
-        filePaths.forEach(filePath => {
-          const absPath = path.resolve(filePath.trim());
+        filePaths.forEach(p => {
+          const absPath = path.resolve(__dirname, '..', p);
           if (fs.existsSync(absPath)) {
-            archive.file(absPath, { name: path.basename(absPath) });
+            archive.file(absPath, { name: path.basename(p) });
           }
         });
 
@@ -854,6 +861,7 @@ router.get('/workexe4_download/:id', (req, res) => {
     }
   );
 });
+
 
 
 module.exports = router;
