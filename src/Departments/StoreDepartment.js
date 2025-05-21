@@ -285,67 +285,53 @@ const StoreDepartment = () => {
           <Modal.Title>Add Store Data</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-        <Form onSubmit={handleSave}>
-            <Form.Group controlId="workOrderId">
-              <Form.Label>Work Order ID</Form.Label>
-              <Form.Control
-                type="text"
-                name="work_order_id"
-                value={formData.work_order_id}
-                readOnly
-              />
-            </Form.Group>
-            <Form.Group controlId="formFileReturn">
-              <Form.Label>Material Return</Form.Label>
-              {formData.material_return.map((_, index) => (
-              <div key={index} className="d-flex align-items-center mb-2 gap-2">
-                <Form.Control
-                  type="file"
-                  onChange={(e) => handleFileUpload(e, "material_return", index)}
-                  required
-                />
-                <Button variant="outline-danger" size="sm" onClick={() => handleRemoveFileField("material_return", index)}>❌</Button>
-              </div>
-            ))}
-            <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_return")}>+</Button>
+  <Form onSubmit={handleSave}>
+    <Form.Group controlId="workOrderId" className="mb-3">
+      <Form.Label>Work Order ID</Form.Label>
+      <Form.Control
+        type="text"
+        name="work_order_id"
+        value={formData.work_order_id}
+        readOnly
+      />
+    </Form.Group>
 
-            </Form.Group>
-            <Form.Group controlId="formFileReceiving">
-                <Form.Label>Material Receiving</Form.Label>
-                {formData.material_receiving.map((_, index) => (
-                  <div key={index} className="d-flex mb-2">
-                    <Form.Control
-                      type="file"
-                      onChange={(e) => handleFileUpload(e, "material_receiving", index)}
-                      required
-                    />
-                    <Button variant="outline-danger" size="sm" onClick={() => handleRemoveFileField("material_receiving", index)}>❌</Button>
-
-                  </div>
-                ))}
-                <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_receiving")}>+</Button>
-              </Form.Group>
-
-              <Form.Group controlId="formFilePending">
-                <Form.Label>Material Pending</Form.Label>
-                {formData.material_pending.map((_, index) => (
-                  <div key={index} className="d-flex mb-2">
-                    <Form.Control
-                      type="file"
-                      onChange={(e) => handleFileUpload(e, "material_pending", index)}
-                      required
-                    />
-                    <Button variant="outline-danger" size="sm" onClick={() => handleRemoveFileField("material_pending", index)}>❌</Button>
-                  </div>
-                ))}
-                <Button variant="outline-success" size="sm" onClick={() => handleAddFileField("material_pending")}>+</Button>
-              </Form.Group>
-            
-            <Button variant="primary" type="submit" onClick={handleSave}>
-              Save Data
+    {/* Render File Inputs with label and buttons */}
+    {["material_return", "material_receiving", "material_pending"].map((category) => (
+      <Form.Group controlId={`formFile${category}`} className="mb-4" key={category}>
+        <Form.Label className="text-capitalize">{category.replace('_', ' ')}</Form.Label>
+        {formData[category].map((_, index) => (
+          <div key={index} className="d-flex align-items-center gap-2 mb-2">
+            <Form.Control
+              type="file"
+              onChange={(e) => handleFileUpload(e, category, index)}
+              required
+            />
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={() => handleRemoveFileField(category, index)}
+              disabled={formData[category].length === 1} // Don't allow removing the last file input
+            >
+              ❌
             </Button>
-          </Form>
-        </Modal.Body>
+          </div>
+        ))}
+        <Button
+          variant="outline-success"
+          size="sm"
+          onClick={() => handleAddFileField(category)}
+        >
+          + Add file
+        </Button>
+      </Form.Group>
+    ))}
+
+    <Button variant="primary" type="submit" className="w-100">
+      Save Data
+    </Button>
+  </Form>
+</Modal.Body>
       </Modal>
 
     </div>
