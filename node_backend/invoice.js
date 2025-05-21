@@ -77,6 +77,7 @@ WHERE eam.work_order_id NOT IN
   AND eam.work_order_id IN 
     (SELECT work_order_id FROM invoice)
   AND (wr.current_department = 'Store' OR wr.current_department IS NULL);
+  AND eam.job_type = 'Cabinet','Meter'
 
 
   

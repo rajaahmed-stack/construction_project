@@ -853,9 +853,9 @@ const handleFileUpload = async (fieldName, files) => {
                 )}
               </TableCell>
               <TableCell sx={{ padding: "8px" }}>
-                <strong>Work Receiving Files:</strong>
-                {(record.file_path ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab1_download/${record.work_order_id}`} download>
+                <strong>Permissiom Files:</strong>
+                {(record.Document ) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab3_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (
@@ -863,9 +863,9 @@ const handleFileUpload = async (fieldName, files) => {
                 )}
               </TableCell>
               <TableCell sx={{ padding: "8px" }}>
-                <strong>Work Receiving Files:</strong>
-                {(record.file_path ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab1_download/${record.work_order_id}`} download>
+                <strong>Safety Files:</strong>
+                {(record.safety_signs ) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab4_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (
@@ -873,9 +873,9 @@ const handleFileUpload = async (fieldName, files) => {
                 )}
               </TableCell>
               <TableCell sx={{ padding: "8px" }}>
-                <strong>Work Receiving Files:</strong>
-                {(record.file_path ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab1_download/${record.work_order_id}`} download>
+                <strong>Work Execution Files:</strong>
+                {(record.asphalt ) ? (
+                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab5_download/${record.work_order_id}`} download>
                     ✅ 📂 Download
                   </a>
                 ) : (
