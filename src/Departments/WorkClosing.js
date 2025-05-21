@@ -471,7 +471,7 @@ const WorkClosing = () => {
                       "❌ No File"
                     )
                   ) : (
-                    record.file_path || record.survey_file_path || record.Document ? (
+                    record.file_path ? (
                       <a
                         href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing1_download/${record.work_order_id}`}
                         download
