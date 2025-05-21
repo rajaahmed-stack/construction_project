@@ -121,19 +121,21 @@ UNION ALL
 SELECT 
     i.work_order_id, 
     NULL AS permission_number,
-    NULL AS job_type,
-    NULL AS sub_section,
-    NULL AS file_path,
+    eam.job_type,
+    eam.sub_section,
+    eam.file_path,
     NULL AS survey_file_path,
     NULL AS Document
 FROM invoice i
+JOIN emergency_and_maintainence eam 
+    ON i.work_order_id = eam.work_order_id
 JOIN work_receiving wr 
     ON i.work_order_id = wr.work_order_id
 WHERE i.work_order_id NOT IN (
     SELECT work_order_id FROM store
 )
 OR wr.current_department = 'Store';
-
+OR eam.job_type IN ('Cabinet', 'Meter')
 
       `;
   db.query(query, (err, results) => {
