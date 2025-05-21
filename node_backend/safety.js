@@ -65,7 +65,9 @@ router.get('/safety-coming', (req, res) => {
            permissions.start_date,
            permissions.Document,
            work_receiving.job_type, 
-           work_receiving.sub_section
+           work_receiving.file_path, 
+           work_receiving.sub_section,
+           survey.survey_file_path
     FROM permissions 
     LEFT JOIN work_receiving 
     ON permissions.work_order_id = work_receiving.work_order_id
@@ -73,6 +75,8 @@ router.get('/safety-coming', (req, res) => {
       (SELECT work_order_id FROM safety_department) 
       AND current_department = 'Safety'
        AND work_receiving.job_type != 'New Meters';
+     LEFT JOIN survey 
+    ON permissions.work_order_id = survey.work_order_id   
   `;
   db.query(query, (err, results) => {
     if (err) {
