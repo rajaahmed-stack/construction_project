@@ -134,8 +134,6 @@ JOIN work_receiving wr
 WHERE i.work_order_id NOT IN (
     SELECT work_order_id FROM store
 )
-AND wr.current_department = 'Store'
-AND eam.job_type IN ('Cabinet', 'Meter');
 
 
       `;
