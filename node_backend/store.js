@@ -99,7 +99,7 @@ router.post('/upload-and-save-storedocument', upload.fields([
 // Fetch gis Department Coming Data
 router.get('/gisdepstore-coming', (req, res) => {
     const query = `
-  SELECT 
+SELECT 
     gis_department.work_order_id, 
     NULL AS permission_number,                
     work_receiving.job_type, 
@@ -134,8 +134,9 @@ JOIN work_receiving wr
 WHERE i.work_order_id NOT IN (
     SELECT work_order_id FROM store
 )
-OR wr.current_department = 'Store';
-OR eam.job_type IN ('Cabinet', 'Meter')
+AND wr.current_department = 'Store'
+AND eam.job_type IN ('Cabinet', 'Meter');
+
 
       `;
   db.query(query, (err, results) => {
