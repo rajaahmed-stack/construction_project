@@ -611,7 +611,7 @@ router.get('/Safety2_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].file_path;
+    let filePath = results[0].survey_file_path;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -661,7 +661,7 @@ router.get('/Safety3_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].file_path;
+    let filePath = results[0].Document;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
