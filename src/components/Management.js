@@ -6,7 +6,7 @@ import "../styles/management.css";
 
 const departments = [
   "Work Receiving",
-  "Emergency & Management",
+  "Emergency & Maintainence",
   "Survey",
   "Permission",
   "Safety",
@@ -14,8 +14,8 @@ const departments = [
   "Laboratory",
   "Permission Closing",
   "Work Closing",
-  "Drawing Department",
-  "GIS Department",
+  "Drawing",
+  "GIS",
   "Store"
 
 ];
@@ -60,11 +60,11 @@ const departmentColumns = {
     { header: "Receiving Date", accessor: "receiving_date" },
     { header: "User Type", accessor: "user_type" },
     { header: "Contractor Name", accessor: "contractor_name" },
-    { header: "Asphalt", accessor: "asphalt" },
+    // { header: "Asphalt", accessor: "asphalt" },
     { header: "Asphalt Completed", accessor: "asphalt_completed" },
-    { header: "Milling", accessor: "milling" },
+    // { header: "Milling", accessor: "milling" },
     { header: "Milling Completed", accessor: "milling_completed" },
-    { header: "Concrete", accessor: "concrete" },
+    // { header: "Concrete", accessor: "concrete" },
     { header: "Concrete Completed", accessor: "concrete_completed" },
     // { header: "Deck 3", accessor: "deck3" },
     // { header: "Deck 3 Completed", accessor: "deck3_completed" },
@@ -72,11 +72,11 @@ const departmentColumns = {
     // { header: "Deck 2 Completed", accessor: "deck2_completed" },
     // { header: "Deck 1", accessor: "deck1" },
     // { header: "Deck 1 Completed", accessor: "deck1_completed" },
-    { header: "Sand", accessor: "sand" },
+    // { header: "Sand", accessor: "sand" },
     { header: "Sand Completed", accessor: "sand_completed" },
     // { header: "Backfilling", accessor: "backfilling" },
     // { header: "Backfilling Completed", accessor: "backfilling_completed" },
-    { header: "Cable Lying", accessor: "cable_lying" },
+    // { header: "Cable Lying", accessor: "cable_lying" },
     { header: "Cable Lying Completed", accessor: "cable_lying_completed" },
     // { header: "Trench", accessor: "trench" },
     // { header: "Trench Completed", accessor: "trench_completed" },
@@ -89,11 +89,11 @@ const departmentColumns = {
     { header: "Receiving Date", accessor: "receiving_date" },
     { header: "User Type", accessor: "user_type" },
     { header: "Contractor Name", accessor: "contractor_name" },
-    { header: "Asphalt", accessor: "asphalt" },
+    // { header: "Asphalt", accessor: "asphalt" },
     { header: "Asphalt Completed", accessor: "asphalt_completed" },
-    { header: "Milling", accessor: "milling" },
+    // { header: "Milling", accessor: "milling" },
     { header: "Milling Completed", accessor: "milling_completed" },
-    { header: "Concrete", accessor: "concrete" },
+    // { header: "Concrete", accessor: "concrete" },
     { header: "Concrete Completed", accessor: "concrete_completed" },
     // { header: "Deck 3", accessor: "deck3" },
     // { header: "Deck 3 Completed", accessor: "deck3_completed" },
@@ -101,11 +101,11 @@ const departmentColumns = {
     // { header: "Deck 2 Completed", accessor: "deck2_completed" },
     // { header: "Deck 1", accessor: "deck1" },
     // { header: "Deck 1 Completed", accessor: "deck1_completed" },
-    { header: "Sand", accessor: "sand" },
+    // { header: "Sand", accessor: "sand" },
     { header: "Sand Completed", accessor: "sand_completed" },
     // { header: "Backfilling", accessor: "backfilling" },
     // { header: "Backfilling Completed", accessor: "backfilling_completed" },
-    { header: "Cable Lying", accessor: "cable_lying" },
+    // { header: "Cable Lying", accessor: "cable_lying" },
     { header: "Cable Lying Completed", accessor: "cable_lying_completed" },
     // { header: "Trench", accessor: "trench" },
     // { header: "Trench Completed", accessor: "trench_completed" },
@@ -115,9 +115,9 @@ const departmentColumns = {
   "Permission Closing": [
     { header: "Work Order ID", accessor: "work_order_id" },
     { header: "Permission Number", accessor: "permission_number" },
-    { header: "Work Closing Certificate", accessor: "work_closing_certificate" },
+    // { header: "Work Closing Certificate", accessor: "work_closing_certificate" },
     { header: "Work Closing Certificate Completed", accessor: "work_closing_certificate_completed" },
-    { header: "Final Closing Certificate", accessor: "final_closing_certificate" },
+    // { header: "Final Closing Certificate", accessor: "final_closing_certificate" },
     { header: "Final Closing Certificate Completed", accessor: "final_closing_certificate_completed" },
     { header: "Closing Date", accessor: "closing_date" },
     { header: "Penalty Reason", accessor: "penalty_reason" },
@@ -134,13 +134,13 @@ const departmentColumns = {
     // { header: "Created At", accessor: "wc_created_at" },
   ],
 
-  "Drawing Department": [
+  "Drawing": [
     { header: "Work Order ID", accessor: "work_order_id" },
     { header: "Drawing", accessor: "drawing" },
     // { header: "Created At", accessor: "d_created_at" },
   ],
 
-  "GIS Department": [
+  "GIS": [
     { header: "Work Order ID", accessor: "work_order_id" },
     { header: "GIS", accessor: "gis" },
     // { header: "Created At", accessor: "g_created_at" },
@@ -162,7 +162,7 @@ const departmentColumns = {
     { header: "Current Department", accessor: "current_department" },
     { header: "Delivery Status", accessor: "delivery_status" },
   ],
-  "Emergency & Management": [
+  "Emergency & Maintainence": [
     { header: "Work Order ID", accessor: "work_order_id" },
     { header: "Sub Section", accessor: "sub_section" },
     { header: "Job Type", accessor: "job_type" },

@@ -59,7 +59,9 @@ router.get('/workExecution-coming', (req, res) => {
   const query = `
       SELECT safety_department.work_order_id, 
       safety_department.permission_number,
+      safety_department.safety_signs,
       work_receiving.job_type, 
+      permissions.Document, 
       work_receiving.sub_section,
       work_receiving.file_path,
       survey.survey_file_path
@@ -68,6 +70,8 @@ router.get('/workExecution-coming', (req, res) => {
     ON safety_department.work_order_id = work_receiving.work_order_id
     LEFT JOIN survey 
     ON safety_department.work_order_id = survey.work_order_id
+    LEFT JOIN permissions 
+    ON safety_department.work_order_id = permissions.work_order_id
     WHERE safety_department.work_order_id NOT IN 
     (SELECT work_order_id FROM work_execution) 
     AND work_receiving.current_department = 'WorkExecution'
