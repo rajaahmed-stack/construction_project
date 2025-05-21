@@ -119,21 +119,21 @@ WHERE gis_department.work_order_id NOT IN
 UNION ALL
 
 SELECT 
-    eam.work_order_id, 
+    i.work_order_id, 
     NULL AS permission_number,
     eam.job_type,
     eam.sub_section,
     eam.file_path,
     NULL AS survey_file_path,
     NULL AS Document
-FROM emergency_and_maintainence eam
+FROM invoice i
+JOIN emergency_and_maintainence eam 
+    ON i.work_order_id = eam.work_order_id
 LEFT JOIN work_receiving wr 
     ON eam.work_order_id = wr.work_order_id
-WHERE eam.work_order_id NOT IN 
-    (SELECT work_order_id FROM store)
-  AND eam.work_order_id IN 
-    (SELECT work_order_id FROM invoice)
+WHERE i.work_order_id NOT IN (SELECT work_order_id FROM store)
   AND wr.current_department = 'Store';
+
       `;
   db.query(query, (err, results) => {
     if (err) {
