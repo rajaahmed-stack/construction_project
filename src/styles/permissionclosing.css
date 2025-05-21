@@ -104,7 +104,7 @@
   
   .modal-body {
     padding: 20px;
-    max-height: 70vh;
+    max-height: 60vh;
     overflow-y: auto;
   }
   
@@ -264,4 +264,5 @@
       flex-direction: column;
     }
   }
+ 
   

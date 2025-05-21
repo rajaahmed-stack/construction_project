@@ -99,39 +99,54 @@ router.post('/upload-and-save-storedocument', upload.fields([
 // Fetch gis Department Coming Data
 router.get('/gisdepstore-coming', (req, res) => {
     const query = `
-SELECT 
-    gis_department.work_order_id, 
-    NULL AS permission_number,                
-    work_receiving.job_type, 
-    work_receiving.sub_section,
-    NULL AS file_path,                        
-    NULL AS survey_file_path,
-    gis_department.gis AS Document            
-FROM gis_department 
-LEFT JOIN work_receiving 
-    ON gis_department.work_order_id = work_receiving.work_order_id
-WHERE gis_department.work_order_id NOT IN 
-    (SELECT work_order_id FROM store) 
-  AND gis_department.work_order_id IN 
-    (SELECT work_order_id FROM invoice)
-  AND work_receiving.current_department = 'Store'
+WITH CombinedData AS (
+    SELECT 
+        gis_department.work_order_id, 
+        NULL AS permission_number,                
+        work_receiving.job_type, 
+        work_receiving.sub_section,
+        NULL AS file_path,                        
+        NULL AS survey_file_path,
+        gis_department.gis AS Document,
+        ROW_NUMBER() OVER (PARTITION BY gis_department.work_order_id ORDER BY 1) AS rn
+    FROM gis_department 
+    LEFT JOIN work_receiving 
+        ON gis_department.work_order_id = work_receiving.work_order_id
+    WHERE gis_department.work_order_id NOT IN 
+        (SELECT work_order_id FROM store) 
+      AND gis_department.work_order_id IN 
+        (SELECT work_order_id FROM invoice)
+      AND work_receiving.current_department = 'Store'
 
-UNION ALL
+    UNION ALL
 
-SELECT 
-    i.work_order_id, 
-    NULL AS permission_number,
-    eam.job_type,
-    eam.sub_section,
-    eam.file_path,
-    NULL AS survey_file_path,
-    NULL AS Document
-FROM invoice i
-JOIN emergency_and_maintainence eam 
-    ON i.work_order_id = eam.work_order_id
-WHERE i.work_order_id NOT IN (
-    SELECT work_order_id FROM store
+    SELECT 
+        i.work_order_id, 
+        NULL AS permission_number,
+        eam.job_type,
+        eam.sub_section,
+        eam.file_path,
+        NULL AS survey_file_path,
+        NULL AS Document,
+        ROW_NUMBER() OVER (PARTITION BY i.work_order_id ORDER BY 2) AS rn
+    FROM invoice i
+    JOIN emergency_and_maintainence eam 
+        ON i.work_order_id = eam.work_order_id
+    WHERE i.work_order_id NOT IN (
+        SELECT work_order_id FROM store
+    )
 )
+
+SELECT 
+    work_order_id,
+    permission_number,
+    job_type,
+    sub_section,
+    file_path,
+    survey_file_path,
+    Document
+FROM CombinedData
+WHERE rn = 1;
 
 
       `;
