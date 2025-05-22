@@ -28,7 +28,12 @@ const store = require('./store');
 const invoiceroute = require('./invoice');
 const labroute = require('./lab');
 const eam = require('./emergencyandmaintainence');
+const authenticateToken = require('./middleware');
 const usermanagement = require('./usermanagement');
+const session = require('express-session');
+const passport = require('passport');
+require('./passport'); // Link to the file you just created
+require('dotenv').config();
 
 // MySQL connection
 // Middleware
@@ -295,6 +300,85 @@ app.post('/api/update-current-department', (req, res) => {
 // Add a new user and send a confirmation email
 // Add a new user and send a confirmation email
 // Add a new user and send confirmation email
+const bcrypt = require('bcryptjs');
+
+app.post('/api/usermanagement/save_users', async (req, res) => {
+  const { name, email, password, username } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10); // Encrypt password
+
+  const query = 'INSERT INTO users (name, email, password, department) VALUES (?, ?, ?, ?)';
+
+  db.query(query, [name, email, hashedPassword, username], (err, results) => {
+    if (err) {
+      console.error('Error adding user:', err);
+      return res.status(500).send('Server error');
+    }
+
+    // Email with original password (ok only during signup)
+    sendEmail(email, 'User Registration', `Username: ${username}\nPassword: ${password}`);
+    res.send('User registered');
+  });
+});
+const jwt = require('jsonwebtoken');
+
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+
+  const query = 'SELECT * FROM users WHERE department = ?';
+  db.query(query, [username], async (err, results) => {
+    if (err) {
+      console.error('Login error:', err);
+      return res.status(500).send('Server error');
+    }
+
+    if (results.length === 0) {
+      return res.status(401).send('Invalid credentials');
+    }
+
+    const user = results[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).send('Invalid credentials');
+    }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.department },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '1d' }
+    );
+
+    res.json({ token, username: user.department, name: user.name });
+  });
+});
+app.get('/api/protected', passport.authenticate('jwt', { session: false }), (req, res) => {
+  res.send(`Hello, ${req.user.name}. You have accessed a protected route!`);
+});
+
+// const jwt = require('jsonwebtoken');
+// const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
+
+// app.post('/api/login', (req, res) => {
+//   const { username, password } = req.body;
+
+//   db.query('SELECT * FROM users WHERE department = ?', [username], async (err, results) => {
+//     if (err || results.length === 0) {
+//       return res.status(401).send('Invalid credentials');
+//     }
+
+//     const user = results[0];
+//     const isMatch = await bcrypt.compare(password, user.password);
+
+//     if (!isMatch) {
+//       return res.status(401).send('Invalid credentials');
+//     }
+
+//     const token = jwt.sign({ username: user.department }, SECRET_KEY, { expiresIn: '1h' });
+
+//     res.json({ token });
+//   });
+// });
+
+
 app.post('/api/usermanagement/save_users', (req, res) => {
   const { name, email, password, username } = req.body;
   const query = 'INSERT INTO users (name, email, password, department) VALUES (?, ?, ?, ?)';
@@ -524,3 +608,4 @@ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
+app.use(passport.initialize());
