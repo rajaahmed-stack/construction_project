@@ -6,7 +6,7 @@ import "../styles/management.css";
 
 const departments = [
   "Work Receiving",
-  "Emergency & Maintainence",
+  "Emergency & Maintenance",
   "Survey",
   "Permission",
   "Safety",
@@ -130,27 +130,33 @@ const departmentColumns = {
     // { header: "Submission Date", accessor: "submission_date" },
     // { header: "Resubmission Date", accessor: "resubmission_date" },
     // { header: "Approval Date", accessor: "approval_date" },
-    { header: "Mubahisa", accessor: "mubahisa" },
+    // { header: "Mubahisa", accessor: "mubahisa" },
+    { header: "Mubahisa Completed", accessor: "mubahisa_completed" },
     // { header: "Created At", accessor: "wc_created_at" },
   ],
 
   "Drawing": [
     { header: "Work Order ID", accessor: "work_order_id" },
-    { header: "Drawing", accessor: "drawing" },
+    // { header: "Drawing", accessor: "drawing" },
+    { header: "Drawing Completed", accessor: "drawing_completed" },
     // { header: "Created At", accessor: "d_created_at" },
   ],
 
   "GIS": [
     { header: "Work Order ID", accessor: "work_order_id" },
-    { header: "GIS", accessor: "gis" },
+    // { header: "GIS", accessor: "gis" },
+    { header: "GIS Completed", accessor: "gis_completed" },
     // { header: "Created At", accessor: "g_created_at" },
   ],
 
   "Store": [
     { header: "Work Order ID", accessor: "work_order_id" },
-    { header: "Material Return", accessor: "material_return" },
-    { header: "Material Receiving", accessor: "material_receiving" },
-    { header: "Material Pending", accessor: "material_pending" },
+    // { header: "Material Return", accessor: "material_return" },
+    { header: "Material Return Completed", accessor: "return_completed" },
+    // { header: "Material Receiving", accessor: "material_receiving" },
+    { header: "Material Receiving Completed", accessor: "receiving_completed" },
+    // { header: "Material Pending", accessor: "material_pending" },
+    { header: "Material Pending Completed", accessor: "pending_completed" },
     { header: "Created At", accessor: "store_created_at" },
   ],  
  
@@ -162,13 +168,13 @@ const departmentColumns = {
     { header: "Current Department", accessor: "current_department" },
     { header: "Delivery Status", accessor: "delivery_status" },
   ],
-  "Emergency & Maintainence": [
+  "Emergency & Maintenance": [
     { header: "Work Order ID", accessor: "work_order_id" },
     { header: "Sub Section", accessor: "sub_section" },
     { header: "Job Type", accessor: "job_type" },
-    { header: "Previous Department", accessor: "previous_department" },
-    { header: "Current Department", accessor: "current_department" },
-    { header: "Delivery Status", accessor: "delivery_status" },
+    // { header: "Previous Department", accessor: "previous_department" },
+    // { header: "Current Department", accessor: "current_department" },
+    // { header: "Delivery Status", accessor: "delivery_status" },
   ],
   // Add other departments as needed
 };

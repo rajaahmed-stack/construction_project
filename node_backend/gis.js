@@ -78,6 +78,18 @@ router.post('/upload-and-save-gisdocument', upload.fields([
       console.error('Error saving data to database:', err);
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
+    const updatedQuery = `
+    UPDATE gis_department
+    SET gis_completed = ?
+    WHERE work_order_id = ?
+  `;
+  const updatedValues = [true, work_order_id];
+
+  db.query(updatedQuery, updatedValues, (err, updateResult) => {
+    if (err) {
+      console.error('Error updating certificate completion status:', err);
+      return res.status(500).json({ success: false, message: 'Error updating completion status' });
+    }
 
     const updateQuery = `
       UPDATE work_receiving 
@@ -95,6 +107,7 @@ router.post('/upload-and-save-gisdocument', upload.fields([
       res.status(200).json({ success: true, message: 'Files uploaded, data saved, and department updated successfully' });
     });
   });
+});
 });
 
 // Fetch workExecution Coming Data

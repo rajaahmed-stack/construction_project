@@ -90,10 +90,23 @@ router.post('/upload-and-save-storedocument', upload.fields([
       console.error('Error saving data to database:', err);
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
+    const updatedQuery = `
+    UPDATE store
+    SET return_completed = ?, receiving_completed = ?, pending_completed = ?
+    WHERE work_order_id = ?
+  `;
+  const updatedValues = [true, true, true, work_order_id];
+
+  db.query(updatedQuery, updatedValues, (err, updateResult) => {
+    if (err) {
+      console.error('Error updating certificate completion status:', err);
+      return res.status(500).json({ success: false, message: 'Error updating completion status' });
+    }
 
     console.log('Store data saved:', result);
     return res.status(200).json({ success: true, message: 'Files and data saved successfully' });
   });
+});
 });
 
 // Fetch gis Department Coming Data

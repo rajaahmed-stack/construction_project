@@ -160,6 +160,19 @@ router.post('/upload-and-save-wcdocument', upload.fields([
       console.error('Error saving data to database:', err);
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
+     // Update completion status for certificates
+     const updatedQuery = `
+     UPDATE work_closing
+     SET mubahisa_completed = ?
+     WHERE work_order_id = ?
+   `;
+   const updatedValues = [true, work_order_id];
+
+   db.query(updatedQuery, updatedValues, (err, updateResult) => {
+     if (err) {
+       console.error('Error updating certificate completion status:', err);
+       return res.status(500).json({ success: false, message: 'Error updating completion status' });
+     }
 
     const updateQuery = `
       UPDATE work_receiving 
@@ -177,6 +190,7 @@ router.post('/upload-and-save-wcdocument', upload.fields([
       res.status(200).json({ success: true, message: 'File uploaded, data saved, and department updated successfully' });
     });
   });
+});
 });
 
 

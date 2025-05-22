@@ -98,7 +98,7 @@ router.get('/search-filter', (req, res) => {
 
   const allowedValues = [
     'Work Receiving',
-    'Emergency & Maintainence',
+    'Emergency & Maintenance',
     'Survey',
     'Permission',
     'Safety',
@@ -136,7 +136,7 @@ router.get('/search-filter', (req, res) => {
       query = `SELECT * FROM survey`;
       break;
 
-    case 'Emergency & Maintainence':
+    case 'Emergency & Maintenance':
       query = `SELECT * FROM emergency_and_maintainence`;
       break;
 
