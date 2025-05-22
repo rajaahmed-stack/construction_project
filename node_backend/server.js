@@ -28,7 +28,6 @@ const store = require('./store');
 const invoiceroute = require('./invoice');
 const labroute = require('./lab');
 const eam = require('./emergencyandmaintainence');
-const authenticateToken = require('./middleware');
 const usermanagement = require('./usermanagement');
 
 // MySQL connection
