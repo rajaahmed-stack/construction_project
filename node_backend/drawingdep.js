@@ -120,42 +120,61 @@ router.post('/upload-and-save-drawingdocument', (req, res, next) => {
 router.get('/drawingdep-coming', (req, res) => {
     const query = `
   -- Part 1: Existing Work Orders from work_execution
-SELECT  
-    we.work_order_id, 
-    we.permission_number,
-    wr.job_type, 
-    wr.sub_section,
-    wr.file_path,
-    s.survey_file_path,
-    p.Document
-FROM work_execution we
-LEFT JOIN work_receiving wr ON we.work_order_id = wr.work_order_id
-LEFT JOIN survey s ON we.work_order_id = s.work_order_id
-LEFT JOIN permissions p ON we.work_order_id = p.work_order_id
-WHERE we.work_order_id NOT IN (
-        SELECT work_order_id FROM drawing_department
-    )
-AND wr.current_department IN ('PermissionClosing', 'WorkClosing', 'Drawing', 'Laboratory')
+  SELECT  
+      we.work_order_id, 
+      we.permission_number,
+      wr.job_type, 
+      wr.sub_section,
+      wr.file_path,
+      s.survey_file_path,
+      p.Document
+  FROM work_execution we
+  LEFT JOIN work_receiving wr ON we.work_order_id = wr.work_order_id
+  LEFT JOIN survey s ON we.work_order_id = s.work_order_id
+  LEFT JOIN permissions p ON we.work_order_id = p.work_order_id
+  WHERE we.work_order_id NOT IN (
+          SELECT work_order_id FROM drawing_department
+      )
+  AND wr.current_department IN ('PermissionClosing', 'WorkClosing', 'Drawing', 'Laboratory')
 
-UNION
+  UNION
 
--- Part 2: Work Orders with job_type = 'New Meters' directly from work_receiving
-SELECT  
-    wr.work_order_id, 
-    NULL AS permission_number,
-    wr.job_type, 
-    wr.sub_section,
-    wr.file_path,
-    s.survey_file_path,
-    p.Document
-FROM work_receiving wr
-LEFT JOIN survey s ON wr.work_order_id = s.work_order_id
-LEFT JOIN permissions p ON wr.work_order_id = p.work_order_id
-WHERE wr.job_type = 'New Meters'
-AND wr.work_order_id NOT IN (
-        SELECT work_order_id FROM drawing_department
-    );
+  -- Part 2: Work Orders with job_type = 'New Meters' directly from work_receiving
+  SELECT  
+      wr.work_order_id, 
+      NULL AS permission_number,
+      wr.job_type, 
+      wr.sub_section,
+      wr.file_path,
+      s.survey_file_path,
+      p.Document
+  FROM work_receiving wr
+  LEFT JOIN survey s ON wr.work_order_id = s.work_order_id
+  LEFT JOIN permissions p ON wr.work_order_id = p.work_order_id
+  WHERE wr.job_type = 'New Meters'
+  AND wr.work_order_id NOT IN (
+          SELECT work_order_id FROM drawing_department
+      )
 
+  UNION
+
+  -- Part 3: Work Orders from lab which are also in invoice
+  SELECT 
+      lab.work_order_id,
+      NULL AS permission_number,
+      wr.job_type,
+      wr.sub_section,
+      NULL AS file_path,
+      NULL AS survey_file_path,
+      NULL AS Document
+  FROM laboratory lab
+  LEFT JOIN work_receiving wr ON lab.work_order_id = wr.work_order_id
+  WHERE lab.work_order_id IN (
+          SELECT work_order_id FROM invoice
+      )
+  AND lab.work_order_id NOT IN (
+          SELECT work_order_id FROM drawing_department
+      );
 
 
 

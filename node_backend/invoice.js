@@ -42,7 +42,8 @@ const upload = multer({ storage: storage });
 
 router.get('/invoice-coming', (req, res) => {
     const query = `
-    SELECT  
+    -- First Part: GIS Department
+SELECT  
     gis_department.work_order_id, 
     NULL AS permission_number,                
     work_receiving.job_type, 
@@ -61,6 +62,7 @@ WHERE gis_department.work_order_id NOT IN
 
 UNION ALL
 
+-- Second Part: Emergency and Maintenance
 SELECT 
     eam.work_order_id, 
     NULL AS permission_number,
@@ -77,7 +79,27 @@ WHERE eam.work_order_id IN
   AND eam.work_order_id NOT IN 
     (SELECT work_order_id FROM invoice)
   AND (wr.current_department IS NULL OR wr.current_department != 'Store')
-  AND eam.job_type IN ('Cabinet', 'Meter');
+  AND eam.job_type IN ('Cabinet', 'Meter')
+
+UNION ALL
+
+-- ✅ Third Part: Laboratory (not in invoice)
+SELECT 
+    lab.work_order_id,
+    NULL AS permission_number,
+    wr.job_type,
+    wr.sub_section,
+    NULL AS file_path,
+    NULL AS survey_file_path,
+    NULL AS Document
+FROM laboratory lab
+LEFT JOIN work_receiving wr 
+    ON lab.work_order_id = wr.work_order_id
+WHERE lab.work_order_id NOT IN 
+    (SELECT work_order_id FROM invoice)
+  AND (wr.current_department IS NULL OR wr.current_department IN ('PermissionClosing', 'WorkClosing'));
+
+
 
 
 
