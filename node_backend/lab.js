@@ -902,17 +902,17 @@ router.get('/lab5_download/:id', (req, res) => {
     [fileId],
     (err, results) => {
       if (err) {
-        console.error('Database error:', err);
+        console.error('❌ Database error:', err);
         return res.status(500).send('Database error');
       }
 
       if (results.length === 0) {
-        return res.status(404).send('File not found');
+        return res.status(404).send('No data found for the given ID');
       }
 
       const row = results[0];
 
-      // Collect all file paths into one array
+      // 🔹 Step 1: Combine and process file paths
       let filePaths = [
         row.asphalt,
         row.milling,
@@ -920,44 +920,51 @@ router.get('/lab5_download/:id', (req, res) => {
         row.sand,
         row.cable_lying
       ]
-        .filter(Boolean) // remove null or undefined values
+        .filter(Boolean)
         .flatMap(fp => {
           if (Buffer.isBuffer(fp)) fp = fp.toString('utf8');
-          return fp.split(','); // in case of multiple files per field
+          return fp.split(',').map(s => s.trim()).filter(Boolean);
         });
+
+      console.log('📂 File paths:', filePaths);
 
       if (filePaths.length === 0) {
-        return res.status(404).send('No files available');
+        return res.status(404).send('No files found for download');
       }
 
-      if (filePaths.length === 1) {
-        // Single file
-        const absolutePath = path.resolve(__dirname, '..', filePaths[0]);
-        if (!fs.existsSync(absolutePath)) {
-          return res.status(404).send('File not found on server');
+      // 🔹 Step 2: Create archive and pipe to response
+      const archive = archiver('zip', { zlib: { level: 9 } });
+
+      res.attachment(`WorkExecution_Files_${fileId}.zip`);
+      archive.pipe(res);
+
+      let filesAdded = 0;
+
+      filePaths.forEach(relativePath => {
+        const absolutePath = path.resolve(__dirname, '..', relativePath);
+        if (fs.existsSync(absolutePath)) {
+          console.log('✅ Adding:', absolutePath);
+          archive.file(absolutePath, { name: path.basename(relativePath) });
+          filesAdded++;
+        } else {
+          console.warn('⚠️ File not found:', absolutePath);
         }
-        return res.download(absolutePath);
-      } else {
-        // Multiple files — zip and send
-        const archive = archiver('zip', {
-          zlib: { level: 9 }
-        });
+      });
 
-        res.attachment(`WorkExe_files_${fileId}.zip`);
-        archive.pipe(res);
-
-        filePaths.forEach(p => {
-          const absPath = path.resolve(__dirname, '..', p);
-          if (fs.existsSync(absPath)) {
-            archive.file(absPath, { name: path.basename(p) });
-          }
-        });
-
-        archive.finalize();
-      }
+      // 🔹 Finalize zip or send error if no valid files
+      archive.finalize().then(() => {
+        if (filesAdded === 0) {
+          console.warn('⚠️ No valid files to zip');
+          res.status(404).send('All files are missing or invalid.');
+        }
+      }).catch(err => {
+        console.error('❌ Error creating archive:', err);
+        res.status(500).send('Error creating archive');
+      });
     }
   );
 });
+
 
 
 

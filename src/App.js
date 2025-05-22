@@ -21,6 +21,8 @@ import Management from "./components/Management";
 import AIRecommendations from "./components/AIRecommendations";
 import UserManagement from "./components/UserManagement";
 import Home from "./components/Home";
+import PrivateRoute from "./components/PrivateRoute";
+
 // import NavBar from "../src/usapages/NavBar";
 
 const App = () => (
@@ -34,19 +36,19 @@ const App = () => (
         <Route path="/management" element={<Management />} />
         <Route path="/AIRecommendations" element={<AIRecommendations />} />
         <Route path="/credentials" element={<CredentialForm />} />
-        <Route path="/Departments/work-receiving-department" element={<WorkReceiving />} />
-        <Route path="/Departments/survey-department" element={<Survey />} />
-        <Route path="/Departments/permission-department" element={<Permission />} />
-        <Route path="/Departments/safety-department" element={<SafetyDepartment />} />
-        <Route path="/Departments/work-execution-department" element={<WorkExecution />} />
-        <Route path="/Departments/permission-closing-department" element={<PermissionClosing />} />
-        <Route path="/Departments/work-closing-department" element={<WorkClosing />} />
-        <Route path="/Departments/drawing" element={<DrawingDepartment />} />
-        <Route path="/Departments/gis" element={<GisDepartment />} />
-        <Route path="/Departments/store" element={<Store />} />
-        <Route path="/Departments/Invoice" element={<Invoice />} />
-        <Route path="/Departments/Laboratory" element={<Laboratory />} />
-        <Route path="/Departments/EmergencyMaintainence" element={<EmergencyMaintainence />} />
+        <Route path="/Departments/work-receiving-department" element={<PrivateRoute element={<WorkReceiving />} />} />
+        <Route path="/Departments/survey-department" element={<PrivateRoute element={<Survey />} />} />
+        <Route path="/Departments/permission-department" element={<PrivateRoute element={<Permission />} />} />
+        <Route path="/Departments/safety-department" element={<PrivateRoute element={<SafetyDepartment />} />} />
+        <Route path="/Departments/work-execution-department" element={<PrivateRoute element={<WorkExecution />} />} />
+        <Route path="/Departments/permission-closing-department" element={<PrivateRoute element={<PermissionClosing />} />} />
+        <Route path="/Departments/work-closing-department" element={<PrivateRoute element={<WorkClosing />} />} />
+        <Route path="/Departments/drawing" element={<PrivateRoute element={<DrawingDepartment />} />} />
+        <Route path="/Departments/gis" element={<PrivateRoute element={<GisDepartment />} />} />
+        <Route path="/Departments/store" element={<PrivateRoute element={<Store />} />} />
+        <Route path="/Departments/Invoice" element={<PrivateRoute element={<Invoice />} />} />
+        <Route path="/Departments/Laboratory" element={<PrivateRoute element={<Laboratory />} />} />
+        <Route path="/Departments/EmergencyMaintainence" element={<PrivateRoute element={<EmergencyMaintainence />} />} />
         <Route path="/users" element={<UserManagement />} />
       </Routes>
     </Router>
