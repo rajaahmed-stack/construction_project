@@ -143,15 +143,17 @@ router.post('/upload-and-save-wcdocument', upload.fields([
   console.log(req.body);
 
   const { work_order_id } = req.body;
-  const Mubahisa = req.files['mubahisa'] ? req.files['mubahisa'].map(file => file.filename) : null;
 
-  // Insert file information and work order details into the database
+  const Mubahisa = req.files['mubahisa']
+    ? req.files['mubahisa'].map(file => file.filename).join(',')
+    : null;
+
   const insertQuery = `
     INSERT INTO work_closing 
     (work_order_id, mubahisa)
     VALUES (?, ?)
   `;
-  const insertValues = [work_order_id,  Mubahisa];
+  const insertValues = [work_order_id, Mubahisa];
 
   db.query(insertQuery, insertValues, (err, result) => {
     if (err) {
@@ -159,14 +161,13 @@ router.post('/upload-and-save-wcdocument', upload.fields([
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
 
-    // Update current department in work_receiving
-    const query = `
+    const updateQuery = `
       UPDATE work_receiving 
       SET current_department = 'Invoice', previous_department = 'WorkClosing' 
       WHERE work_order_id = ?
     `;
 
-    db.query(query, [work_order_id], (err, result) => {
+    db.query(updateQuery, [work_order_id], (err, result) => {
       if (err) {
         console.error('Error updating department:', err);
         return res.status(500).json({ success: false, message: 'Error updating department' });
@@ -177,6 +178,7 @@ router.post('/upload-and-save-wcdocument', upload.fields([
     });
   });
 });
+
 
 // Update work order department to Permission
 router.post('/update-wcdepartment', express.json(), (req, res) => {
