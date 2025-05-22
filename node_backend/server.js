@@ -30,10 +30,6 @@ const labroute = require('./lab');
 const eam = require('./emergencyandmaintainence');
 const authenticateToken = require('./middleware');
 const usermanagement = require('./usermanagement');
-const session = require('express-session');
-const passport = require('passport');
-require('./passport'); // Link to the file you just created
-require('dotenv').config();
 
 // MySQL connection
 // Middleware
@@ -319,41 +315,6 @@ app.post('/api/usermanagement/save_users', async (req, res) => {
     res.send('User registered');
   });
 });
-const jwt = require('jsonwebtoken');
-
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-
-  const query = 'SELECT * FROM users WHERE department = ?';
-  db.query(query, [username], async (err, results) => {
-    if (err) {
-      console.error('Login error:', err);
-      return res.status(500).send('Server error');
-    }
-
-    if (results.length === 0) {
-      return res.status(401).send('Invalid credentials');
-    }
-
-    const user = results[0];
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).send('Invalid credentials');
-    }
-
-    const token = jwt.sign(
-      { id: user.id, username: user.department },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '1d' }
-    );
-
-    res.json({ token, username: user.department, name: user.name });
-  });
-});
-app.get('/api/protected', passport.authenticate('jwt', { session: false }), (req, res) => {
-  res.send(`Hello, ${req.user.name}. You have accessed a protected route!`);
-});
-
 // const jwt = require('jsonwebtoken');
 // const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -608,4 +569,3 @@ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
-app.use(passport.initialize());
