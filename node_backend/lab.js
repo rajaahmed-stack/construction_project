@@ -704,7 +704,7 @@ router.get('/lab2_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].file_path;
+    let filePath = results[0].survey_file_path;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -754,7 +754,7 @@ router.get('/lab3_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].file_path;
+    let filePath = results[0].Document;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -777,7 +777,7 @@ router.get('/lab3_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`files_${fileId}.zip`);
+      res.attachment(`Permission_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -791,11 +791,10 @@ router.get('/lab3_download/:id', (req, res) => {
     }
   });
 });
-
 router.get('/lab4_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query('SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+  db.query('SELECT safety_signs FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
@@ -805,7 +804,7 @@ router.get('/lab4_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].file_path;
+    let filePath = results[0].Document;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -828,7 +827,257 @@ router.get('/lab4_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`files_${fileId}.zip`);
+      res.attachment(`safetySignsfiles_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+router.get('/lab5_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].Document;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`SafetyBarriers_files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+router.get('/lab6_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT safety_lights FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].Document;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`safetyLights_files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+router.get('/lab7_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT safety_boards FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].Document;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`safetyBoards_files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+router.get('/lab8_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT permissions FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].Document;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`safetyPermission_files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+router.get('/lab9_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT safety_documentation FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].Document;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+
+    const filePaths = filePath.split(',');
+
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`safetyDocumentation_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -843,127 +1092,6 @@ router.get('/lab4_download/:id', (req, res) => {
   });
 });
 
-// router.get('/lab5_download/:id', (req, res) => {
-//   const fileId = req.params.id;
-
-//   db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
-//     if (err) {
-//       console.error('Database error:', err);
-//       return res.status(500).send('Database error');
-//     }
-
-//     if (results.length === 0) {
-//       return res.status(404).send('File not found');
-//     }
-
-//     let filePath = results[0].file_path;
-
-//     // Convert buffer to string if needed
-//     if (Buffer.isBuffer(filePath)) {
-//       filePath = filePath.toString('utf8');
-//     }
-
-//     const filePaths = filePath.split(',');
-
-//     if (filePaths.length === 1) {
-//       // Single file
-//       const absolutePath = path.resolve(filePaths[0]);
-//       if (!fs.existsSync(absolutePath)) {
-//         return res.status(404).send('File not found on server');
-//       }
-
-//       return res.download(absolutePath);
-//     } else {
-//       // Multiple files — create a zip
-//       const archive = archiver('zip', {
-//         zlib: { level: 9 }
-//       });
-
-//       res.attachment(`files_${fileId}.zip`);
-//       archive.pipe(res);
-
-//       filePaths.forEach(p => {
-//         const absPath = path.resolve(p);
-//         if (fs.existsSync(absPath)) {
-//           archive.file(absPath, { name: path.basename(p) });
-//         }
-//       });
-
-//       archive.finalize();
-//     }
-//   });
-// });
-
-router.get('/lab5_download/:id', (req, res) => {
-  const fileId = req.params.id;
-
-  db.query(
-    `SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?`,
-    [fileId],
-    (err, results) => {
-      if (err) {
-        console.error('❌ Database error:', err);
-        return res.status(500).send('Database error');
-      }
-
-      if (results.length === 0) {
-        return res.status(404).send('No data found for the given ID');
-      }
-
-      const row = results[0];
-
-      // 🔹 Step 1: Combine and process file paths
-      let filePaths = [
-        row.asphalt,
-        row.milling,
-        row.concrete,
-        row.sand,
-        row.cable_lying
-      ]
-        .filter(Boolean)
-        .flatMap(fp => {
-          if (Buffer.isBuffer(fp)) fp = fp.toString('utf8');
-          return fp.split(',').map(s => s.trim()).filter(Boolean);
-        });
-
-      console.log('📂 File paths:', filePaths);
-
-      if (filePaths.length === 0) {
-        return res.status(404).send('No files found for download');
-      }
-
-      // 🔹 Step 2: Create archive and pipe to response
-      const archive = archiver('zip', { zlib: { level: 9 } });
-
-      res.attachment(`WorkExecution_Files_${fileId}.zip`);
-      archive.pipe(res);
-
-      let filesAdded = 0;
-
-      filePaths.forEach(relativePath => {
-        const absolutePath = path.resolve(__dirname, '..', relativePath);
-        if (fs.existsSync(absolutePath)) {
-          console.log('✅ Adding:', absolutePath);
-          archive.file(absolutePath, { name: path.basename(relativePath) });
-          filesAdded++;
-        } else {
-          console.warn('⚠️ File not found:', absolutePath);
-        }
-      });
-
-      // 🔹 Finalize zip or send error if no valid files
-      archive.finalize().then(() => {
-        if (filesAdded === 0) {
-          console.warn('⚠️ No valid files to zip');
-          res.status(404).send('All files are missing or invalid.');
-        }
-      }).catch(err => {
-        console.error('❌ Error creating archive:', err);
-        res.status(500).send('Error creating archive');
-      });
-    }
-  );
-});
 
 
 

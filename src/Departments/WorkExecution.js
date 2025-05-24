@@ -845,15 +845,33 @@ const handleFileUpload = async (fieldName, files) => {
                   "❌ No File"
                 )}
               </TableCell>
-              <TableCell sx={{ padding: "8px" }}><strong>Safety Files</strong>
-                {(record.safety_signs) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/work-execution/workexe4_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
+              <TableCell sx={{ padding: "8px", verticalAlign: "top" }}>
+  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    {[
+      { label: "Safety Signs", key: "safety_signs", downloadId: "workexe4_download" },
+      { label: "Safety Barriers", key: "safety_barriers", downloadId: "workexe5_download" },
+      { label: "Safety Lights", key: "safety_lights", downloadId: "workexe6_download" },
+      { label: "Safety Boards", key: "safety_boards", downloadId: "workexe7_download" },
+      { label: "Safety Permissions", key: "permissions", downloadId: "workexe4_download" },
+      { label: "Safety Documentation", key: "safety_documentation", downloadId: "workexe4_download" },
+    ].map((item, i) => (
+      <Box key={i}>
+        <strong>{item.label}:</strong>{" "}
+        {record[item.key] ? (
+          <a 
+            href={`https://constructionproject-production.up.railway.app/api/work-execution/${item.downloadId}/${record.work_order_id}`} 
+            download 
+            style={{ color: "#1976d2", textDecoration: "none" }}
+          >
+            ✅ 📂 Download
+          </a>
+        ) : (
+          "❌ No File"
+        )}
+      </Box>
+    ))}
+  </Box>
+</TableCell>
 
               <TableCell sx={{ padding: "8px", textAlign: "center" }}>
                 <Button variant="contained" color="primary" sx={{ minWidth: "60px" }} onClick={() => handleAddData(record)}>
