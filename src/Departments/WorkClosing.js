@@ -459,7 +459,7 @@ const WorkClosing = () => {
                 <Typography><strong>Job Type:</strong> {record.job_type}</Typography>
                 <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
                 <Typography>
-                  {record.eam_job_type === "Cabinet" || record.eam_job_type === "Meter" ? (
+                  {record.job_type === "Cabinet" || record.job_type === "Meter" ? (
                     record.file_path ? (
                       <a
                         href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing2_download/${record.work_order_id}`}

@@ -827,68 +827,62 @@ const handleFileUpload = async (fieldName, files) => {
         </TableHead>
         <TableBody>
           {upperData.map((record, index) => (
-            <TableRow key={index}>
-              <TableCell sx={{ padding: "8px" }}>{record.work_order_id}</TableCell>
-              <TableCell sx={{ padding: "8px" }}>{record.job_type}</TableCell>
-              <TableCell sx={{ padding: "8px" }}>{record.sub_section}</TableCell>
-              <TableCell sx={{ padding: "8px" }}>{record.permission_number}</TableCell>
-              <TableCell sx={{ padding: "8px" }}>
-                <strong>Work Receiving Files:</strong>
-                {(record.file_path ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab1_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
-              <TableCell sx={{ padding: "8px" }}>
-                <strong>Survey Files:</strong>
-                {(record.survey_file_path ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab2_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
-              <TableCell sx={{ padding: "8px" }}>
-                <strong>Permissiom Files:</strong>
-                {(record.Document ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab3_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
-              <TableCell sx={{ padding: "8px" }}>
-                <strong>Safety Files:</strong>
-                {(record.safety_signs ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab4_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
-              <TableCell sx={{ padding: "8px" }}>
-                <strong>Work Execution Files:</strong>
-                {(record.asphalt ) ? (
-                  <a href={`https://constructionproject-production.up.railway.app/api/Laboratory/lab5_download/${record.work_order_id}`} download>
-                    ✅ 📂 Download
-                  </a>
-                ) : (
-                  "❌ No File"
-                )}
-              </TableCell>
-
-              <TableCell sx={{ padding: "8px", textAlign: "center" }}>
-                <Button variant="contained" color="primary" sx={{ minWidth: "60px" }} onClick={() => handleAddData(record)}>
-                  Add Data
-                </Button>
-              </TableCell>
-            </TableRow>
+           <TableRow key={index}>
+           <TableCell sx={{ padding: "8px" }}>{record.work_order_id}</TableCell>
+           <TableCell sx={{ padding: "8px" }}>{record.job_type}</TableCell>
+           <TableCell sx={{ padding: "8px" }}>{record.sub_section}</TableCell>
+           <TableCell sx={{ padding: "8px" }}>{record.permission_number}</TableCell>
+         
+           {/* Combined File Column */}
+           <TableCell sx={{ padding: "8px", verticalAlign: "top" }}>
+             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+               {[
+                 { label: "Work Receiving Files", key: "file_path", downloadId: "lab1_download" },
+                 { label: "Survey Files", key: "survey_file_path", downloadId: "lab2_download" },
+                 { label: "Permission Files", key: "Document", downloadId: "lab3_download" },
+                 { label: "Safety Signs", key: "safety_signs", downloadId: "lab4_download" },
+                 { label: "Safety Barriers", key: "safety_barriers", downloadId: "lab5_download" },
+                 { label: "Safety Lights", key: "safety_lights", downloadId: "lab6_download" },
+                 { label: "Safety Boards", key: "safety_boards", downloadId: "lab7_download" },
+                 { label: "Safety Permissions", key: "permissions", downloadId: "lab8_download" },
+                 { label: "Safety Documentation", key: "safety_documentation", downloadId: "lab9_download" },
+                 { label: "Work Exe Asphalt", key: "asphalt", downloadId: "lab10_download" },
+                 { label: "Work Exe Milling", key: "milling", downloadId: "lab11_download" },
+                 { label: "Work Exe Concrete", key: "concrete", downloadId: "lab12_download" },
+                 { label: "Work Exe Sand", key: "sand", downloadId: "lab13_download" },
+                 { label: "Work Exe Cable lying", key: "cable_lying", downloadId: "lab14_download" },
+                 { label: "Work Exe Trench", key: "trench", downloadId: "lab15_download" },
+               ].map((item, i) => (
+                 <Box key={i}>
+                   <strong>{item.label}:</strong>{" "}
+                   {record[item.key] ? (
+                     <a
+                       href={`https://constructionproject-production.up.railway.app/api/work-execution/${item.downloadId}/${record.work_order_id}`}
+                       download
+                       style={{ color: "#1976d2", textDecoration: "none" }}
+                     >
+                       ✅ 📂 Download
+                     </a>
+                   ) : (
+                     "❌ No File"
+                   )}
+                 </Box>
+               ))}
+             </Box>
+           </TableCell>
+         
+           <TableCell sx={{ padding: "8px", textAlign: "center" }}>
+             <Button
+               variant="contained"
+               color="primary"
+               sx={{ minWidth: "60px" }}
+               onClick={() => handleAddData(record)}
+             >
+               Add Data
+             </Button>
+           </TableCell>
+         </TableRow>
+         
           ))}
         </TableBody>
       </Table>
