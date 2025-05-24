@@ -5,10 +5,62 @@ body {
   color: #333;
 }
 
-.dark-mode {
-  background-color: #1e1e2f;
-  color: #eee;
+body.dark-mode, .dark {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
 }
+
+.dark .status-card,
+.dark .ant-card,
+.dark .ant-dropdown-menu,
+.dark .ant-menu {
+  background-color: #2b2b2b !important;
+  color: #f0f0f0 !important;
+}
+
+.dark .ant-dropdown-menu-item:hover {
+  background-color: #3a3a3a !important;
+}
+
+/* For MUI components */
+.dark .MuiPaper-root,
+.dark .MuiCard-root,
+.dark .MuiBox-root {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+}
+.dark .recent-orders,
+.dark .dashboard-charts {
+  background-color: #2b2b2b !important;
+  color: #f0f0f0 !important;
+}
+
+.dark .recent-orders-table th,
+.dark .recent-orders-table td {
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+.dark .card-text h2 {
+  color: #ffffff !important;
+}
+
+.dark .card-text h4 {
+  color: #cccccc !important;
+}
+
+.dark .welcome-text h1,
+.dark .welcome-text p {
+  color: #ffffff !important;
+}
+.dark .welcome-banner {
+  background: linear-gradient(135deg, #2b2b2b, #1e1e1e) !important;
+  color: #ffffff !important;
+}
+
+.dark .emoji-circle {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
 
 .home-container {
   display: flex;
@@ -221,7 +273,7 @@ body {
 
 /* Welcome Banner */
 .welcome-banner {
-  background: linear-gradient(120deg, #1d3557, #457b9d);
+  background: linear-gradient(120deg, #08d8f8, #457b9d);
   color: #fff;
   padding: 40px 30px;
   border-radius: 20px;
@@ -333,4 +385,11 @@ body {
 
 .card-icon {
   color: #1890ff; /* consistent icon color */
+}
+/* Responsive dropdown fix */
+@media (max-width: 768px) {
+  .ant-dropdown-menu {
+    width: 90vw !important;
+    font-size: 14px;
+  }
 }

@@ -167,7 +167,7 @@ router.get('/drawingdep-coming', (req, res) => {
       NULL AS file_path,
       NULL AS survey_file_path,
       NULL AS Document
-  FROM laboratory lab
+  FROM lab
   LEFT JOIN work_receiving wr ON lab.work_order_id = wr.work_order_id
   WHERE lab.work_order_id IN (
           SELECT work_order_id FROM invoice
