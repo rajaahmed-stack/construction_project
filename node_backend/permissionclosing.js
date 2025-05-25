@@ -545,7 +545,7 @@ router.get('/permissionclosing4_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].safety_signs;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -595,7 +595,7 @@ router.get('/permissionclosing5_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].safety_barriers;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -645,7 +645,7 @@ router.get('/permissionclosing6_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].safety_lights;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -695,7 +695,7 @@ router.get('/permissionclosing7_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].safety_boards;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -745,7 +745,7 @@ router.get('/permissionclosing8_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].permissions;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -795,7 +795,7 @@ router.get('/permissionclosing9_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].safety_documentation;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -845,7 +845,7 @@ router.get('/permissionclosing10_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].asphalt;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -868,7 +868,7 @@ router.get('/permissionclosing10_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Asphalt_files_${fileId}.zip`);
+      res.attachment(`WorkExe_Asphalt_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -895,7 +895,7 @@ router.get('/permissionclosing11_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].milling;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -918,7 +918,7 @@ router.get('/permissionclosing11_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Milling_files_${fileId}.zip`);
+      res.attachment(`WorkExe_Milling_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -945,7 +945,7 @@ router.get('/permissionclosing12_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].concrete;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -968,7 +968,7 @@ router.get('/permissionclosing12_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`concrete_files_${fileId}.zip`);
+      res.attachment(`WorkExe_concrete_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -995,7 +995,7 @@ router.get('/permissionclosing13_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].sand;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1018,7 +1018,7 @@ router.get('/permissionclosing13_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`sand_files_${fileId}.zip`);
+      res.attachment(`WorkExe_sand_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1047,7 +1047,7 @@ router.get('/permissionclosing14_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].cable_lying;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1070,7 +1070,7 @@ router.get('/permissionclosing14_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`cable_lying_files_${fileId}.zip`);
+      res.attachment(`WorkExe_cable_lying_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1099,7 +1099,7 @@ router.get('/permissionclosing15_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].trench;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1122,7 +1122,7 @@ router.get('/permissionclosing15_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`trench_files_${fileId}.zip`);
+      res.attachment(`WorkExe_trench_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1149,7 +1149,7 @@ router.get('/permissionclosing16_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].asphalt;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1172,7 +1172,7 @@ router.get('/permissionclosing16_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Asphalt_files_${fileId}.zip`);
+      res.attachment(`Lab_Asphalt_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1199,7 +1199,7 @@ router.get('/permissionclosing17_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].milling;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1222,7 +1222,7 @@ router.get('/permissionclosing17_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Milling_files_${fileId}.zip`);
+      res.attachment(`WorkExe_Milling_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1249,7 +1249,7 @@ router.get('/permissionclosing18_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].concrete;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1272,7 +1272,7 @@ router.get('/permissionclosing18_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`concrete_files_${fileId}.zip`);
+      res.attachment(`Lab_concrete_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1299,7 +1299,7 @@ router.get('/permissionclosing19_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].sand;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1322,7 +1322,7 @@ router.get('/permissionclosing19_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`sand_files_${fileId}.zip`);
+      res.attachment(`Labsand_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1351,7 +1351,7 @@ router.get('/permissionclosing20_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].cable_lying;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1374,7 +1374,7 @@ router.get('/permissionclosing20_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`cable_lying_files_${fileId}.zip`);
+      res.attachment(`Labcable_lying_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1403,7 +1403,7 @@ router.get('/permissionclosing21_download/:id', (req, res) => {
       return res.status(404).send('File not found');
     }
 
-    let filePath = results[0].Document;
+    let filePath = results[0].trench;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1426,7 +1426,7 @@ router.get('/permissionclosing21_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`trench_files_${fileId}.zip`);
+      res.attachment(`Labtrench_files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1440,5 +1440,49 @@ router.get('/permissionclosing21_download/:id', (req, res) => {
     }
   });
 });
+function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
+  router.get(routePath, (req, res) => {
+    const fileId = req.params.id;
+
+    db.query(dbQuery, [fileId], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
+      }
+
+      if (results.length === 0) {
+        return res.status(404).send('File not found');
+      }
+
+      let filePath = results[0][columnName];
+
+      if (Buffer.isBuffer(filePath)) {
+        filePath = filePath.toString('utf8');
+      }
+
+      const filePaths = filePath.split(',');
+
+      if (filePaths.length === 1) {
+        const absolutePath = path.resolve(filePaths[0]);
+        if (!fs.existsSync(absolutePath)) {
+          return res.status(404).send('File not found on server');
+        }
+        return res.download(absolutePath);
+      } else {
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        res.attachment(`${zipPrefix}_${fileId}.zip`);
+        archive.pipe(res);
+        filePaths.forEach(p => {
+          const absPath = path.resolve(p);
+          if (fs.existsSync(absPath)) {
+            archive.file(absPath, { name: path.basename(p) });
+          }
+        });
+        archive.finalize();
+      }
+    });
+  });
+}
+
 
 module.exports = router;

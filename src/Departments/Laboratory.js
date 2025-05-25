@@ -804,7 +804,7 @@ const handleFileUpload = async (fieldName, files) => {
       {/* Page Title */}
       <Grid item xs={12}>
         <Typography variant="h4" sx={{ textAlign: "center", fontWeight: "bold" }}>
-          Welcome to the Work Execution Department
+          Welcome to the Laboratory
         </Typography>
       </Grid>
 
@@ -857,7 +857,7 @@ const handleFileUpload = async (fieldName, files) => {
                    <strong>{item.label}:</strong>{" "}
                    {record[item.key] ? (
                      <a
-                       href={`https://constructionproject-production.up.railway.app/api/work-execution/${item.downloadId}/${record.work_order_id}`}
+                       href={`https://constructionproject-production.up.railway.app/api/Laboratory/${item.downloadId}/${record.work_order_id}`}
                        download
                        style={{ color: "#1976d2", textDecoration: "none" }}
                      >

@@ -459,30 +459,57 @@ const WorkClosing = () => {
                 <Typography><strong>Job Type:</strong> {record.job_type}</Typography>
                 <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
                 <Typography>
-                  {record.job_type === "Cabinet" || record.job_type === "Meter" ? (
-                    record.file_path ? (
-                      <a
-                        href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing2_download/${record.work_order_id}`}
-                        download
-                      >
-                        ✅ 📂 E&M Download
-                      </a>
-                    ) : (
-                      "❌ No File"
-                    )
-                  ) : (
-                    record.file_path ? (
-                      <a
-                        href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing1_download/${record.work_order_id}`}
-                        download
-                      >
-                        ✅ 📂 WR Download
-                      </a>
-                    ) : (
-                      "❌ No File"
-                    )
-                  )}
-                </Typography>
+  {record.job_type === "Cabinet" || record.job_type === "Meter" ? (
+    record.file_path ? (
+      <a
+        href={`https://constructionproject-production.up.railway.app/api/work-closing/workclosing2_download/${record.work_order_id}`}
+        download
+        style={{ color: "#1976d2", textDecoration: "none" }}
+      >
+        ✅ 📂 E&M Download
+      </a>
+    ) : (
+      "❌ No File"
+    )
+  ) : (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {[
+        { label: "Work Receiving Files", key: "file_path", downloadId: "workclosing1_download" },
+        { label: "Survey Files", key: "survey_file_path", downloadId: "workclosing3_download" },
+        { label: "Permission Files", key: "Document", downloadId: "workclosing4_download" },
+        { label: "Safety Signs", key: "safety_signs", downloadId: "workclosing5_download" },
+        { label: "Safety Barriers", key: "safety_barriers", downloadId: "workclosing6_download" },
+        { label: "Safety Lights", key: "safety_lights", downloadId: "workclosing7_download" },
+        { label: "Safety Boards", key: "safety_boards", downloadId: "workclosing8_download" },
+        { label: "Safety Permissions", key: "permissions", downloadId: "workclosing9_download" },
+        { label: "Safety Documentation", key: "safety_documentation", downloadId: "workclosing10_download" },
+        { label: "Work Exe Asphalt", key: "asphalt", downloadId: "workclosing11_download" },
+        { label: "Work Exe Milling", key: "milling", downloadId: "workclosing12_download" },
+        { label: "Work Exe Concrete", key: "concrete", downloadId: "workclosing13_download" },
+        { label: "Work Exe Sand", key: "sand", downloadId: "workclosing14_download" },
+        { label: "Work Exe Cable lying", key: "cable_lying", downloadId: "workclosing15_download" },
+        { label: "Work Exe Trench", key: "trench", downloadId: "workclosing16_download" },
+        { label: "Work Closing Certificate", key: "work_closing_certificate", downloadId: "workclosing23_download" },
+        { label: "Final Closing Certificate", key: "final_closing_certificate", downloadId: "workclosing24_download" },
+      ].map((item, i) => (
+        <Box key={i}>
+          <strong>{item.label}:</strong>{" "}
+          {record[item.key] ? (
+            <a
+              href={`https://constructionproject-production.up.railway.app/api/work-closing/${item.downloadId}/${record.work_order_id}`}
+              download
+              style={{ color: "#1976d2", textDecoration: "none" }}
+            >
+              ✅ 📂 Download
+            </a>
+          ) : (
+            "❌ No File"
+          )}
+        </Box>
+      ))}
+    </Box>
+  )}
+</Typography>
                 <Button onClick={() => handleAddData(record)} variant="contained" color="success">
                   Add Data
                 </Button>

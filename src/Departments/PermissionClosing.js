@@ -337,25 +337,55 @@ const PermissionClosing = () => {
           <Typography variant="h5">Load Incoming Permission Closing Data</Typography>
           {upperData.length === 0 ? (
             <Typography>No incoming permission  closing data available.</Typography>
-          ) : (
+          ) :  (
             upperData.map((record) => (
-              <Box key={record.work_order_id} sx={{ marginBottom: 2 }}>
+              <Box key={record.work_order_id} sx={{ marginBottom: 4, border: '1px solid #ccc', borderRadius: 2, padding: 2 }}>
                 <Typography><strong>Work Order:</strong> {record.work_order_id}</Typography>
                 <Typography><strong>Job Type:</strong> {record.job_type}</Typography>
                 <Typography><strong>Sub Section:</strong> {record.sub_section}</Typography>
                 <Typography><strong>Permission No.:</strong> {record.permission_number}</Typography>
-                <Typography>
-                      {(record.file_path || record.survey_file_path) ? (
-                        <a href={`https://constructionproject-production.up.railway.app/api/permission-closing/permissionclosing_download/${record.work_order_id}`} download>
-                          ✅ 📂 Download
-                        </a>
-                      ) : (
-                        "❌ No File"
-                      )}
-                    </Typography>
-                <Button onClick={() => handleAddData(record)} variant="contained" color="success">
-                  Add Data
-                </Button>
+
+                <TableCell sx={{ padding: "8px", verticalAlign: "top" }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {[
+                      { label: "Work Receiving Files", key: "file_path", downloadId: "permissionclosing1_download" },
+                      { label: "Survey Files", key: "survey_file_path", downloadId: "permissionclosing2_download" },
+                      { label: "Permission Files", key: "Document", downloadId: "permissionclosing3_download" },
+                      { label: "Safety Signs", key: "safety_signs", downloadId: "permissionclosing4_download" },
+                      { label: "Safety Barriers", key: "safety_barriers", downloadId: "permissionclosing5_download" },
+                      { label: "Safety Lights", key: "safety_lights", downloadId: "permissionclosing6_download" },
+                      { label: "Safety Boards", key: "safety_boards", downloadId: "permissionclosing7_download" },
+                      { label: "Safety Permissions", key: "permissions", downloadId: "permissionclosing8_download" },
+                      { label: "Safety Documentation", key: "safety_documentation", downloadId: "permissionclosing9_download" },
+                      { label: "Work Exe Asphalt", key: "asphalt", downloadId: "permissionclosing10_download" },
+                      { label: "Work Exe Milling", key: "milling", downloadId: "permissionclosing11_download" },
+                      { label: "Work Exe Concrete", key: "concrete", downloadId: "permissionclosing12_download" },
+                      { label: "Work Exe Sand", key: "sand", downloadId: "permissionclosing13_download" },
+                      { label: "Work Exe Cable lying", key: "cable_lying", downloadId: "permissionclosing14_download" },
+                      { label: "Work Exe Trench", key: "trench", downloadId: "permissionclosing15_download" },
+                    ].map((item, i) => (
+                      <Box key={i}>
+                        <strong>{item.label}:</strong>{" "}
+                        {record[item.key] ? (
+                          <a
+                            href={`https://constructionproject-production.up.railway.app/api/permission-closing/${item.downloadId}/${record.work_order_id}`}
+                            download
+                            style={{ color: "#1976d2", textDecoration: "none" }}
+                          >
+                            ✅ 📂 Download
+                          </a>
+                        ) : (
+                          "❌ No File"
+                        )}
+                      </Box>
+                    ))}
+                            </Box>
+                          </TableCell>
+                          <Box mt={2}>
+                    <Button onClick={() => handleAddData(record)} variant="contained" color="success">
+                      Add Data
+                    </Button>
+                  </Box>
               </Box>
             ))
           )}
