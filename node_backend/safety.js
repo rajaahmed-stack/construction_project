@@ -248,7 +248,7 @@ router.post('/save-safety-signs', (req, res) => {
   let safetySignsStr = safety_signs;
 
   if (Array.isArray(safety_signs)) {
-    safetySignsStr = JSON.stringify(safety_signs); // OR use `.join(',')` if preferred
+    safetySignsStr = safety_signs.join(','); // ✅ store as plain comma-separated
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -289,7 +289,7 @@ router.post('/save-safety-barriers', (req, res) => {
 
   let safetyBarriers = safety_barriers;
   if (Array.isArray(safety_barriers)) {
-    safetyBarriers = JSON.stringify(safety_barriers); // OR use `.join(',')` if preferred
+    safetyBarriers = safety_barriers.join(','); // ✅ store as plain comma-separated
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -327,7 +327,7 @@ router.post('/save-safety-lights', (req, res) => {
   console.log("Received safety_lights:", safety_lights); // Debug: log received file path
   let safetylights = safety_lights;
   if (Array.isArray(safety_lights)) {
-    safetylights = JSON.stringify(safety_lights); // OR use `.join(',')` if preferred
+    safetylights = safety_lights.join(','); // ✅ store as plain comma-separated
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -367,7 +367,7 @@ router.post('/save-safety-boards', (req, res) => {
   let safetyBoards = safety_boards;
 
   if (Array.isArray(safety_boards)) {
-    safetyBoards = JSON.stringify(safety_boards); // OR use `.join(',')` if preferred
+    safetyBoards = safety_boards.join(','); // ✅ store as plain comma-separated
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -407,7 +407,7 @@ router.post('/save-safety-document', (req, res) => {
   let safetyDocument = safety_documentation;
 
   if (Array.isArray(safety_documentation)) {
-    safetyDocument = JSON.stringify(safety_documentation); // OR use `.join(',')` if preferred
+    safetyDocument = safety_documentation.join(','); // ✅ store as plain comma-separated
   }
   const updateQuery = `
     UPDATE safety_department 
@@ -446,7 +446,7 @@ router.post('/save-safety-permission', (req, res) => {
 
   let permis = permissions;
   if (Array.isArray(permissions)) {
-    permis = JSON.stringify(permissions); // OR use `.join(',')` if preferred
+    permis = permissions.join(','); // ✅ store as plain comma-separated
   }
   const updateQuery = `
     UPDATE safety_department 
