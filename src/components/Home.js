@@ -12,6 +12,7 @@ import "../styles/Home.css";
 import {
   BarChart, Bar, XAxis, Tooltip, ResponsiveContainer
 } from "recharts";
+import { useTranslation } from "react-i18next";
 
 
 const departments = [
@@ -67,6 +68,12 @@ const Home = () => {
     { name: "Survey", projects: 10 },
     { name: "Execution", projects: 20 },
   ]);
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    document.body.dir = lng === 'ar' ? 'rtl' : 'ltr';
+  };
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -186,6 +193,7 @@ const Home = () => {
     <span>{darkMode ? "🌙" : "☀️"}</span>
     <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
   </div>
+  
 </header>
 
 {/* Welcome Banner */}

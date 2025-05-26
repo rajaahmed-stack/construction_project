@@ -26,6 +26,7 @@ db.connect((err) => {
     console.log('Connected to the database');
   }
 });
+router.use(express.json());
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/'); // Ensure this folder exists
@@ -34,7 +35,11 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + file.originalname);
   }
 });
+const uploadDirectory = 'uploads';
 
+if (!fs.existsSync(uploadDirectory)){
+  fs.mkdirSync(uploadDirectory);
+}
 // Create the upload object
 const upload = multer({ storage: storage });
 
