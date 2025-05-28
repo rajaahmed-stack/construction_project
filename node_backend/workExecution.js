@@ -1072,7 +1072,7 @@ router.get('/workexe8_download/:id', (req, res) => {
  * Route: /safety_download/:field/:id
  * Example: /safety_download/safety_signs/123
  */
-router.get('/safety_download/:id', (req, res) => { 
+router.get('/safety_download/:id', (req, res) => {
   const { id } = req.params;
 
   const safetyFields = [
@@ -1100,20 +1100,24 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     const record = results[0];
-    console.log('📦 Safety Record from DB:', record);
-
     const allFilePaths = [];
 
     safetyFields.forEach(field => {
       let filePath = record[field];
 
-      // Convert Buffer to string if needed
+      // Convert buffer to string
       if (Buffer.isBuffer(filePath)) {
         filePath = filePath.toString('utf8');
       }
 
-      // Check now if valid string
-      if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') {
+      // Validate string
+      if (
+        !filePath ||
+        typeof filePath !== 'string' ||
+        filePath.trim() === '' ||
+        filePath.toLowerCase().includes('undefined') ||
+        filePath.toLowerCase().includes('null')
+      ) {
         console.warn(`⚠️ Field ${field} is empty or invalid.`);
         return;
       }
@@ -1134,23 +1138,27 @@ router.get('/safety_download/:id', (req, res) => {
 
     const uploadDir = path.join(process.cwd(), 'uploads');
     console.log('Uploads directory content:', fs.readdirSync(uploadDir));
-    
+
     allFilePaths.forEach(file => {
-      if (!file || file.toLowerCase() === 'undefined') return;
-    
-      // Remove "uploads/" prefix if present (because your files are inside /uploads folder)
+      if (
+        !file ||
+        typeof file !== 'string' ||
+        file.trim() === '' ||
+        file.toLowerCase().includes('undefined') ||
+        file.toLowerCase().includes('null')
+      ) {
+        console.warn(`⚠️ Invalid file skipped: ${file}`);
+        return;
+      }
+
       let relativeFile = file.startsWith('uploads/') ? file.slice('uploads/'.length) : file;
-    
-      // Remove leading slash if any
       if (relativeFile.startsWith('/')) {
         relativeFile = relativeFile.slice(1);
       }
-    
-      // Now build absolute path: uploads folder + relative file
-      const absPath = path.join(process.cwd(), 'uploads', relativeFile);
-    
+
+      const absPath = path.join(uploadDir, relativeFile);
       console.log(`Checking file existence at: ${absPath}`);
-    
+
       if (fs.existsSync(absPath)) {
         console.log(`✅ Adding to ZIP: ${absPath}`);
         archive.file(absPath, { name: path.basename(relativeFile) });
@@ -1158,12 +1166,11 @@ router.get('/safety_download/:id', (req, res) => {
         console.warn(`❌ File not found: ${absPath}`);
       }
     });
-    
-    
 
     archive.finalize();
   });
 });
+
 
 
 router.get('/workexe9_download/:id', (req, res) => {
