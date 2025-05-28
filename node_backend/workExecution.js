@@ -1093,7 +1093,7 @@ router.get('/safety_download/:id', (req, res) => {
     WHERE work_order_id = ?
   `;
 
-  db.query(query, [id], async (err, results) => {
+  db.query(query, [id], (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
@@ -1105,29 +1105,45 @@ router.get('/safety_download/:id', (req, res) => {
 
     const record = results[0];
 
-    // Prepare ZIP
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    const zipName = `safety_files_work_order_${id}.zip`;
+    // Collect all file paths from the fields, filter out empty/undefined
+    const filePaths = safetyFields
+      .map(field => record[field])
+      .filter(fp => typeof fp === 'string' && fp.trim() !== '');
 
-    res.attachment(zipName);
-    archive.pipe(res);
-
-    for (const field of safetyFields) {
-      const fileBuffer = record[field];
-
-      if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
-        console.warn(`⚠️ Field ${field} is empty or not a buffer`);
-        continue;
-      }
-
-      // Generate a temp filename for the zip entry
-      const filename = `${field}_${uuidv4().slice(0, 8)}`;
-      archive.append(fileBuffer, { name: filename });
+    if (filePaths.length === 0) {
+      return res.status(404).send('No files found for download');
     }
 
-    archive.finalize();
+    if (filePaths.length === 1) {
+      // Single file, send directly
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        console.warn(`⚠️ File not found on server: ${absolutePath}`);
+        return res.status(404).send('File not found on server');
+      }
+      return res.download(absolutePath);
+    } else {
+      // Multiple files, zip them
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      const zipName = `safety_files_work_order_${id}.zip`;
+
+      res.attachment(zipName);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        } else {
+          console.warn(`⚠️ File not found on server: ${absPath}`);
+        }
+      });
+
+      archive.finalize();
+    }
   });
 });
+
 
 
 
