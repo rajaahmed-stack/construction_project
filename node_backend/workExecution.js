@@ -1076,16 +1076,18 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
-router.get('/safety_download/:id', (req, res) => {
-  const { id } = req.params;
+const FileType = require('file-type');
 
-  const safetyFields = [
-    'safety_signs',
-    'safety_barriers',
-    'safety_lights',
-    'safety_boards',
-    'permissions'
-  ];
+const safetyFields = [
+  'safety_signs',
+  'safety_barriers',
+  'safety_lights',
+  'safety_boards',
+  'permissions'
+];
+
+router.get('/safety_download/:id', async (req, res) => {
+  const { id } = req.params;
 
   const query = `
     SELECT ${safetyFields.join(', ')} 
@@ -1093,7 +1095,7 @@ router.get('/safety_download/:id', (req, res) => {
     WHERE work_order_id = ?
   `;
 
-  db.query(query, [id], async (err, results) => {
+  db.query(query, async (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
@@ -1104,8 +1106,6 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     const record = results[0];
-
-    // Prepare ZIP
     const archive = archiver('zip', { zlib: { level: 9 } });
     const zipName = `safety_files_work_order_${id}.zip`;
 
@@ -1113,22 +1113,30 @@ router.get('/safety_download/:id', (req, res) => {
     archive.pipe(res);
 
     for (const field of safetyFields) {
-      const fileBuffer = record[field];
+      const buffer = record[field];
 
-      if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
+      if (!buffer || !Buffer.isBuffer(buffer)) {
         console.warn(`⚠️ Field ${field} is empty or not a buffer`);
         continue;
       }
 
-      // Generate a temp filename for the zip entry
-      const filename = `${field}_${uuidv4().slice(0, 8)}.pdf`; // or other format if needed
-      archive.append(fileBuffer, { name: filename });
+      try {
+        const fileType = await FileType.fromBuffer(buffer);
+        const extension = fileType ? fileType.ext : 'bin';
+        const filename = `${field}_${uuidv4().slice(0, 8)}.${extension}`;
+
+        console.log(`✅ Adding to ZIP: ${filename}`);
+        archive.append(buffer, { name: filename });
+      } catch (e) {
+        console.error(`❌ Error detecting file type for ${field}:`, e);
+        // fallback
+        archive.append(buffer, { name: `${field}_${uuidv4().slice(0, 8)}.bin` });
+      }
     }
 
     archive.finalize();
   });
 });
-
 
 
 

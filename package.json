@@ -17,6 +17,7 @@
     "cra-template": "1.2.0",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
+    "file-type": "^21.0.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.10.1",
     "i18next": "^24.2.3",
