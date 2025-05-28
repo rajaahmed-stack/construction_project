@@ -1133,14 +1133,20 @@ router.get('/safety_download/:id', (req, res) => {
     archive.pipe(res);
 
     allFilePaths.forEach(file => {
-      const absPath = path.resolve(__dirname, '..', file); // Adjust path as needed
+      // Remove leading slash if present
+      const relativeFile = file.startsWith('/') ? file.slice(1) : file;
+      const absPath = path.join(process.cwd(), relativeFile);
+    
+      console.log(`Checking file existence at: ${absPath}`);
+    
       if (fs.existsSync(absPath)) {
         console.log(`✅ Adding to ZIP: ${absPath}`);
-        archive.file(absPath, { name: path.basename(file) });
+        archive.file(absPath, { name: path.basename(relativeFile) });
       } else {
         console.warn(`❌ File not found: ${absPath}`);
       }
     });
+    
 
     archive.finalize();
   });
