@@ -1077,7 +1077,7 @@ router.get('/safety_download/:id', async (req, res) => {
 
   try {
     // 1. Fetch row for the specific work order
-    const [rows] = await pool.query(
+    const [rows] = await db.query(
       'SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions FROM safety_department WHERE work_order_id = ?',
       [id]
     );
