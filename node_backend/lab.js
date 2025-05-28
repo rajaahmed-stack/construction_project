@@ -672,39 +672,41 @@ router.get('/lab1_download/:id', (req, res) => {
 
     let filePath = results[0].file_path;
 
-    // Convert buffer to string if needed
+    // Convert Buffer to string if necessary
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
+    }
+
+    if (!filePath || filePath === 'undefined') {
+      return res.status(404).send('Invalid or missing file path');
     }
 
     const filePaths = filePath.split(',');
 
     if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0]));
+      const absolutePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0].trim()));
 
       console.log('✅ Final resolved path:', absolutePath);
 
       if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+        return res.status(404).send('File not found on server at path: ' + absolutePath);
       }
 
       return res.download(absolutePath);
     } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
+      const archive = archiver('zip', { zlib: { level: 9 } });
 
       res.attachment(`files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
-        const absPath = path.join(__dirname, '..', 'uploads', path.basename(p));
+        let cleanedPath = Buffer.isBuffer(p) ? p.toString('utf8') : p;
+        const absPath = path.join(__dirname, '..', 'uploads', path.basename(cleanedPath.trim()));
+
         if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
+          archive.file(absPath, { name: path.basename(absPath) });
         } else {
-          console.warn('⚠️ Missing file during zip:', absPath);
+          console.warn('⚠️ Skipped missing file:', absPath);
         }
       });
 
