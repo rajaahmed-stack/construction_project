@@ -1100,6 +1100,7 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     const record = results[0];
+    console.log('📦 Retrieved DB record:', record);
     const allFilePaths = [];
 
     safetyFields.forEach(field => {
@@ -1133,7 +1134,7 @@ router.get('/safety_download/:id', (req, res) => {
     let filesAdded = 0;
 
     allFilePaths.forEach(file => {
-      const absPath = path.resolve('uploads', path.basename(file)); // adjust path as needed
+      const absPath = path.resolve(file); // use exact DB path
       if (fs.existsSync(absPath)) {
         console.log(`✅ Adding to ZIP: ${absPath}`);
         archive.file(absPath, { name: path.basename(file) });
