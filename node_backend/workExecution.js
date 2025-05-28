@@ -1132,9 +1132,17 @@ router.get('/safety_download/:id', (req, res) => {
     res.attachment(zipName);
     archive.pipe(res);
 
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    console.log('Uploads directory content:', fs.readdirSync(uploadDir));
+    
     allFilePaths.forEach(file => {
+      // Filter out 'undefined' strings
+      if (!file || file.toLowerCase() === 'undefined') return;
+    
       // Remove leading slash if present
       const relativeFile = file.startsWith('/') ? file.slice(1) : file;
+    
+      // Build absolute path - adjust if your uploads are in a different folder
       const absPath = path.join(process.cwd(), relativeFile);
     
       console.log(`Checking file existence at: ${absPath}`);
