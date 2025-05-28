@@ -680,13 +680,16 @@ router.get('/lab1_download/:id', (req, res) => {
     const filePaths = filePath.split(',');
 
     if (filePaths.length === 1) {
-      const relativePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0]));
-      if (!fs.existsSync(relativePath)) {
-        console.warn('❌ File not found on server at path:', relativePath);
+      // Single file
+      const absolutePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0]));
+
+      console.log('✅ Final resolved path:', absolutePath);
+
+      if (!fs.existsSync(absolutePath)) {
         return res.status(404).send('File not found on server');
       }
-      return res.download(relativePath);
 
+      return res.download(absolutePath);
     } else {
       // Multiple files — create a zip
       const archive = archiver('zip', {
@@ -697,9 +700,11 @@ router.get('/lab1_download/:id', (req, res) => {
       archive.pipe(res);
 
       filePaths.forEach(p => {
-        const absPath = path.resolve(p);
+        const absPath = path.join(__dirname, '..', 'uploads', path.basename(p));
         if (fs.existsSync(absPath)) {
           archive.file(absPath, { name: path.basename(p) });
+        } else {
+          console.warn('⚠️ Missing file during zip:', absPath);
         }
       });
 
@@ -707,6 +712,7 @@ router.get('/lab1_download/:id', (req, res) => {
     }
   });
 });
+
 router.get('/lab2_download/:id', (req, res) => {
   const fileId = req.params.id;
 
