@@ -680,13 +680,13 @@ router.get('/lab1_download/:id', (req, res) => {
     const filePaths = filePath.split(',');
 
     if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
+      const relativePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0]));
+      if (!fs.existsSync(relativePath)) {
+        console.warn('❌ File not found on server at path:', relativePath);
         return res.status(404).send('File not found on server');
       }
+      return res.download(relativePath);
 
-      return res.download(absolutePath);
     } else {
       // Multiple files — create a zip
       const archive = archiver('zip', {

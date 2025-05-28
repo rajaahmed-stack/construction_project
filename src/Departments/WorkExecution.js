@@ -971,7 +971,7 @@ const handleFileUpload = async (fieldName, files) => {
                       startIcon={<AddIcon />}
                       disabled={disabled}
                     >
-                      +
+                      
                       <input
                         type="file"
                         hidden
