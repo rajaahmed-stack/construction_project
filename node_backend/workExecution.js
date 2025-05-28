@@ -1102,30 +1102,28 @@ router.get('/safety_download/:id', (req, res) => {
     const record = results[0];
     console.log('📦 Safety Record from DB:', record);
 
-    // This is the new debugging block:
-    let allFilePaths = [];
+    const allFilePaths = [];
 
     safetyFields.forEach(field => {
       let filePath = record[field];
-      console.log(`🔍 Field ${field} value:`, filePath);
 
-      if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') {
-        console.log(`⚠️ Field ${field} is empty or invalid.`);
-        return;
-      }
-
+      // Convert Buffer to string if needed
       if (Buffer.isBuffer(filePath)) {
         filePath = filePath.toString('utf8');
       }
 
-      const paths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
-      console.log(`➡️ Parsed paths from ${field}:`, paths);
+      // Check now if valid string
+      if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') {
+        console.warn(`⚠️ Field ${field} is empty or invalid.`);
+        return;
+      }
 
+      const paths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
       allFilePaths.push(...paths);
     });
 
     if (allFilePaths.length === 0) {
-      return res.status(404).send('No valid file paths');
+      return res.status(404).send('No valid file paths found in any safety field');
     }
 
     const archive = archiver('zip', { zlib: { level: 9 } });
@@ -1135,10 +1133,7 @@ router.get('/safety_download/:id', (req, res) => {
     archive.pipe(res);
 
     allFilePaths.forEach(file => {
-      // Use exact path stored in DB, adjust if needed
-      const absPath = path.resolve(file);
-      console.log(`📁 Checking existence of: ${absPath}`);
-
+      const absPath = path.resolve(__dirname, '..', file); // Adjust path as needed
       if (fs.existsSync(absPath)) {
         console.log(`✅ Adding to ZIP: ${absPath}`);
         archive.file(absPath, { name: path.basename(file) });
