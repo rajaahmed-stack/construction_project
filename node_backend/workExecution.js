@@ -1080,8 +1080,7 @@ router.get('/safety_download/:id', (req, res) => {
     'safety_barriers',
     'safety_lights',
     'safety_boards',
-    'permissions',
-    'safety_documentation'
+    'permissions'
   ];
 
   const query = `
@@ -1097,15 +1096,17 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).send('No safety data found for this work order');
+      return res.status(404).send('No safety data found');
     }
 
     const record = results[0];
+    console.log('📦 Safety Record from DB:', record);
+
     const allFilePaths = [];
 
     safetyFields.forEach(field => {
       let filePath = record[field];
-      if (!filePath) return;
+      if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') return;
 
       if (Buffer.isBuffer(filePath)) {
         filePath = filePath.toString('utf8');
@@ -1116,10 +1117,9 @@ router.get('/safety_download/:id', (req, res) => {
     });
 
     if (allFilePaths.length === 0) {
-      return res.status(404).send('No valid file paths found in any field');
+      return res.status(404).send('No valid file paths');
     }
 
-    // Create ZIP archive
     const archive = archiver('zip', { zlib: { level: 9 } });
     const zipName = `safety_files_work_order_${id}.zip`;
 
@@ -1127,11 +1127,12 @@ router.get('/safety_download/:id', (req, res) => {
     archive.pipe(res);
 
     allFilePaths.forEach(file => {
-      const absPath = path.resolve(file);
+      const absPath = path.resolve('uploads', path.basename(file)); // Adjust based on actual file location
       if (fs.existsSync(absPath)) {
+        console.log(`✅ Adding to ZIP: ${absPath}`);
         archive.file(absPath, { name: path.basename(file) });
       } else {
-        console.warn(`⚠️ Skipping missing file: ${absPath}`);
+        console.warn(`❌ File not found: ${absPath}`);
       }
     });
 
