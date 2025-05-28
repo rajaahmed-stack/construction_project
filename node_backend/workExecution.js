@@ -1138,9 +1138,15 @@ router.get('/safety_download/:id', (req, res) => {
     allFilePaths.forEach(file => {
       if (!file || file.toLowerCase() === 'undefined') return;
     
-      const relativeFile = file.startsWith('/') ? file.slice(1) : file;
+      // Remove "uploads/" prefix if present (because your files are inside /uploads folder)
+      let relativeFile = file.startsWith('uploads/') ? file.slice('uploads/'.length) : file;
     
-      // Add 'uploads' explicitly here:
+      // Remove leading slash if any
+      if (relativeFile.startsWith('/')) {
+        relativeFile = relativeFile.slice(1);
+      }
+    
+      // Now build absolute path: uploads folder + relative file
       const absPath = path.join(process.cwd(), 'uploads', relativeFile);
     
       console.log(`Checking file existence at: ${absPath}`);
