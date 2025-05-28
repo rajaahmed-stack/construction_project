@@ -1105,32 +1105,44 @@ router.get('/safety_download/:id', (req, res) => {
 
     const record = results[0];
 
-    // Collect all file paths from the fields, filter out empty/undefined
-    const filePaths = safetyFields
-      .map(field => record[field])
-      .filter(fp => typeof fp === 'string' && fp.trim() !== '');
+    // Collect all file paths from the fields (split by comma, handle buffers)
+    let allFilePaths = [];
 
-    if (filePaths.length === 0) {
+    safetyFields.forEach(field => {
+      let value = record[field];
+      if (!value) return;  // skip null/undefined
+
+      if (Buffer.isBuffer(value)) {
+        value = value.toString('utf8');
+      }
+
+      const paths = value.split(',').map(p => p.trim()).filter(p => p !== '');
+      allFilePaths = allFilePaths.concat(paths);
+    });
+
+    // Remove duplicates
+    allFilePaths = [...new Set(allFilePaths)];
+
+    if (allFilePaths.length === 0) {
       return res.status(404).send('No files found for download');
     }
 
-    if (filePaths.length === 1) {
-      // Single file, send directly
-      const absolutePath = path.resolve(filePaths[0]);
+    if (allFilePaths.length === 1) {
+      const absolutePath = path.resolve(allFilePaths[0]);
       if (!fs.existsSync(absolutePath)) {
         console.warn(`⚠️ File not found on server: ${absolutePath}`);
         return res.status(404).send('File not found on server');
       }
       return res.download(absolutePath);
     } else {
-      // Multiple files, zip them
+      // Multiple files - create zip
       const archive = archiver('zip', { zlib: { level: 9 } });
       const zipName = `safety_files_work_order_${id}.zip`;
 
       res.attachment(zipName);
       archive.pipe(res);
 
-      filePaths.forEach(p => {
+      allFilePaths.forEach(p => {
         const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
           archive.file(absPath, { name: path.basename(p) });
@@ -1143,6 +1155,7 @@ router.get('/safety_download/:id', (req, res) => {
     }
   });
 });
+
 
 
 
