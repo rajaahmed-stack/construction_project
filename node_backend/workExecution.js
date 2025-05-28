@@ -1072,7 +1072,7 @@ router.get('/workexe8_download/:id', (req, res) => {
  * Route: /safety_download/:field/:id
  * Example: /safety_download/safety_signs/123
  */
-router.get('/safety_download/:id', (req, res) => {
+router.get('/safety_download/:id', (req, res) => { 
   const { id } = req.params;
 
   const safetyFields = [
@@ -1100,29 +1100,32 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     const record = results[0];
-    console.log('📦 Retrieved DB record:', record);
-    const allFilePaths = [];
+    console.log('📦 Safety Record from DB:', record);
+
+    // This is the new debugging block:
+    let allFilePaths = [];
 
     safetyFields.forEach(field => {
       let filePath = record[field];
+      console.log(`🔍 Field ${field} value:`, filePath);
 
-      // Skip if field is empty or null
-      if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') return;
+      if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') {
+        console.log(`⚠️ Field ${field} is empty or invalid.`);
+        return;
+      }
 
-      // Convert buffer to string if needed
       if (Buffer.isBuffer(filePath)) {
         filePath = filePath.toString('utf8');
       }
 
-      // Split and clean
       const paths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      console.log(`➡️ Parsed paths from ${field}:`, paths);
 
-      // Push only if valid
       allFilePaths.push(...paths);
     });
 
     if (allFilePaths.length === 0) {
-      return res.status(404).send('No valid file paths found in any safety field');
+      return res.status(404).send('No valid file paths');
     }
 
     const archive = archiver('zip', { zlib: { level: 9 } });
@@ -1131,29 +1134,23 @@ router.get('/safety_download/:id', (req, res) => {
     res.attachment(zipName);
     archive.pipe(res);
 
-    let filesAdded = 0;
-
     allFilePaths.forEach(file => {
-      const absPath = path.resolve(file); // use exact DB path
+      // Use exact path stored in DB, adjust if needed
+      const absPath = path.resolve(file);
+      console.log(`📁 Checking existence of: ${absPath}`);
+
       if (fs.existsSync(absPath)) {
         console.log(`✅ Adding to ZIP: ${absPath}`);
         archive.file(absPath, { name: path.basename(file) });
-        filesAdded++;
       } else {
-        console.warn(`⚠️ Skipped missing file: ${absPath}`);
+        console.warn(`❌ File not found: ${absPath}`);
       }
     });
 
     archive.finalize();
-
-    // Optional: log if ZIP has no valid files (but don't cancel response)
-    archive.on('end', () => {
-      if (filesAdded === 0) {
-        console.warn('⚠️ ZIP was created but no files were actually added.');
-      }
-    });
   });
 });
+
 
 router.get('/workexe9_download/:id', (req, res) => {
   const fileId = req.params.id;
