@@ -1072,68 +1072,63 @@ router.get('/workexe8_download/:id', (req, res) => {
  * Route: /safety_download/:field/:id
  * Example: /safety_download/safety_signs/123
  */
-router.get('/safety_download/:id', async (req, res) => {
+
+
+const { v4: uuidv4 } = require('uuid'); // for temp file naming
+
+router.get('/safety_download/:id', (req, res) => {
   const { id } = req.params;
 
-  try {
-    // 1. Fetch row for the specific work order
-    const [rows] = await db.query(
-      'SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions FROM safety_department WHERE work_order_id = ?',
-      [id]
-    );
+  const safetyFields = [
+    'safety_signs',
+    'safety_barriers',
+    'safety_lights',
+    'safety_boards',
+    'permissions'
+  ];
 
-    if (rows.length === 0) {
-      return res.status(404).send('No data found for this ID');
+  const query = `
+    SELECT ${safetyFields.join(', ')} 
+    FROM safety_department 
+    WHERE work_order_id = ?
+  `;
+
+  db.query(query, [id], async (err, results) => {
+    if (err) {
+      console.error('❌ Database error:', err);
+      return res.status(500).send('Database error');
     }
 
-    const result = rows[0];
-
-    // 2. Collect all non-empty fields into a flat list
-    const fileFields = ['safety_signs', 'safety_barriers', 'safety_lights', 'safety_boards', 'permissions'];
-
-    const fileNames = [];
-    for (const field of fileFields) {
-      let value = result[field];
-
-      if (typeof value === 'string' && value.trim() !== '' && value.toLowerCase() !== 'undefined') {
-        fileNames.push(...value.split(',').map(f => f.trim()).filter(f => f));
-      } else {
-        console.warn(`⚠️ Field ${field} is empty or invalid.`);
-      }
+    if (results.length === 0) {
+      return res.status(404).send('No safety data found');
     }
 
-    // 3. Initialize ZIP archive
+    const record = results[0];
+
+    // Prepare ZIP
     const archive = archiver('zip', { zlib: { level: 9 } });
-    res.attachment(`safety-files-${id}.zip`);
+    const zipName = `safety_files_work_order_${id}.zip`;
+
+    res.attachment(zipName);
     archive.pipe(res);
 
-    let filesAdded = 0;
+    for (const field of safetyFields) {
+      const fileBuffer = record[field];
 
-    // 4. Add files to archive
-    fileNames.forEach(file => {
-      const cleanFile = file.replace(/^uploads\//, '').replace(/^\/+/, '');
-      const filePath = path.join(process.cwd(), 'uploads', cleanFile);
-
-      console.log(`Checking file existence at: ${filePath}`);
-
-      if (fs.existsSync(filePath)) {
-        archive.file(filePath, { name: path.basename(cleanFile) });
-        filesAdded++;
-      } else {
-        console.warn(`❌ File not found: ${filePath}`);
+      if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
+        console.warn(`⚠️ Field ${field} is empty or not a buffer`);
+        continue;
       }
-    });
 
-    if (filesAdded === 0) {
-      return res.status(404).send('No valid files found to download.');
+      // Generate a temp filename for the zip entry
+      const filename = `${field}_${uuidv4().slice(0, 8)}.pdf`; // or other format if needed
+      archive.append(fileBuffer, { name: filename });
     }
 
     archive.finalize();
-  } catch (error) {
-    console.error('❌ Error while creating ZIP:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  });
 });
+
 
 
 
