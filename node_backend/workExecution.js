@@ -1093,7 +1093,7 @@ router.get('/safety_download/:id', (req, res) => {
     WHERE work_order_id = ?
   `;
 
-  db.query(query, [id], (err, results) => {
+  db.query(query, [id], async (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
@@ -1105,58 +1105,27 @@ router.get('/safety_download/:id', (req, res) => {
 
     const record = results[0];
 
-    // Collect all file paths from all fields
-    let allFilePaths = [];
+    // Prepare ZIP
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    const zipName = `safety_files_work_order_${id}.zip`;
+
+    res.attachment(zipName);
+    archive.pipe(res);
 
     for (const field of safetyFields) {
-      let filePaths = record[field];
+      const fileBuffer = record[field];
 
-      if (!filePaths) {
-        console.warn(`⚠️ Field ${field} is empty`);
+      if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
+        console.warn(`⚠️ Field ${field} is empty or not a buffer`);
         continue;
       }
 
-      if (Buffer.isBuffer(filePaths)) {
-        filePaths = filePaths.toString('utf8');
-      }
-
-      if (typeof filePaths === 'string') {
-        // Some fields may have comma-separated paths
-        const pathsArray = filePaths.split(',').map(p => p.trim()).filter(p => p.length > 0);
-        allFilePaths = allFilePaths.concat(pathsArray);
-      }
+      // Generate a temp filename for the zip entry
+      const filename = `${field}_${uuidv4().slice(0, 8)}`;
+      archive.append(fileBuffer, { name: filename });
     }
 
-    if (allFilePaths.length === 0) {
-      return res.status(404).send('No files found for this work order');
-    }
-
-    if (allFilePaths.length === 1) {
-      // Single file, send directly
-      const absolutePath = path.resolve(allFilePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-      return res.download(absolutePath);
-    } else {
-      // Multiple files, send as ZIP
-      const archive = archiver('zip', { zlib: { level: 9 } });
-      const zipName = `safety_files_work_order_${id}.zip`;
-
-      res.attachment(zipName);
-      archive.pipe(res);
-
-      for (const filePath of allFilePaths) {
-        const absPath = path.resolve(filePath);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(absPath) });
-        } else {
-          console.warn(`⚠️ File not found on server: ${absPath}`);
-        }
-      }
-
-      archive.finalize();
-    }
+    archive.finalize();
   });
 });
 
