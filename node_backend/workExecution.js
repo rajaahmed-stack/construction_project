@@ -1100,24 +1100,28 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     const record = results[0];
-    console.log('📦 Safety Record from DB:', record);
-
     const allFilePaths = [];
 
     safetyFields.forEach(field => {
       let filePath = record[field];
+
+      // Skip if field is empty or null
       if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') return;
 
+      // Convert buffer to string if needed
       if (Buffer.isBuffer(filePath)) {
         filePath = filePath.toString('utf8');
       }
 
+      // Split and clean
       const paths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+      // Push only if valid
       allFilePaths.push(...paths);
     });
 
     if (allFilePaths.length === 0) {
-      return res.status(404).send('No valid file paths');
+      return res.status(404).send('No valid file paths found in any safety field');
     }
 
     const archive = archiver('zip', { zlib: { level: 9 } });
@@ -1126,20 +1130,29 @@ router.get('/safety_download/:id', (req, res) => {
     res.attachment(zipName);
     archive.pipe(res);
 
+    let filesAdded = 0;
+
     allFilePaths.forEach(file => {
-      const absPath = path.resolve('uploads', path.basename(file)); // Adjust based on actual file location
+      const absPath = path.resolve('uploads', path.basename(file)); // adjust path as needed
       if (fs.existsSync(absPath)) {
         console.log(`✅ Adding to ZIP: ${absPath}`);
         archive.file(absPath, { name: path.basename(file) });
+        filesAdded++;
       } else {
-        console.warn(`❌ File not found: ${absPath}`);
+        console.warn(`⚠️ Skipped missing file: ${absPath}`);
       }
     });
 
     archive.finalize();
+
+    // Optional: log if ZIP has no valid files (but don't cancel response)
+    archive.on('end', () => {
+      if (filesAdded === 0) {
+        console.warn('⚠️ ZIP was created but no files were actually added.');
+      }
+    });
   });
 });
-
 
 router.get('/workexe9_download/:id', (req, res) => {
   const fileId = req.params.id;
