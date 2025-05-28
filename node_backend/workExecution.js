@@ -1076,6 +1076,8 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
+const UPLOADS_DIR = path.join(__dirname, 'uploads'); // adjust as needed
+
 router.get('/safety_download/:id', (req, res) => {
   const { id } = req.params;
 
@@ -1087,11 +1089,7 @@ router.get('/safety_download/:id', (req, res) => {
     'permissions'
   ];
 
-  const query = `
-    SELECT ${safetyFields.join(', ')} 
-    FROM safety_department 
-    WHERE work_order_id = ?
-  `;
+  const query = `SELECT ${safetyFields.join(', ')} FROM safety_department WHERE work_order_id = ?`;
 
   db.query(query, [id], (err, results) => {
     if (err) {
@@ -1105,18 +1103,22 @@ router.get('/safety_download/:id', (req, res) => {
 
     const record = results[0];
 
-    // Collect all file paths from the fields (split by comma, handle buffers)
     let allFilePaths = [];
 
     safetyFields.forEach(field => {
       let value = record[field];
-      if (!value) return;  // skip null/undefined
+      if (!value) return; // skip null/undefined
 
       if (Buffer.isBuffer(value)) {
         value = value.toString('utf8');
       }
 
-      const paths = value.split(',').map(p => p.trim()).filter(p => p !== '');
+      // Split and trim, filter invalid entries (remove empty or 'undefined' strings)
+      const paths = value
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p && p.toLowerCase() !== 'undefined');
+
       allFilePaths = allFilePaths.concat(paths);
     });
 
@@ -1127,28 +1129,37 @@ router.get('/safety_download/:id', (req, res) => {
       return res.status(404).send('No files found for download');
     }
 
-    if (allFilePaths.length === 1) {
-      const absolutePath = path.resolve(allFilePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        console.warn(`⚠️ File not found on server: ${absolutePath}`);
-        return res.status(404).send('File not found on server');
+    // Convert relative filenames or paths to absolute paths under uploads dir
+    const absPaths = allFilePaths.map(p => {
+      // If p is already absolute path, leave it. Else join with UPLOADS_DIR
+      if (path.isAbsolute(p)) return p;
+      return path.join(UPLOADS_DIR, p);
+    });
+
+    // Now check existence and filter valid files
+    const existingFiles = absPaths.filter(p => {
+      if (!fs.existsSync(p)) {
+        console.warn(`⚠️ File not found on server: ${p}`);
+        return false;
       }
-      return res.download(absolutePath);
+      return true;
+    });
+
+    if (existingFiles.length === 0) {
+      return res.status(404).send('No existing files found on server');
+    }
+
+    if (existingFiles.length === 1) {
+      return res.download(existingFiles[0]);
     } else {
-      // Multiple files - create zip
       const archive = archiver('zip', { zlib: { level: 9 } });
       const zipName = `safety_files_work_order_${id}.zip`;
 
       res.attachment(zipName);
       archive.pipe(res);
 
-      allFilePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        } else {
-          console.warn(`⚠️ File not found on server: ${absPath}`);
-        }
+      existingFiles.forEach(file => {
+        archive.file(file, { name: path.basename(file) });
       });
 
       archive.finalize();
