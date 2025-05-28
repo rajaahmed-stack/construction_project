@@ -1066,84 +1066,7 @@ router.get('/workexe8_download/:id', (req, res) => {
     }
   });
 });
-router.get('/safety_download/:id', (req, res) => {
-  const fileId = req.params.id;
 
-  const safetyFields = [
-    'permissions',
-    'safety_signs',
-    'safety_barriers',
-    'safety_lights',
-    'safety_boards'
-  ];
-
-  const query = `SELECT ${safetyFields.join(', ')} FROM safety_department WHERE work_order_id = ?`;
-
-  db.query(query, [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    const record = results[0];
-
-    // Collect all file paths from all fields
-    let allFilePaths = [];
-
-    safetyFields.forEach(field => {
-      let val = record[field];
-      if (!val) return; // skip empty/null
-
-      // Convert Buffer to string if needed
-      if (Buffer.isBuffer(val)) {
-        val = val.toString('utf8');
-      }
-
-      // Split CSV into array and trim each path
-      const paths = val.split(',').map(p => p.trim()).filter(p => p !== '');
-      allFilePaths = allFilePaths.concat(paths);
-    });
-
-    // Remove duplicates, if any
-    allFilePaths = [...new Set(allFilePaths)];
-
-    if (allFilePaths.length === 0) {
-      return res.status(404).send('No files found for download');
-    }
-
-    if (allFilePaths.length === 1) {
-      // Single file download
-      const absolutePath = path.resolve(allFilePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a ZIP archive
-      const archive = archiver('zip', { zlib: { level: 9 } });
-      const zipName = `safety_files_work_order_${fileId}.zip`;
-
-      res.attachment(zipName);
-      archive.pipe(res);
-
-      allFilePaths.forEach(filePath => {
-        const absPath = path.resolve(filePath);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(filePath) });
-        } else {
-          console.warn(`File not found on server, skipping: ${absPath}`);
-        }
-      });
-
-      archive.finalize();
-    }
-  });
-});
 
 /**
  * Route: /safety_download/:field/:id
@@ -1153,73 +1076,73 @@ router.get('/safety_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
-// router.get('/safety_download/:id', (req, res) => {
-//   const { id } = req.params;
+router.get('/safety_download/:id', (req, res) => {
+  const { id } = req.params;
 
-//   const safetyFields = [
-//     'safety_signs',
-//     'safety_barriers',
-//     'safety_lights',
-//     'safety_boards',
-//     'permissions'
-//   ];
+  const safetyFields = [
+    'safety_signs',
+    'safety_barriers',
+    'safety_lights',
+    'safety_boards',
+    'permissions'
+  ];
 
-//   const query = `
-//     SELECT ${safetyFields.join(', ')} 
-//     FROM safety_department 
-//     WHERE work_order_id = ?
-//   `;
+  const query = `
+    SELECT ${safetyFields.join(', ')} 
+    FROM safety_department 
+    WHERE work_order_id = ?
+  `;
 
-//   db.query(query, [id], (err, results) => {
-//     if (err) {
-//       console.error('❌ Database error:', err);
-//       return res.status(500).send('Database error');
-//     }
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Database error:', err);
+      return res.status(500).send('Database error');
+    }
 
-//     if (results.length === 0) {
-//       return res.status(404).send('No safety data found');
-//     }
+    if (results.length === 0) {
+      return res.status(404).send('No safety data found');
+    }
 
-//     const record = results[0];
+    const record = results[0];
 
-//     // Collect all file paths from the fields, filter out empty/undefined
-//     const filePaths = safetyFields
-//       .map(field => record[field])
-//       .filter(fp => typeof fp === 'string' && fp.trim() !== '');
+    // Collect all file paths from the fields, filter out empty/undefined
+    const filePaths = safetyFields
+      .map(field => record[field])
+      .filter(fp => typeof fp === 'string' && fp.trim() !== '');
 
-//     if (filePaths.length === 0) {
-//       return res.status(404).send('No files found for download');
-//     }
+    if (filePaths.length === 0) {
+      return res.status(404).send('No files found for download');
+    }
 
-//     if (filePaths.length === 1) {
-//       // Single file, send directly
-//       const absolutePath = path.resolve(filePaths[0]);
-//       if (!fs.existsSync(absolutePath)) {
-//         console.warn(`⚠️ File not found on server: ${absolutePath}`);
-//         return res.status(404).send('File not found on server');
-//       }
-//       return res.download(absolutePath);
-//     } else {
-//       // Multiple files, zip them
-//       const archive = archiver('zip', { zlib: { level: 9 } });
-//       const zipName = `safety_files_work_order_${id}.zip`;
+    if (filePaths.length === 1) {
+      // Single file, send directly
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        console.warn(`⚠️ File not found on server: ${absolutePath}`);
+        return res.status(404).send('File not found on server');
+      }
+      return res.download(absolutePath);
+    } else {
+      // Multiple files, zip them
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      const zipName = `safety_files_work_order_${id}.zip`;
 
-//       res.attachment(zipName);
-//       archive.pipe(res);
+      res.attachment(zipName);
+      archive.pipe(res);
 
-//       filePaths.forEach(p => {
-//         const absPath = path.resolve(p);
-//         if (fs.existsSync(absPath)) {
-//           archive.file(absPath, { name: path.basename(p) });
-//         } else {
-//           console.warn(`⚠️ File not found on server: ${absPath}`);
-//         }
-//       });
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        } else {
+          console.warn(`⚠️ File not found on server: ${absPath}`);
+        }
+      });
 
-//       archive.finalize();
-//     }
-//   });
-// });
+      archive.finalize();
+    }
+  });
+});
 
 
 
