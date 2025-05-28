@@ -557,7 +557,7 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        safety_boards: formData.safetyBoards ? formData.safetyBoards.path : null,
+        safety_boards: formData.safetyBoards ? `uploads/${formData.safetyBoards.filename}` : null,
         safety_board_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };
@@ -593,7 +593,7 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        safety_documentation: formData.safetyDocumentation ? formData.safetyDocumentation.path : null,
+        safety_documentation: formData.safetyDocumentation ? `uploads/${formData.safetyDocumentation.filename}` : null,
         safety_documentation_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };
@@ -629,7 +629,7 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        permissions: formData.permissions ? formData.permissions.path : null,
+        permissions:  formData.permissions ? `uploads/${formData.permissions.filename}` : null,
         permissions_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };
@@ -843,7 +843,7 @@ return (
                         startIcon={<AddIcon />}
                         disabled={disabled}
                       >
-                        +
+                        
                         <input
                           type="file"
                           hidden
