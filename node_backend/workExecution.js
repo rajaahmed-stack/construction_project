@@ -1072,79 +1072,73 @@ router.get('/workexe8_download/:id', (req, res) => {
  * Route: /safety_download/:field/:id
  * Example: /safety_download/safety_signs/123
  */
-router.get('/safety_download/:field/:id', (req, res) => {
-  const { field, id } = req.params;
+router.get('/safety_download/:id', (req, res) => {
+  const { id } = req.params;
 
-  const allowedFields = [
+  const safetyFields = [
     'safety_signs',
     'safety_barriers',
     'safety_lights',
     'safety_boards',
-    'permissions'
+    'permissions',
+    'safety_documentation'
   ];
 
-  if (!allowedFields.includes(field)) {
-    return res.status(400).send('Invalid safety field');
-  }
+  const query = `
+    SELECT ${safetyFields.join(', ')} 
+    FROM safety_department 
+    WHERE work_order_id = ?
+  `;
 
-  db.query(`SELECT ?? FROM safety_department WHERE work_order_id = ?`, [field, id], (err, results) => {
+  db.query(query, [id], (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
     }
 
-    if (results.length === 0 || !results[0][field]) {
-      return res.status(404).send('File not found in database');
+    if (results.length === 0) {
+      return res.status(404).send('No safety data found for this work order');
     }
 
-    let filePath = results[0][field];
+    const record = results[0];
+    const allFilePaths = [];
 
-    // Convert Buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
+    safetyFields.forEach(field => {
+      let filePath = record[field];
+      if (!filePath) return;
 
-    const filePaths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
-
-    if (filePaths.length === 0) {
-      return res.status(404).send('No valid file paths found');
-    }
-
-    if (filePaths.length === 1) {
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+      if (Buffer.isBuffer(filePath)) {
+        filePath = filePath.toString('utf8');
       }
 
-      return res.download(absolutePath, (downloadErr) => {
-        if (downloadErr) {
-          console.error('❌ Error during file download:', downloadErr);
-          res.status(500).send('Error while downloading file');
-        }
-      });
-    } else {
-      // Handle multiple files - create a ZIP
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
+      const paths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      allFilePaths.push(...paths);
+    });
 
-      const zipName = `${field}_files_${id}.zip`;
-      res.attachment(zipName);
-      archive.pipe(res);
-
-      filePaths.forEach(file => {
-        const absPath = path.resolve(file);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(file) });
-        } else {
-          console.warn(`⚠️ Skipping missing file: ${absPath}`);
-        }
-      });
-
-      archive.finalize();
+    if (allFilePaths.length === 0) {
+      return res.status(404).send('No valid file paths found in any field');
     }
+
+    // Create ZIP archive
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    const zipName = `safety_files_work_order_${id}.zip`;
+
+    res.attachment(zipName);
+    archive.pipe(res);
+
+    allFilePaths.forEach(file => {
+      const absPath = path.resolve(file);
+      if (fs.existsSync(absPath)) {
+        archive.file(absPath, { name: path.basename(file) });
+      } else {
+        console.warn(`⚠️ Skipping missing file: ${absPath}`);
+      }
+    });
+
+    archive.finalize();
   });
 });
+
 
 router.get('/workexe9_download/:id', (req, res) => {
   const fileId = req.params.id;
