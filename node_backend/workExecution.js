@@ -1076,18 +1076,16 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
-const FileType = require('file-type');
-
-const safetyFields = [
-  'safety_signs',
-  'safety_barriers',
-  'safety_lights',
-  'safety_boards',
-  'permissions'
-];
-
-router.get('/safety_download/:id', async (req, res) => {
+router.get('/safety_download/:id', (req, res) => {
   const { id } = req.params;
+
+  const safetyFields = [
+    'safety_signs',
+    'safety_barriers',
+    'safety_lights',
+    'safety_boards',
+    'permissions'
+  ];
 
   const query = `
     SELECT ${safetyFields.join(', ')} 
@@ -1095,7 +1093,7 @@ router.get('/safety_download/:id', async (req, res) => {
     WHERE work_order_id = ?
   `;
 
-  db.query(query, async (err, results) => {
+  db.query(query, [id], async (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
@@ -1106,6 +1104,7 @@ router.get('/safety_download/:id', async (req, res) => {
     }
 
     const record = results[0];
+
     const archive = archiver('zip', { zlib: { level: 9 } });
     const zipName = `safety_files_work_order_${id}.zip`;
 
@@ -1113,31 +1112,30 @@ router.get('/safety_download/:id', async (req, res) => {
     archive.pipe(res);
 
     for (const field of safetyFields) {
-      const buffer = record[field];
+      const filePath = record[field];
 
-      if (!buffer || !Buffer.isBuffer(buffer)) {
-        console.warn(`⚠️ Field ${field} is empty or not a buffer`);
+      if (!filePath) {
+        console.warn(`⚠️ Field ${field} is empty`);
         continue;
       }
 
-      try {
-        const fileType = await FileType.fromBuffer(buffer);
-        const extension = fileType ? fileType.ext : 'bin';
-        const filename = `${field}_${uuidv4().slice(0, 8)}.${extension}`;
+      // If multiple file paths are comma-separated
+      const paths = filePath.split(',');
 
-        console.log(`✅ Adding to ZIP: ${filename}`);
-        archive.append(buffer, { name: filename });
-      } catch (e) {
-        console.error(`❌ Error detecting file type for ${field}:`, e);
-        // fallback
-        archive.append(buffer, { name: `${field}_${uuidv4().slice(0, 8)}.bin` });
+      for (const singlePath of paths) {
+        const absPath = path.resolve(singlePath.trim());
+
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: `${field}_${path.basename(absPath)}` });
+        } else {
+          console.warn(`⚠️ File not found: ${absPath}`);
+        }
       }
     }
 
     archive.finalize();
   });
 });
-
 
 
 router.get('/workexe9_download/:id', (req, res) => {
