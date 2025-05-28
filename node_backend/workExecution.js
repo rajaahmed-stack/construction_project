@@ -1072,103 +1072,67 @@ router.get('/workexe8_download/:id', (req, res) => {
  * Route: /safety_download/:field/:id
  * Example: /safety_download/safety_signs/123
  */
-router.get('/safety_download/:id', (req, res) => {
+router.get('/safety_download/:id', async (req, res) => {
   const { id } = req.params;
 
-  const safetyFields = [
-    'safety_signs',
-    'safety_barriers',
-    'safety_lights',
-    'safety_boards',
-    'permissions'
-  ];
+  try {
+    // 1. Fetch row for the specific work order
+    const [rows] = await pool.query(
+      'SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions FROM safety_department WHERE work_order_id = ?',
+      [id]
+    );
 
-  const query = `
-    SELECT ${safetyFields.join(', ')} 
-    FROM safety_department 
-    WHERE work_order_id = ?
-  `;
-
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error('❌ Database error:', err);
-      return res.status(500).send('Database error');
+    if (rows.length === 0) {
+      return res.status(404).send('No data found for this ID');
     }
 
-    if (results.length === 0) {
-      return res.status(404).send('No safety data found');
-    }
+    const result = rows[0];
 
-    const record = results[0];
-    const allFilePaths = [];
+    // 2. Collect all non-empty fields into a flat list
+    const fileFields = ['safety_signs', 'safety_barriers', 'safety_lights', 'safety_boards', 'permissions'];
 
-    safetyFields.forEach(field => {
-      let filePath = record[field];
+    const fileNames = [];
+    for (const field of fileFields) {
+      let value = result[field];
 
-      // Convert buffer to string
-      if (Buffer.isBuffer(filePath)) {
-        filePath = filePath.toString('utf8');
-      }
-
-      // Validate string
-      if (
-        !filePath ||
-        typeof filePath !== 'string' ||
-        filePath.trim() === '' ||
-        filePath.toLowerCase().includes('undefined') ||
-        filePath.toLowerCase().includes('null')
-      ) {
+      if (typeof value === 'string' && value.trim() !== '' && value.toLowerCase() !== 'undefined') {
+        fileNames.push(...value.split(',').map(f => f.trim()).filter(f => f));
+      } else {
         console.warn(`⚠️ Field ${field} is empty or invalid.`);
-        return;
       }
-
-      const paths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
-      allFilePaths.push(...paths);
-    });
-
-    if (allFilePaths.length === 0) {
-      return res.status(404).send('No valid file paths found in any safety field');
     }
 
+    // 3. Initialize ZIP archive
     const archive = archiver('zip', { zlib: { level: 9 } });
-    const zipName = `safety_files_work_order_${id}.zip`;
-
-    res.attachment(zipName);
+    res.attachment(`safety-files-${id}.zip`);
     archive.pipe(res);
 
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    console.log('Uploads directory content:', fs.readdirSync(uploadDir));
+    let filesAdded = 0;
 
-    allFilePaths.forEach(file => {
-      if (
-        !file ||
-        typeof file !== 'string' ||
-        file.trim() === '' ||
-        file.toLowerCase().includes('undefined') ||
-        file.toLowerCase().includes('null')
-      ) {
-        console.warn(`⚠️ Invalid file skipped: ${file}`);
-        return;
-      }
+    // 4. Add files to archive
+    fileNames.forEach(file => {
+      const cleanFile = file.replace(/^uploads\//, '').replace(/^\/+/, '');
+      const filePath = path.join(process.cwd(), 'uploads', cleanFile);
 
-      let relativeFile = file.startsWith('uploads/') ? file.slice('uploads/'.length) : file;
-      if (relativeFile.startsWith('/')) {
-        relativeFile = relativeFile.slice(1);
-      }
+      console.log(`Checking file existence at: ${filePath}`);
 
-      const absPath = path.join(uploadDir, relativeFile);
-      console.log(`Checking file existence at: ${absPath}`);
-
-      if (fs.existsSync(absPath)) {
-        console.log(`✅ Adding to ZIP: ${absPath}`);
-        archive.file(absPath, { name: path.basename(relativeFile) });
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: path.basename(cleanFile) });
+        filesAdded++;
       } else {
-        console.warn(`❌ File not found: ${absPath}`);
+        console.warn(`❌ File not found: ${filePath}`);
       }
     });
 
+    if (filesAdded === 0) {
+      return res.status(404).send('No valid files found to download.');
+    }
+
     archive.finalize();
-  });
+  } catch (error) {
+    console.error('❌ Error while creating ZIP:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 
