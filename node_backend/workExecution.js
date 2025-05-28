@@ -1093,7 +1093,7 @@ router.get('/safety_download/:id', (req, res) => {
     WHERE work_order_id = ?
   `;
 
-  db.query(query, [id], async (err, results) => {
+  db.query(query, [id], (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
@@ -1105,37 +1105,62 @@ router.get('/safety_download/:id', (req, res) => {
 
     const record = results[0];
 
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    const zipName = `safety_files_work_order_${id}.zip`;
-
-    res.attachment(zipName);
-    archive.pipe(res);
+    // Collect all file paths from all fields
+    let allFilePaths = [];
 
     for (const field of safetyFields) {
-      const filePath = record[field];
+      let filePaths = record[field];
 
-      if (!filePath) {
+      if (!filePaths) {
         console.warn(`⚠️ Field ${field} is empty`);
         continue;
       }
 
-      // If multiple file paths are comma-separated
-      const paths = filePath.split(',');
+      if (Buffer.isBuffer(filePaths)) {
+        filePaths = filePaths.toString('utf8');
+      }
 
-      for (const singlePath of paths) {
-        const absPath = path.resolve(singlePath.trim());
-
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: `${field}_${path.basename(absPath)}` });
-        } else {
-          console.warn(`⚠️ File not found: ${absPath}`);
-        }
+      if (typeof filePaths === 'string') {
+        // Some fields may have comma-separated paths
+        const pathsArray = filePaths.split(',').map(p => p.trim()).filter(p => p.length > 0);
+        allFilePaths = allFilePaths.concat(pathsArray);
       }
     }
 
-    archive.finalize();
+    if (allFilePaths.length === 0) {
+      return res.status(404).send('No files found for this work order');
+    }
+
+    if (allFilePaths.length === 1) {
+      // Single file, send directly
+      const absolutePath = path.resolve(allFilePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+      return res.download(absolutePath);
+    } else {
+      // Multiple files, send as ZIP
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      const zipName = `safety_files_work_order_${id}.zip`;
+
+      res.attachment(zipName);
+      archive.pipe(res);
+
+      for (const filePath of allFilePaths) {
+        const absPath = path.resolve(filePath);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(absPath) });
+        } else {
+          console.warn(`⚠️ File not found on server: ${absPath}`);
+        }
+      }
+
+      archive.finalize();
+    }
   });
 });
+
+
 
 
 router.get('/workexe9_download/:id', (req, res) => {
