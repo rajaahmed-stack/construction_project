@@ -1167,6 +1167,44 @@ router.get('/safety_download/:id', (req, res) => {
   });
 });
 
+router.get('/download-files/:fieldName/:id', (req, res) => {
+  const { fieldName, id } = req.params;
+
+  db.query(`SELECT ?? FROM safety_department WHERE work_order_id = ?`, [fieldName, id], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).send('Record not found');
+    }
+
+    let filePaths = results[0][fieldName];
+
+    if (!filePaths) return res.status(404).send('No file paths stored');
+    try {
+      filePaths = JSON.parse(filePaths); // Parse stored JSON string
+    } catch (e) {
+      return res.status(500).send('Invalid file path format in DB');
+    }
+
+    if (filePaths.length === 1) {
+      const absPath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absPath)) return res.status(404).send('File not found');
+      return res.download(absPath);
+    } else {
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      res.attachment(`files_${id}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(fp => {
+        const absPath = path.resolve(fp);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(fp) });
+        }
+      });
+
+      archive.finalize();
+    }
+  });
+});
+
 
 
 

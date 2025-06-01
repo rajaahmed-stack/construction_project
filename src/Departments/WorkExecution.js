@@ -832,7 +832,7 @@ const handleFileUpload = async (fieldName, files) => {
                  { label: "Safety Boards", key: "safety_boards", downloadId: "workexe7_download" },
                  { label: "Safety Permissions", key: "permissions", downloadId: "workexe8_download" },
                  { label: "Safety Documentation", key: "safety_documentation", downloadId: "workexe9_download" },
-                 { label: "Safety Files",  downloadId: "safety_download" },
+                 { label: "Safety Files",  downloadId: "download-files" },
                ].map((item, i) => (
                  <Box key={i}>
                    <strong>{item.label}:</strong>{" "}
