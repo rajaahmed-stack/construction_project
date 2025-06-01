@@ -657,6 +657,63 @@ router.put("/update-wedelivery-status", (req, res) => {
     res.json({ message: "Delivery status updated successfully", affectedRows: result.affectedRows });
   });
 });
+// router.get('/lab1_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+
+//   db.query('SELECT file_path FROM work_receiving WHERE work_order_id = ?', [fileId], (err, results) => {
+//     if (err) {
+//       console.error('Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).send('File not found');
+//     }
+
+//     let filePath = results[0].file_path;
+
+//     // Convert Buffer to string if necessary
+//     if (Buffer.isBuffer(filePath)) {
+//       filePath = filePath.toString('utf8');
+//     }
+
+//     if (!filePath || filePath === 'undefined') {
+//       return res.status(404).send('Invalid or missing file path');
+//     }
+
+//     const filePaths = filePath.split(',');
+
+//     if (filePaths.length === 1) {
+//       const absolutePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0].trim()));
+
+//       console.log('✅ Final resolved path:', absolutePath);
+
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server at path: ' + absolutePath);
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       const archive = archiver('zip', { zlib: { level: 9 } });
+
+//       res.attachment(`files_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         let cleanedPath = Buffer.isBuffer(p) ? p.toString('utf8') : p;
+//         const absPath = path.join(__dirname, '..', 'uploads', path.basename(cleanedPath.trim()));
+
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(absPath) });
+//         } else {
+//           console.warn('⚠️ Skipped missing file:', absPath);
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//   });
+// });
 router.get('/lab1_download/:id', (req, res) => {
   const fileId = req.params.id;
 
@@ -672,41 +729,34 @@ router.get('/lab1_download/:id', (req, res) => {
 
     let filePath = results[0].file_path;
 
-    // Convert Buffer to string if necessary
+    // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
-    }
-
-    if (!filePath || filePath === 'undefined') {
-      return res.status(404).send('Invalid or missing file path');
     }
 
     const filePaths = filePath.split(',');
 
     if (filePaths.length === 1) {
-      const absolutePath = path.join(__dirname, '..', 'uploads', path.basename(filePaths[0].trim()));
-
-      console.log('✅ Final resolved path:', absolutePath);
-
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
       if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server at path: ' + absolutePath);
+        return res.status(404).send('File not found on server');
       }
 
       return res.download(absolutePath);
     } else {
-      const archive = archiver('zip', { zlib: { level: 9 } });
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
 
       res.attachment(`files_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
-        let cleanedPath = Buffer.isBuffer(p) ? p.toString('utf8') : p;
-        const absPath = path.join(__dirname, '..', 'uploads', path.basename(cleanedPath.trim()));
-
+        const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(absPath) });
-        } else {
-          console.warn('⚠️ Skipped missing file:', absPath);
+          archive.file(absPath, { name: path.basename(p) });
         }
       });
 
@@ -714,7 +764,6 @@ router.get('/lab1_download/:id', (req, res) => {
     }
   });
 });
-
 router.get('/lab2_download/:id', (req, res) => {
   const fileId = req.params.id;
 
