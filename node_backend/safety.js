@@ -45,13 +45,21 @@ const upload = multer({ storage });
 
 
 // Backend route for handling file uploads
-router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) => {
-  const files = req.files;
+const uploadWithFields = upload.fields([
+  { name: 'file', maxCount: 50 }
+]);
+
+router.post('/upload-safety-files/:fieldName', uploadWithFields, (req, res) => {
+  const files = req.files['file'];
   const fieldName = req.params.fieldName;
   const { work_order_id } = req.body;
 
   if (!files || files.length === 0) {
     return res.status(400).send('No files uploaded');
+  }
+
+  if (!work_order_id) {
+    return res.status(400).send("Missing work_order_id");
   }
 
   const filePaths = files.map(f => `uploads/${f.filename}`);
@@ -78,6 +86,7 @@ router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) 
     }
   });
 });
+
 
 
 // Fetch Safety Coming Data
