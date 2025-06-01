@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const archiver = require('archiver'); // Ensure archiver is imported
 
 const generateInvoicePDF = (invoiceData, savePath) => {
   return new Promise((resolve, reject) => {

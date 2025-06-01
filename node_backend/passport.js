@@ -2,6 +2,7 @@ const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const mysql = require('mysql2/promise');
 require('dotenv').config();
+const archiver = require('archiver'); // Ensure archiver is imported
 
 const opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
