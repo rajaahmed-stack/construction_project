@@ -55,9 +55,8 @@ router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) 
   }
 
   const filePaths = files.map(f => `uploads/${f.filename}`);
-
-  // Save to DB (example for safety_signs)
   const jsonPaths = JSON.stringify(filePaths);
+
   const updateQuery = `
     UPDATE safety_department SET ${fieldName} = ?
     WHERE work_order_id = ?
@@ -72,13 +71,14 @@ router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) 
     if (result.affectedRows === 0) {
       db.query(insertQuery, [work_order_id, jsonPaths], (err2, result2) => {
         if (err2) return res.status(500).send("Insert error");
-        return res.status(200).send("Files uploaded and saved");
+        return res.status(200).json({ message: "Files uploaded and inserted", filePaths });
       });
     } else {
-      return res.status(200).send("Files uploaded and updated");
+      return res.status(200).json({ message: "Files uploaded and updated", filePaths });
     }
   });
 });
+
 
 // Fetch Safety Coming Data
 router.get('/safety-coming', (req, res) => {
