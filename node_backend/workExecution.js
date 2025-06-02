@@ -1129,7 +1129,7 @@ const { v4: uuidv4 } = require('uuid'); // for temp file naming
 const UPLOADS_DIR = path.resolve('uploads');
 
 router.get('/safety_download/:id', (req, res) => {
-  const { id } = req.params;
+  const fileId = req.params.id;
 
   const safetyFields = [
     'safety_signs',
@@ -1141,43 +1141,37 @@ router.get('/safety_download/:id', (req, res) => {
 
   const query = `SELECT ${safetyFields.join(', ')} FROM safety_department WHERE work_order_id = ?`;
 
-  db.query(query, [id], (err, results) => {
+  db.query(query, [fileId], (err, results) => {
     if (err) {
       console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
     }
 
     if (results.length === 0) {
-      return res.status(404).send('No safety data found for this work order');
+      return res.status(404).send('No safety data found');
     }
 
     const record = results[0];
-    let allFilePaths = [];
 
-    safetyFields.forEach(field => {
+    let combinedPaths = safetyFields.map(field => {
       let value = record[field];
-      if (!value) return;
-
       if (Buffer.isBuffer(value)) value = value.toString('utf8');
+      return value;
+    }).filter(Boolean).join(',');
 
-      const paths = value
-        .split(',')
-        .map(p => p.trim())
-        .filter(p => p && p.toLowerCase() !== 'undefined' && p !== '');
+    const filePaths = combinedPaths
+      .split(',')
+      .map(p => p && p.trim())
+      .filter(p => typeof p === 'string' && p !== '' && p.toLowerCase() !== 'undefined');
 
-      allFilePaths = allFilePaths.concat(paths);
-    });
-
-    allFilePaths = [...new Set(allFilePaths)]; // remove duplicates
-
-    if (allFilePaths.length === 0) {
+    if (filePaths.length === 0) {
       return res.status(404).send('No valid file paths found');
     }
 
-    const absPaths = allFilePaths.map(p => {
-      p = p.replace(/^uploads[\\/]/, '').trim(); // remove leading "uploads/"
+    const absPaths = filePaths.map(p => {
+      // Remove leading "uploads/" if present, then resolve
+      p = p.replace(/^uploads[\\/]/, '').trim();
       return path.resolve(UPLOADS_DIR, p);
-      
     });
 
     const existingFiles = absPaths.filter(p => {
@@ -1194,11 +1188,9 @@ router.get('/safety_download/:id', (req, res) => {
       return res.download(existingFiles[0]);
     }
 
-    // Multiple files
-    const zipName = `safety_files_work_order_${id}.zip`;
-    res.attachment(zipName);
-
+    // Multiple files — zip and send
     const archive = archiver('zip', { zlib: { level: 9 } });
+    res.attachment(`safety_files_${fileId}.zip`);
     archive.pipe(res);
 
     existingFiles.forEach(file => {
