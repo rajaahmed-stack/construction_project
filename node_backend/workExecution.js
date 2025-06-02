@@ -1179,10 +1179,15 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     // Resolve to absolute paths
-    const absPaths = allFilePaths.map(p =>
-      path.isAbsolute(p) ? p : path.join(UPLOADS_DIR, p)
-    );
-
+    const absPaths = allFilePaths.map(p => {
+      // Remove leading 'uploads/' if already present
+      if (p.startsWith('uploads/')) {
+        p = p.replace(/^uploads\//, '');
+      }
+    
+      return path.join(UPLOADS_DIR, p);
+    });
+    
     // Filter only existing files
     const existingFiles = absPaths.filter(p => {
       const exists = fs.existsSync(p);
