@@ -28,7 +28,7 @@ db.connect((err) => {
 });
 router.use(express.json());
 // Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../uploads');
+const uploadDir = path.resolve('uploads'); // resolves relative to project root
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
