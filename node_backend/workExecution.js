@@ -1228,8 +1228,9 @@ router.get('/safety_download/:id', (req, res) => {
     const filePaths2 = (filePath2 || '').split(',').map(p => p.trim()).filter(Boolean);
 
     const allFilePaths = [...filePaths, ...filePaths2];
-    const absPaths = allFilePaths.map(p => path.resolve(UPLOADS_DIR, path.basename(p)));
-    const existingFiles = absPaths.filter(p => {
+
+    // Filter out non-existent files and log missing ones
+    const existingFiles = allFilePaths.filter(p => {
       if (!fs.existsSync(p)) {
         console.warn(`⚠️ File missing: ${p}`);
         return false;
@@ -1257,6 +1258,7 @@ router.get('/safety_download/:id', (req, res) => {
     archive.finalize();
   });
 });
+
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
