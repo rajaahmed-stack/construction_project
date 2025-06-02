@@ -1126,7 +1126,7 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+const UPLOADS_DIR = path.resolve('uploads');
 
 // router.get('/safety_download/:id', (req, res) => {
 //   const fileId = req.params.id;
@@ -1224,41 +1224,63 @@ router.get('/safety_download/:id', (req, res) => {
       filePath2 = filePath2.toString('utf8');
     }
 
-    const filePaths = (filePath || '').split(',').map(p => p.trim()).filter(Boolean);
-    const filePaths2 = (filePath2 || '').split(',').map(p => p.trim()).filter(Boolean);
+    const filePaths = filePath.split(',');
+    const filePaths2 = filePath2.split(',');
 
-    const allFilePaths = [...filePaths, ...filePaths2];
-
-    // Filter out non-existent files and log missing ones
-    const existingFiles = allFilePaths.filter(p => {
-      if (!fs.existsSync(p)) {
-        console.warn(`⚠️ File missing: ${p}`);
-        return false;
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
-      return true;
-    });
 
-    if (existingFiles.length === 0) {
-      return res.status(404).send('No existing files found on server');
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`Safety_Signs_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
     }
+    if (filePaths2.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths2[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
 
-    if (existingFiles.length === 1) {
-      return res.download(existingFiles[0]);
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`Safety_Signs_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
     }
-
-    // Multiple files — create a zip
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    res.attachment(`Safety_Signs_${fileId}.zip`);
-    archive.pipe(res);
-
-    existingFiles.forEach(file => {
-      archive.file(file, { name: path.basename(file) });
-    });
-
-    archive.finalize();
   });
 });
-
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
