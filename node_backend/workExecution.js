@@ -1126,6 +1126,7 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
+const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 
 // router.get('/safety_download/:id', (req, res) => {
 //   const fileId = req.params.id;
@@ -1199,71 +1200,64 @@ const { v4: uuidv4 } = require('uuid'); // for temp file naming
 //     archive.finalize();
 //   });
 // });
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads'); // adjust if your uploads path is different
-
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query(
-    'SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?',
-    [fileId],
-    (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send('Database error');
-      }
-
-      if (results.length === 0) {
-        return res.status(404).send('File not found');
-      }
-
-      let filePath1 = results[0].safety_signs;
-      let filePath2 = results[0].safety_barriers;
-
-      if (Buffer.isBuffer(filePath1)) filePath1 = filePath1.toString('utf8');
-      if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
-
-      const combinedPaths = [filePath1, filePath2].filter(Boolean).join(',');
-
-      const filePaths = combinedPaths
-        .split(',')
-        .map(p => p.trim())
-        .filter(p => p && p.toLowerCase() !== 'undefined');
-
-      if (filePaths.length === 0) {
-        return res.status(404).send('No valid file paths found');
-      }
-
-      // Construct absolute paths based on known uploads directory
-      const absPaths = filePaths.map(p => path.resolve(UPLOADS_DIR, path.basename(p)));
-
-      const existingFiles = absPaths.filter(p => {
-        const exists = fs.existsSync(p);
-        if (!exists) console.warn(`⚠️ File missing: ${p}`);
-        return exists;
-      });
-
-      if (existingFiles.length === 0) {
-        return res.status(404).send('No existing files found on server');
-      }
-
-      if (existingFiles.length === 1) {
-        return res.download(existingFiles[0]);
-      }
-
-      // Multiple files — zip
-      const archive = archiver('zip', { zlib: { level: 9 } });
-      res.attachment(`Safety_Files_${fileId}.zip`);
-      archive.pipe(res);
-
-      existingFiles.forEach(file => {
-        archive.file(file, { name: path.basename(file) });
-      });
-
-      archive.finalize();
+  db.query('SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
     }
-  );
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].safety_signs;
+    let filePath2 = results[0].safety_barriers;
+
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+    if (Buffer.isBuffer(filePath2)) {
+      filePath2 = filePath2.toString('utf8');
+    }
+
+    const filePaths = (filePath || '').split(',').map(p => p.trim()).filter(Boolean);
+    const filePaths2 = (filePath2 || '').split(',').map(p => p.trim()).filter(Boolean);
+
+    const allFilePaths = [...filePaths, ...filePaths2];
+    const absPaths = allFilePaths.map(p => path.resolve(UPLOADS_DIR, path.basename(p)));
+    const existingFiles = absPaths.filter(p => {
+      if (!fs.existsSync(p)) {
+        console.warn(`⚠️ File missing: ${p}`);
+        return false;
+      }
+      return true;
+    });
+
+    if (existingFiles.length === 0) {
+      return res.status(404).send('No existing files found on server');
+    }
+
+    if (existingFiles.length === 1) {
+      return res.download(existingFiles[0]);
+    }
+
+    // Multiple files — create a zip
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    res.attachment(`Safety_Signs_${fileId}.zip`);
+    archive.pipe(res);
+
+    existingFiles.forEach(file => {
+      archive.file(file, { name: path.basename(file) });
+    });
+
+    archive.finalize();
+  });
 });
+
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
 
