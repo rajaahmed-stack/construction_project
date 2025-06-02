@@ -1128,79 +1128,146 @@ const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
 const UPLOADS_DIR = path.resolve('uploads');
 
+// router.get('/safety_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+
+//   const safetyFields = [
+//     'safety_signs',
+//     'safety_barriers',
+//     'safety_lights',
+//     'safety_boards',
+//     'permissions'
+//   ];
+
+//   const query = `SELECT ${safetyFields.join(', ')} FROM safety_department WHERE work_order_id = ?`;
+
+//   db.query(query, [fileId], (err, results) => {
+//     if (err) {
+//       console.error('❌ Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).send('No safety data found');
+//     }
+
+//     const record = results[0];
+
+//     let combinedPaths = safetyFields.map(field => {
+//       let value = record[field];
+//       if (Buffer.isBuffer(value)) value = value.toString('utf8');
+//       return value;
+//     }).filter(Boolean).join(',');
+
+//     const filePaths = combinedPaths
+//       .split(',')
+//       .map(p => p && p.trim())
+//       .filter(p => typeof p === 'string' && p !== '' && p.toLowerCase() !== 'undefined');
+
+//     if (filePaths.length === 0) {
+//       return res.status(404).send('No valid file paths found');
+//     }
+
+//     const absPaths = filePaths.map(p => {
+//       // Remove leading "uploads/" if present, then resolve
+//       p = p.replace(/^uploads[\\/]/, '').trim();
+//       return path.resolve(UPLOADS_DIR, p);
+//     });
+
+//     const existingFiles = absPaths.filter(p => {
+//       const exists = fs.existsSync(p);
+//       if (!exists) console.warn(`⚠️ File missing: ${p}`);
+//       return exists;
+//     });
+
+//     if (existingFiles.length === 0) {
+//       return res.status(404).send('No existing files found on server');
+//     }
+
+//     if (existingFiles.length === 1) {
+//       return res.download(existingFiles[0]);
+//     }
+
+//     // Multiple files — zip and send
+//     const archive = archiver('zip', { zlib: { level: 9 } });
+//     res.attachment(`safety_files_${fileId}.zip`);
+//     archive.pipe(res);
+
+//     existingFiles.forEach(file => {
+//       archive.file(file, { name: path.basename(file) });
+//     });
+
+//     archive.finalize();
+//   });
+// });
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  const safetyFields = [
-    'safety_signs',
-    'safety_barriers',
-    'safety_lights',
-    'safety_boards',
-    'permissions'
-  ];
+  db.query(
+    'SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?',
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
+      }
 
-  const query = `SELECT ${safetyFields.join(', ')} FROM safety_department WHERE work_order_id = ?`;
+      if (results.length === 0) {
+        return res.status(404).send('File not found');
+      }
 
-  db.query(query, [fileId], (err, results) => {
-    if (err) {
-      console.error('❌ Database error:', err);
-      return res.status(500).send('Database error');
+      let filePath1 = results[0].safety_signs;
+      let filePath2 = results[0].safety_barriers;
+
+      if (Buffer.isBuffer(filePath1)) filePath1 = filePath1.toString('utf8');
+      if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
+
+      // Combine both file paths separated by comma, ignoring empty or undefined
+      const combinedPaths = [filePath1, filePath2].filter(Boolean).join(',');
+
+      // Split and clean paths
+      const filePaths = combinedPaths
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p && p.toLowerCase() !== 'undefined');
+
+      if (filePaths.length === 0) {
+        return res.status(404).send('No valid file paths found');
+      }
+
+      // Resolve absolute paths
+      const absPaths = filePaths.map(p => path.resolve(p));
+
+      // Filter existing files only
+      const existingFiles = absPaths.filter(p => {
+        if (!fs.existsSync(p)) {
+          console.warn(`⚠️ File missing: ${p}`);
+          return false;
+        }
+        return true;
+      });
+
+      if (existingFiles.length === 0) {
+        return res.status(404).send('No existing files found on server');
+      }
+
+      if (existingFiles.length === 1) {
+        return res.download(existingFiles[0]);
+      }
+
+      // Multiple files — create zip
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      res.attachment(`Safety_Files_${fileId}.zip`);
+      archive.pipe(res);
+
+      existingFiles.forEach(file => {
+        archive.file(file, { name: path.basename(file) });
+      });
+
+      archive.finalize();
     }
-
-    if (results.length === 0) {
-      return res.status(404).send('No safety data found');
-    }
-
-    const record = results[0];
-
-    let combinedPaths = safetyFields.map(field => {
-      let value = record[field];
-      if (Buffer.isBuffer(value)) value = value.toString('utf8');
-      return value;
-    }).filter(Boolean).join(',');
-
-    const filePaths = combinedPaths
-      .split(',')
-      .map(p => p && p.trim())
-      .filter(p => typeof p === 'string' && p !== '' && p.toLowerCase() !== 'undefined');
-
-    if (filePaths.length === 0) {
-      return res.status(404).send('No valid file paths found');
-    }
-
-    const absPaths = filePaths.map(p => {
-      // Remove leading "uploads/" if present, then resolve
-      p = p.replace(/^uploads[\\/]/, '').trim();
-      return path.resolve(UPLOADS_DIR, p);
-    });
-
-    const existingFiles = absPaths.filter(p => {
-      const exists = fs.existsSync(p);
-      if (!exists) console.warn(`⚠️ File missing: ${p}`);
-      return exists;
-    });
-
-    if (existingFiles.length === 0) {
-      return res.status(404).send('No existing files found on server');
-    }
-
-    if (existingFiles.length === 1) {
-      return res.download(existingFiles[0]);
-    }
-
-    // Multiple files — zip and send
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    res.attachment(`safety_files_${fileId}.zip`);
-    archive.pipe(res);
-
-    existingFiles.forEach(file => {
-      archive.file(file, { name: path.basename(file) });
-    });
-
-    archive.finalize();
-  });
+  );
 });
-
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
 
