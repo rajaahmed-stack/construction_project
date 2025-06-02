@@ -1126,7 +1126,6 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
-const UPLOADS_DIR = path.resolve('uploads');
 
 // router.get('/safety_download/:id', (req, res) => {
 //   const fileId = req.params.id;
@@ -1200,6 +1199,8 @@ const UPLOADS_DIR = path.resolve('uploads');
 //     archive.finalize();
 //   });
 // });
+const UPLOADS_DIR = path.join(__dirname, '..', 'uploads'); // adjust if your uploads path is different
+
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
@@ -1222,10 +1223,8 @@ router.get('/safety_download/:id', (req, res) => {
       if (Buffer.isBuffer(filePath1)) filePath1 = filePath1.toString('utf8');
       if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
 
-      // Combine both file paths separated by comma, ignoring empty or undefined
       const combinedPaths = [filePath1, filePath2].filter(Boolean).join(',');
 
-      // Split and clean paths
       const filePaths = combinedPaths
         .split(',')
         .map(p => p.trim())
@@ -1235,16 +1234,13 @@ router.get('/safety_download/:id', (req, res) => {
         return res.status(404).send('No valid file paths found');
       }
 
-      // Resolve absolute paths
-      const absPaths = filePaths.map(p => path.resolve(p));
+      // Construct absolute paths based on known uploads directory
+      const absPaths = filePaths.map(p => path.resolve(UPLOADS_DIR, path.basename(p)));
 
-      // Filter existing files only
       const existingFiles = absPaths.filter(p => {
-        if (!fs.existsSync(p)) {
-          console.warn(`⚠️ File missing: ${p}`);
-          return false;
-        }
-        return true;
+        const exists = fs.existsSync(p);
+        if (!exists) console.warn(`⚠️ File missing: ${p}`);
+        return exists;
       });
 
       if (existingFiles.length === 0) {
@@ -1255,7 +1251,7 @@ router.get('/safety_download/:id', (req, res) => {
         return res.download(existingFiles[0]);
       }
 
-      // Multiple files — create zip
+      // Multiple files — zip
       const archive = archiver('zip', { zlib: { level: 9 } });
       res.attachment(`Safety_Files_${fileId}.zip`);
       archive.pipe(res);
