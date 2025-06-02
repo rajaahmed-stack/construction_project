@@ -1154,41 +1154,33 @@ router.get('/safety_download/:id', (req, res) => {
     const record = results[0];
     let allFilePaths = [];
 
-    // Extract and clean paths
     safetyFields.forEach(field => {
       let value = record[field];
       if (!value) return;
 
-      if (Buffer.isBuffer(value)) {
-        value = value.toString('utf8');
-      }
+      if (Buffer.isBuffer(value)) value = value.toString('utf8');
 
       const paths = value
         .split(',')
         .map(p => p.trim())
-        .filter(p => p && p.toLowerCase() !== 'undefined');
+        .filter(p => p && p.toLowerCase() !== 'undefined' && p !== '');
 
       allFilePaths = allFilePaths.concat(paths);
     });
 
-    // Remove duplicates
-    allFilePaths = [...new Set(allFilePaths)];
+    allFilePaths = [...new Set(allFilePaths)]; // remove duplicates
 
     if (allFilePaths.length === 0) {
       return res.status(404).send('No valid file paths found');
     }
 
-    // Resolve to absolute paths
     const absPaths = allFilePaths.map(p => {
-      // Remove leading 'uploads/' if already present
       if (p.startsWith('uploads/')) {
-        p = p.replace(/^uploads\//, '');
+        p = p.slice('uploads/'.length);
       }
-    
       return path.join(UPLOADS_DIR, p);
     });
-    
-    // Filter only existing files
+
     const existingFiles = absPaths.filter(p => {
       const exists = fs.existsSync(p);
       if (!exists) console.warn(`⚠️ File missing: ${p}`);
@@ -1200,11 +1192,10 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     if (existingFiles.length === 1) {
-      // If only one file exists, download it directly
       return res.download(existingFiles[0]);
     }
 
-    // Multiple files: zip them
+    // Multiple files
     const zipName = `safety_files_work_order_${id}.zip`;
     res.attachment(zipName);
 
@@ -1218,7 +1209,6 @@ router.get('/safety_download/:id', (req, res) => {
     archive.finalize();
   });
 });
-
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
