@@ -285,12 +285,10 @@ const SafetyDepartment = () => {
     if (!files || files.length === 0) return;
   
     const formDataWithFiles = new FormData();
+  
     for (let i = 0; i < files.length; i++) {
       formDataWithFiles.append("file", files[i]);
     }
-  
-    // ✅ Add this line
-    formDataWithFiles.append("work_order_id", formData.work_order_id);
   
     try {
       const response = await axios.post(
@@ -305,6 +303,7 @@ const SafetyDepartment = () => {
   
       console.log("Files upload response:", response.data);
   
+      // Append new file paths to the already uploaded files
       setFormData((prevData) => ({
         ...prevData,
         [fieldName]: [
@@ -327,7 +326,6 @@ const SafetyDepartment = () => {
       alert("Failed to upload files. Please try again.");
     }
   };
-  
   
   
     const handleTaskCompletion = (fieldName) => {
@@ -631,7 +629,7 @@ const SafetyDepartment = () => {
       }
   
       const dataToSend = {
-        permissions:  formData.permissions ? `uploads/${formData.permissions.filename}` : null,
+        permissions:  formData.safetyDocumentation ? `uploads/${formData.safetyDocumentation.filename}` : null,
         permissions_completed: true, // Mark as completed
         work_order_id: workOrderId,
       };

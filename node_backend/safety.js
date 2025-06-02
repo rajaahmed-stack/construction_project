@@ -45,49 +45,21 @@ const upload = multer({ storage });
 
 
 // Backend route for handling file uploads
-const uploadWithFields = upload.fields([
-  { name: 'file', maxCount: 50 }
-]);
-
-router.post('/upload-safety-files/:fieldName', uploadWithFields, (req, res) => {
-  const files = req.files['file'];
+router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) => {
+  const files = req.files;
   const fieldName = req.params.fieldName;
-  const { work_order_id } = req.body;
 
-  if (!files || files.length === 0) {
-    return res.status(400).send('No files uploaded');
+  if (!files) {
+    console.log("No file uploaded!");
+    return res.status(400).send('No file uploaded');
   }
 
-  if (!work_order_id) {
-    return res.status(400).send("Missing work_order_id");
-  }
+  console.log('Uploaded file:', files); // Debugging log
 
-  const filePaths = files.map(f => `uploads/${f.filename}`);
-  const jsonPaths = JSON.stringify(filePaths);
-
-  const updateQuery = `
-    UPDATE safety_department SET ${fieldName} = ?
-    WHERE work_order_id = ?
-  `;
-  const insertQuery = `
-    INSERT INTO safety_department (work_order_id, ${fieldName}) VALUES (?, ?)
-  `;
-
-  db.query(updateQuery, [jsonPaths, work_order_id], (err, result) => {
-    if (err) return res.status(500).send("Update error");
-
-    if (result.affectedRows === 0) {
-      db.query(insertQuery, [work_order_id, jsonPaths], (err2, result2) => {
-        if (err2) return res.status(500).send("Insert error");
-        return res.status(200).json({ message: "Files uploaded and inserted", filePaths });
-      });
-    } else {
-      return res.status(200).json({ message: "Files uploaded and updated", filePaths });
-    }
-  });
+  // Return the file path after uploading
+  const filePaths = files.map(file => `uploads/${file.filename}`);
+  res.json({ fieldName, filePaths });
 });
-
-
 
 // Fetch Safety Coming Data
 router.get('/safety-coming', (req, res) => {
