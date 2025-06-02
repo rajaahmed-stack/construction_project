@@ -1175,10 +1175,9 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     const absPaths = allFilePaths.map(p => {
-      if (p.startsWith('uploads/')) {
-        p = p.slice('uploads/'.length);
-      }
-      return path.join(UPLOADS_DIR, p);
+      p = p.replace(/^uploads[\\/]/, '').trim(); // remove leading "uploads/"
+      return path.resolve(UPLOADS_DIR, p);
+      
     });
 
     const existingFiles = absPaths.filter(p => {
