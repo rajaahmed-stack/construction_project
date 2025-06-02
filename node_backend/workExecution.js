@@ -1203,83 +1203,65 @@ const UPLOADS_DIR = path.resolve('uploads');
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query('SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    let filePath = results[0].safety_signs;
-    let filePath2 = results[0].safety_barriers;
-
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath2)) {
-      filePath2 = filePath2.toString('utf8');
-    }
-
-    const filePaths = filePath.split(',');
-    const filePaths2 = filePath2.split(',');
-
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+  db.query(
+    'SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?',
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
+      if (results.length === 0) {
+        return res.status(404).send('File not found');
+      }
+
+      let filePath = results[0].safety_signs;
+      let filePath2 = results[0].safety_barriers;
+
+      // Convert buffer to string if needed
+      if (Buffer.isBuffer(filePath)) {
+        filePath = filePath.toString('utf8');
+      }
+      if (Buffer.isBuffer(filePath2)) {
+        filePath2 = filePath2.toString('utf8');
+      }
+
+      // Combine and clean all file paths
+      const filePaths = (filePath || '').split(',').map(p => p.trim()).filter(Boolean);
+      const filePaths2 = (filePath2 || '').split(',').map(p => p.trim()).filter(Boolean);
+      const allFilePaths = [...filePaths, ...filePaths2];
+
+      // Filter and verify files exist
+      const validFiles = allFilePaths.filter(p => {
+        if (!fs.existsSync(p)) {
+          console.warn(`⚠️ File missing: ${p}`);
+          return false;
+        }
+        return true;
       });
 
+      if (validFiles.length === 0) {
+        return res.status(404).send('No valid files found on server');
+      }
+
+      // If only one file, download directly
+      if (validFiles.length === 1) {
+        return res.download(validFiles[0]);
+      }
+
+      // Else, create a ZIP
       res.attachment(`Safety_Signs_${fileId}.zip`);
+      const archive = archiver('zip', { zlib: { level: 9 } });
       archive.pipe(res);
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
+      validFiles.forEach(file => {
+        archive.file(file, { name: path.basename(file) });
       });
 
       archive.finalize();
     }
-    if (filePaths2.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths2[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-  });
+  );
 });
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
