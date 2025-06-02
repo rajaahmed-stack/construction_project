@@ -1126,7 +1126,7 @@ router.get('/workexe8_download/:id', (req, res) => {
 
 const { v4: uuidv4 } = require('uuid'); // for temp file naming
 
-const UPLOADS_DIR = path.join(__dirname, 'uploads'); // adjust as needed
+const UPLOADS_DIR = path.resolve('uploads');
 
 router.get('/safety_download/:id', (req, res) => {
   const { id } = req.params;
@@ -1148,22 +1148,21 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).send('No safety data found');
+      return res.status(404).send('No safety data found for this work order');
     }
 
     const record = results[0];
-
     let allFilePaths = [];
 
+    // Extract and clean paths
     safetyFields.forEach(field => {
       let value = record[field];
-      if (!value) return; // skip null/undefined
+      if (!value) return;
 
       if (Buffer.isBuffer(value)) {
         value = value.toString('utf8');
       }
 
-      // Split and trim, filter invalid entries (remove empty or 'undefined' strings)
       const paths = value
         .split(',')
         .map(p => p.trim())
@@ -1176,23 +1175,19 @@ router.get('/safety_download/:id', (req, res) => {
     allFilePaths = [...new Set(allFilePaths)];
 
     if (allFilePaths.length === 0) {
-      return res.status(404).send('No files found for download');
+      return res.status(404).send('No valid file paths found');
     }
 
-    // Convert relative filenames or paths to absolute paths under uploads dir
-    const absPaths = allFilePaths.map(p => {
-      // If p is already absolute path, leave it. Else join with UPLOADS_DIR
-      if (path.isAbsolute(p)) return p;
-      return path.join(UPLOADS_DIR, p);
-    });
+    // Resolve to absolute paths
+    const absPaths = allFilePaths.map(p =>
+      path.isAbsolute(p) ? p : path.join(UPLOADS_DIR, p)
+    );
 
-    // Now check existence and filter valid files
+    // Filter only existing files
     const existingFiles = absPaths.filter(p => {
-      if (!fs.existsSync(p)) {
-        console.warn(`⚠️ File not found on server: ${p}`);
-        return false;
-      }
-      return true;
+      const exists = fs.existsSync(p);
+      if (!exists) console.warn(`⚠️ File missing: ${p}`);
+      return exists;
     });
 
     if (existingFiles.length === 0) {
@@ -1200,22 +1195,25 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     if (existingFiles.length === 1) {
+      // If only one file exists, download it directly
       return res.download(existingFiles[0]);
-    } else {
-      const archive = archiver('zip', { zlib: { level: 9 } });
-      const zipName = `safety_files_work_order_${id}.zip`;
-
-      res.attachment(zipName);
-      archive.pipe(res);
-
-      existingFiles.forEach(file => {
-        archive.file(file, { name: path.basename(file) });
-      });
-
-      archive.finalize();
     }
+
+    // Multiple files: zip them
+    const zipName = `safety_files_work_order_${id}.zip`;
+    res.attachment(zipName);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.pipe(res);
+
+    existingFiles.forEach(file => {
+      archive.file(file, { name: path.basename(file) });
+    });
+
+    archive.finalize();
   });
 });
+
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
