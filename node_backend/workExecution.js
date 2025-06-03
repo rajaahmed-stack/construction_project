@@ -1223,6 +1223,7 @@ router.get('/safety_download/:id', (req, res) => {
     if (Buffer.isBuffer(filePath2)) {
       filePath2 = filePath2.toString('utf8');
     }
+   
 
     const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
@@ -1241,7 +1242,7 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Safety_Signs_${fileId}.zip`);
+      res.attachment('Safety_Files_${fileId}.zip');
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1253,9 +1254,9 @@ router.get('/safety_download/:id', (req, res) => {
 
       archive.finalize();
     }
-    if (filePaths.length === 1) {
+    if (filePaths2.length === 1) {
       // Single file
-      const absolutePath = path.resolve(filePaths[0]);
+      const absolutePath = path.resolve(filePaths2[0]);
       if (!fs.existsSync(absolutePath)) {
         return res.status(404).send('File not found on server');
       }
@@ -1267,7 +1268,7 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Safety_Signs_${fileId}.zip`);
+      res.attachment('Safety_Signs_${fileId}.zip');
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1279,8 +1280,12 @@ router.get('/safety_download/:id', (req, res) => {
 
       archive.finalize();
     }
+   
   });
 });
+
+
+
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
