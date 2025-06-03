@@ -1226,7 +1226,7 @@ router.get('/safety_download/:id', (req, res) => {
    
 
     const filePaths = filePath.split(',');
-    // const filePaths2 = filePath2.split(',');
+    const filePaths2 = filePath2.split(',');
 
     if (filePaths.length === 1) {
       // Single file
@@ -1254,32 +1254,32 @@ router.get('/safety_download/:id', (req, res) => {
 
       archive.finalize();
     }
-    // if (filePaths2.length === 1) {
-    //   // Single file
-    //   const absolutePath = path.resolve(filePaths2[0]);
-    //   if (!fs.existsSync(absolutePath)) {
-    //     return res.status(404).send('File not found on server');
-    //   }
+    if (filePaths2.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths2[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
 
-    //   return res.download(absolutePath);
-    // } else {
-    //   // Multiple files — create a zip
-    //   const archive = archiver('zip', {
-    //     zlib: { level: 9 }
-    //   });
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
 
-    //   res.attachment('Safety_Signs_${fileId}.zip');
-    //   archive.pipe(res);
+      res.attachment('Safety_Signs_${fileId}.zip');
+      archive.pipe(res);
 
-    //   filePaths.forEach(p => {
-    //     const absPath = path.resolve(p);
-    //     if (fs.existsSync(absPath)) {
-    //       archive.file(absPath, { name: path.basename(p) });
-    //     }
-    //   });
+      filePaths2.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
 
-    //   archive.finalize();
-    // }
+      archive.finalize();
+    }
    
   });
 });
