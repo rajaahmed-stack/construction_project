@@ -1201,117 +1201,104 @@ const UPLOADS_DIR = path.resolve('uploads');
 //   });
 // });
 router.get('/safety_download/:id', (req, res) => {
+  console.log('Request received for /safety_download/:id');
+
   const fileId = req.params.id;
+  console.log('File ID:', fileId);
 
   db.query('SELECT safety_signs, safety_barriers, safety_lights FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    console.log('Database query executed');
+
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
     }
 
     if (results.length === 0) {
-      return res.status(404).send('File not found');
+      console.log('No results found for ID:', fileId);
+      return res.status(404).send('No data found');
     }
+
+    console.log('Data found:', results[0]);
 
     let filePath = results[0].safety_signs;
     let filePath2 = results[0].safety_barriers;
-    // let filePath3 = results[0].safety_lights;
+    let filePath3 = results[0].safety_lights;
 
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath2)) {
-      filePath2 = filePath2.toString('utf8');
-    }
-    // if (Buffer.isBuffer(filePath3)) {
-    //   filePath3 = filePath3.toString('utf8');
-    // }
+    if (Buffer.isBuffer(filePath)) filePath = filePath.toString('utf8');
+    if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
+    if (Buffer.isBuffer(filePath3)) filePath3 = filePath3.toString('utf8');
 
-    const filePaths = filePath.split(',');
-    const filePaths2 = filePath2.split(',');
-    // const filePaths3 = filePath3.split(',');
+    const allFiles = [];
 
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+    if (filePath) {
+      console.log('Parsing safety_signs:', filePath);
+      const files = filePath.split(',').map(f => f.trim()).filter(Boolean);
+      if (files.length > 0) {
+        allFiles.push(...files);
+      } else {
+        console.log('No valid safety_signs files');
       }
-
-      return res.download(absolutePath);
     } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Files_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
+      console.log('safety_signs field is empty');
     }
-    if (filePaths2.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths2[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+
+    if (filePath2) {
+      console.log('Parsing safety_barriers:', filePath2);
+      const files = filePath2.split(',').map(f => f.trim()).filter(Boolean);
+      if (files.length > 0) {
+        allFiles.push(...files);
+      } else {
+        console.log('No valid safety_barriers files');
       }
-
-      return res.download(absolutePath);
     } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
+      console.log('safety_barriers field is empty');
     }
-    // if (filePaths3.length === 1) {
-    //   // Single file
-    //   const absolutePath = path.resolve(filePaths3[0]);
-    //   if (!fs.existsSync(absolutePath)) {
-    //     return res.status(404).send('File not found on server');
-    //   }
 
-    //   return res.download(absolutePath);
-    // } else {
-    //   // Multiple files — create a zip
-    //   const archive = archiver('zip', {
-    //     zlib: { level: 9 }
-    //   });
+    if (filePath3) {
+      console.log('Parsing safety_lights:', filePath3);
+      const files = filePath3.split(',').map(f => f.trim()).filter(Boolean);
+      if (files.length > 0) {
+        allFiles.push(...files);
+      } else {
+        console.log('No valid safety_lights files');
+      }
+    } else {
+      console.log('safety_lights field is empty');
+    }
 
-    //   res.attachment(`Safety_3Files_${fileId}.zip`);
-    //   archive.pipe(res);
+    if (allFiles.length === 0) {
+      console.log('No files to include in zip');
+      return res.status(404).send('No files available for download');
+    }
 
-    //   filePaths.forEach(p => {
-    //     const absPath = path.resolve(p);
-    //     if (fs.existsSync(absPath)) {
-    //       archive.file(absPath, { name: path.basename(p) });
-    //     }
-    //   });
+    console.log('Creating zip for files:', allFiles);
 
-    //   archive.finalize();
-    // }
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    res.attachment(`Safety_AllFiles_${fileId}.zip`);
+    archive.pipe(res);
+
+    allFiles.forEach((file, index) => {
+      const absPath = path.resolve(file);
+      console.log(`Checking file [${index}]: ${absPath}`);
+      if (fs.existsSync(absPath)) {
+        console.log(`Adding to archive: ${absPath}`);
+        archive.file(absPath, { name: path.basename(file) });
+      } else {
+        console.warn(`File does not exist on server: ${absPath}`);
+      }
+    });
+
+    archive.finalize().then(() => {
+      console.log('Archive finalized and sent');
+    }).catch(err => {
+      console.error('Error during archive finalization:', err);
+      res.status(500).send('Error creating archive');
+    });
   });
 });
+
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
