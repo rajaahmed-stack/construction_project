@@ -652,47 +652,44 @@ router.get('/workexe1_download/:id', (req, res) => {
   const fileId = req.params.id;
 
   db.query('SELECT file_path FROM work_receiving WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
+    if (err || results.length === 0) {
+      console.error('DB error or no result:', err);
+      return res.status(500).send('File not found');
     }
 
     let filePath = results[0].file_path;
+    if (Buffer.isBuffer(filePath)) filePath = filePath.toString('utf8');
 
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-
-    const filePaths = filePath.split(',');
+    const filePaths = filePath.split(',').map(p => p.trim()).filter(p => p.length > 0);
 
     if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
+      const absPath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absPath)) {
         return res.status(404).send('File not found on server');
       }
-
-      return res.download(absolutePath);
+      return res.download(absPath);
     } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
+      const archive = archiver('zip', { zlib: { level: 9 } });
       res.attachment(`files_${fileId}.zip`);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
       archive.pipe(res);
+
+      let hasFiles = false;
 
       filePaths.forEach(p => {
         const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
+          hasFiles = true;
+          archive.file(absPath, { name: path.basename(absPath) });
         }
       });
+
+      if (!hasFiles) {
+        return res.status(404).send('No files found on server');
+      }
 
       archive.finalize();
     }
