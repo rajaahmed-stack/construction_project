@@ -1242,7 +1242,7 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment('Safety_Signs_${fileId}.zip');
+      res.attachment('Safety_Signs_${Id}.zip');
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1268,7 +1268,7 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment('Safety_Signs_${fileId}.zip');
+      res.attachment('Safety_Signs_${Id}.zip');
       archive.pipe(res);
 
       filePaths.forEach(p => {
