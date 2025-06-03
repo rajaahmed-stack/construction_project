@@ -1242,7 +1242,7 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment('Safety_Signs_${Id}.zip');
+      res.attachment(`Safety_Signs_${fileId}.zip`);
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1268,10 +1268,10 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment('Safety_Signs_${Id}.zip');
+      res.attachment(`Safety_file_${fileId}.zip`);
       archive.pipe(res);
 
-      filePaths.forEach(p => {
+      filePaths2.forEach(p => {
         const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
           archive.file(absPath, { name: path.basename(p) });
