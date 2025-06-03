@@ -1200,94 +1200,10 @@ const UPLOADS_DIR = path.resolve('uploads');
 //     archive.finalize();
 //   });
 // });
-// router.get('/safety_download/:id', (req, res) => {
-//   const fileId = req.params.id;
-
-//   db.query('SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
-//     if (err) {
-//       console.error('Database error:', err);
-//       return res.status(500).send('Database error');
-//     }
-
-//     if (results.length === 0) {
-//       return res.status(404).send('File not found');
-//     }
-
-//     let filePath = results[0].safety_signs;
-//     let filePath2 = results[0].safety_barriers;
-
-//     // Convert buffer to string if needed
-//     if (Buffer.isBuffer(filePath)) {
-//       filePath = filePath.toString('utf8');
-//     }
-//     if (Buffer.isBuffer(filePath2)) {
-//       filePath2 = filePath2.toString('utf8');
-//     }
-   
-
-//     const filePaths = filePath.split(',');
-//     const filePaths2 = filePath2.split(',');
-
-//     if (filePaths.length === 1) {
-//       // Single file
-//       const absolutePath = path.resolve(filePaths[0]);
-//       if (!fs.existsSync(absolutePath)) {
-//         return res.status(404).send('File not found on server');
-//       }
-
-//       return res.download(absolutePath);
-//     } else {
-//       // Multiple files — create a zip
-//       const archive = archiver('zip', {
-//         zlib: { level: 9 }
-//       });
-
-//       res.attachment('Safety_Signs_${fileId}.zip');
-//       archive.pipe(res);
-
-//       filePaths.forEach(p => {
-//         const absPath = path.resolve(p);
-//         if (fs.existsSync(absPath)) {
-//           archive.file(absPath, { name: path.basename(p) });
-//         }
-//       });
-
-//       archive.finalize();
-//     }
-//     if (filePaths2.length === 1) {
-//       // Single file
-//       const absolutePath = path.resolve(filePaths2[0]);
-//       if (!fs.existsSync(absolutePath)) {
-//         return res.status(404).send('File not found on server');
-//       }
-
-//       return res.download(absolutePath);
-//     } else {
-//       // Multiple files — create a zip
-//       const archive = archiver('zip', {
-//         zlib: { level: 9 }
-//       });
-
-//       res.attachment('Safety_Signs_${fileId}.zip');
-//       archive.pipe(res);
-
-//       filePaths2.forEach(p => {
-//         const absPath = path.resolve(p);
-//         if (fs.existsSync(absPath)) {
-//           archive.file(absPath, { name: path.basename(p) });
-//         }
-//       });
-
-//       archive.finalize();
-//     }
-   
-//   });
-// });
-
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query('SELECT safety_signs FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+  db.query('SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
@@ -1298,13 +1214,19 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     let filePath = results[0].safety_signs;
+    let filePath2 = results[0].safety_barriers;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
     }
+    if (Buffer.isBuffer(filePath2)) {
+      filePath2 = filePath2.toString('utf8');
+    }
+   
 
     const filePaths = filePath.split(',');
+    const filePaths2 = filePath2.split(',');
 
     if (filePaths.length === 1) {
       // Single file
@@ -1320,7 +1242,7 @@ router.get('/safety_download/:id', (req, res) => {
         zlib: { level: 9 }
       });
 
-      res.attachment(`Safetyfiles_${fileId}.zip`);
+      res.attachment('Safety_Signs_${fileId}.zip');
       archive.pipe(res);
 
       filePaths.forEach(p => {
@@ -1332,8 +1254,86 @@ router.get('/safety_download/:id', (req, res) => {
 
       archive.finalize();
     }
+    if (filePaths2.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths2[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment('Safety_Signs_${fileId}.zip');
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+   
   });
 });
+
+// router.get('/safety_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+
+//   db.query('SELECT safety_signs FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+//     if (err) {
+//       console.error('Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).send('File not found');
+//     }
+
+//     let filePath = results[0].safety_signs;
+
+//     // Convert buffer to string if needed
+//     if (Buffer.isBuffer(filePath)) {
+//       filePath = filePath.toString('utf8');
+//     }
+
+//     const filePaths = filePath.split(',');
+
+//     if (filePaths.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safetyfiles_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//   });
+// });
 
 
 router.get('/download-files/:fieldName/:id', (req, res) => {
