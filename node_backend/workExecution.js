@@ -1284,7 +1284,7 @@ const UPLOADS_DIR = path.resolve('uploads');
 //   });
 // });
 
-router.get('/Safety_download/:id', (req, res) => {
+router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
   db.query('SELECT safety_signs FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
