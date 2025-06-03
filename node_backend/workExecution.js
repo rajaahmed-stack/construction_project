@@ -1215,7 +1215,7 @@ router.get('/safety_download/:id', (req, res) => {
 
     let filePath = results[0].safety_signs;
     let filePath2 = results[0].safety_barriers;
-    let filePath3 = results[0].safety_lights;
+    // let filePath3 = results[0].safety_lights;
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1230,7 +1230,7 @@ router.get('/safety_download/:id', (req, res) => {
 
     const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
-    const filePaths3 = filePath3.split(',');
+    // const filePaths3 = filePath3.split(',');
 
     if (filePaths.length === 1) {
       // Single file
