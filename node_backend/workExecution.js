@@ -1253,9 +1253,9 @@ router.get('/safety_download/:id', (req, res) => {
 
       archive.finalize();
     }
-    if (filePaths2.length === 1) {
+    if (filePaths.length === 1) {
       // Single file
-      const absolutePath = path.resolve(filePaths2[0]);
+      const absolutePath = path.resolve(filePaths[0]);
       if (!fs.existsSync(absolutePath)) {
         return res.status(404).send('File not found on server');
       }
