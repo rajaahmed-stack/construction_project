@@ -1202,7 +1202,6 @@ const UPLOADS_DIR = path.resolve('uploads');
 // });
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
-  console.log(`Download request received for work_order_id: ${fileId}`);
 
   db.query('SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
@@ -1211,66 +1210,77 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
-      console.log(`No records found for work_order_id: ${fileId}`);
-      return res.status(404).send('No file found for this work order ID.');
+      return res.status(404).send('File not found');
     }
 
     let filePath = results[0].safety_signs;
     let filePath2 = results[0].safety_barriers;
 
+    // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
-      console.log('Converted safety_signs buffer to string');
     }
-
     if (Buffer.isBuffer(filePath2)) {
       filePath2 = filePath2.toString('utf8');
-      console.log('Converted safety_barriers buffer to string');
     }
+   
 
-    const filePaths = filePath.split(',').map(p => p.trim()).filter(Boolean);
-    const filePaths2 = filePath2.split(',').map(p => p.trim()).filter(Boolean);
+    const filePaths = filePath.split(',');
+    const filePaths2 = filePath2.split(',');
 
-    console.log('Safety Signs files:', filePaths);
-    console.log('Safety Barriers files:', filePaths2);
-
-    // Start zip creation
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    res.attachment(`Safety_Documents_${fileId}.zip`);
-    archive.pipe(res);
-
-    let filesAdded = false;
-
-    // Add safety_signs
-    filePaths.forEach((p, idx) => {
-      const absPath = path.resolve(p);
-      if (fs.existsSync(absPath)) {
-        console.log(`Adding safety_signs file: ${absPath}`);
-        archive.file(absPath, { name: `safety_sign_${idx + 1}_${path.basename(p)}` });
-        filesAdded = true;
-      } else {
-        console.warn(`Missing safety_signs file: ${absPath}`);
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
-    });
 
-    // Add safety_barriers
-    filePaths2.forEach((p, idx) => {
-      const absPath = path.resolve(p);
-      if (fs.existsSync(absPath)) {
-        console.log(`Adding safety_barriers file: ${absPath}`);
-        archive.file(absPath, { name: `safety_barrier_${idx + 1}_${path.basename(p)}` });
-        filesAdded = true;
-      } else {
-        console.warn(`Missing safety_barriers file: ${absPath}`);
-      }
-    });
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
 
-    if (!filesAdded) {
-      console.log('No valid files found to download.');
-      return res.status(404).send('No valid files found to download.');
+      res.attachment('Safety_Signs_${fileId}.zip');
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
     }
+    if (filePaths2.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths2[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
 
-    archive.finalize();
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment('Safety_Signs_${fileId}.zip');
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+   
   });
 });
 
