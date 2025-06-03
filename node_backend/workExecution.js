@@ -1201,65 +1201,87 @@ const UPLOADS_DIR = path.resolve('uploads');
 //   });
 // });
 router.get('/safety_download/:id', (req, res) => {
-  console.log('Request received for /safety_download/:id');
-
   const fileId = req.params.id;
-  console.log('Work Order ID:', fileId);
 
   db.query('SELECT safety_signs, safety_barriers FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
-    console.log('Database query executed');
-
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
     }
 
     if (results.length === 0) {
-      console.log('No records found for work_order_id:', fileId);
-      return res.status(404).send('No files found for the given ID');
+      return res.status(404).send('File not found');
     }
 
     let filePath = results[0].safety_signs;
     let filePath2 = results[0].safety_barriers;
 
-    if (Buffer.isBuffer(filePath)) filePath = filePath.toString('utf8');
-    if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
-
-    const filePaths = filePath ? filePath.split(',').map(f => f.trim()).filter(Boolean) : [];
-    const filePaths2 = filePath2 ? filePath2.split(',').map(f => f.trim()).filter(Boolean) : [];
-
-    const allFiles = [...filePaths, ...filePaths2];
-
-    if (allFiles.length === 0) {
-      console.log('No valid files to download.');
-      return res.status(404).send('No valid files to download');
+    // Convert buffer to string if needed
+    if (Buffer.isBuffer(filePath)) {
+      filePath = filePath.toString('utf8');
+    }
+    if (Buffer.isBuffer(filePath2)) {
+      filePath2 = filePath2.toString('utf8');
     }
 
-    console.log('Preparing to zip files:', allFiles);
+    const filePaths = filePath.split(',');
+    const filePaths2 = filePath2.split(',');
 
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    res.attachment(`Safety_Files_${fileId}.zip`);
-    archive.pipe(res);
-
-    allFiles.forEach((file, index) => {
-      const absPath = path.resolve(file);
-      console.log(`Processing file [${index + 1}]: ${absPath}`);
-      if (fs.existsSync(absPath)) {
-        console.log(`Adding file to archive: ${absPath}`);
-        archive.file(absPath, { name: path.basename(absPath) });
-      } else {
-        console.warn(`File not found on server: ${absPath}`);
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
       }
-    });
 
-    archive.finalize().then(() => {
-      console.log('Archive finalized and sent successfully.');
-    }).catch(err => {
-      console.error('Error finalizing archive:', err);
-      res.status(500).send('Error creating zip archive');
-    });
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`Safety_files_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
+    if (filePaths2.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths2[0]);
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    } else {
+      // Multiple files — create a zip
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      res.attachment(`Safety_allfiles_${fileId}.zip`);
+      archive.pipe(res);
+
+      filePaths.forEach(p => {
+        const absPath = path.resolve(p);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+      });
+
+      archive.finalize();
+    }
   });
 });
+
 router.get('/download-files/:fieldName/:id', (req, res) => {
   const { fieldName, id } = req.params;
 
