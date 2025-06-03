@@ -1224,9 +1224,9 @@ router.get('/safety_download/:id', (req, res) => {
     if (Buffer.isBuffer(filePath2)) {
       filePath2 = filePath2.toString('utf8');
     }
-    if (Buffer.isBuffer(filePath3)) {
-      filePath3 = filePath3.toString('utf8');
-    }
+    // if (Buffer.isBuffer(filePath3)) {
+    //   filePath3 = filePath3.toString('utf8');
+    // }
 
     const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
