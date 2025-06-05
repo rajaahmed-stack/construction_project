@@ -724,44 +724,41 @@ router.get('/workexe_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).send('File not found');
+      return res.status(404).send('No record found for this ID');
     }
 
-    let filePath = results[0].asphalt;
-    let filePath2 = results[0].milling;
-    let filePath3 = results[0].concrete;
-    let filePath4 = results[0].sand;
-    let filePath5 = results[0].cable_lying;
-
-    // Convert buffers
-    if (Buffer.isBuffer(filePath)) filePath = filePath.toString('utf8');
-    if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
-    if (Buffer.isBuffer(filePath3)) filePath3 = filePath3.toString('utf8');
-    if (Buffer.isBuffer(filePath4)) filePath4 = filePath4.toString('utf8');
-    if (Buffer.isBuffer(filePath5)) filePath5 = filePath5.toString('utf8');
-
+    const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
     const allFiles = [];
 
-    [filePath, filePath2, filePath3, filePath4, filePath5].forEach(files => {
-      if (files) {
-        files.split(',').forEach(p => {
+    fields.forEach(field => {
+      let value = results[0][field];
+      if (Buffer.isBuffer(value)) value = value.toString('utf8');
+
+      if (value) {
+        const paths = value.split(',');
+        paths.forEach(p => {
           const absPath = path.resolve(p.trim());
           if (fs.existsSync(absPath)) {
             allFiles.push(absPath);
+          } else {
+            console.warn(`File does not exist: ${absPath}`);
           }
         });
       }
     });
 
     if (allFiles.length === 0) {
-      return res.status(404).send('No files found on server');
+      return res.status(404).send('No valid files found on server');
     }
 
     if (allFiles.length === 1) {
+      console.log('Sending single file:', allFiles[0]);
       return res.download(allFiles[0]);
     }
 
-    // Multiple files: Create zip once
+    console.log('Creating zip with files:', allFiles);
+
+    // ZIP multiple files
     const archive = archiver('zip', { zlib: { level: 9 } });
     res.attachment(`Work_Exe_Files_${fileId}.zip`);
     archive.pipe(res);
@@ -771,6 +768,15 @@ router.get('/workexe_download/:id', (req, res) => {
     });
 
     archive.finalize();
+
+    archive.on('error', err => {
+      console.error('Archiver error:', err);
+      res.status(500).send('Error creating ZIP archive');
+    });
+
+    archive.on('end', () => {
+      console.log('ZIP archive finalized successfully');
+    });
   });
 });
 router.get('/lab1_download/:id', (req, res) => {
