@@ -1216,46 +1216,49 @@ router.get('/safety_download/:id', (req, res) => {
         return res.status(404).send('File not found');
       }
 
-      const row = results[0];
+      let filePath = results[0].safety_signs;
+      let filePath2 = results[0].safety_barriers;
+      let filePath3 = results[0].safety_lights;
+      let filePath4 = results[0].safety_boards;
+      let filePath5 = results[0].permissions;
+      let filePath6 = results[0].safety_documentation;
 
-      const allFilePaths = [];
+      // Convert buffers to strings
+      if (Buffer.isBuffer(filePath)) filePath = filePath.toString('utf8');
+      if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
+      if (Buffer.isBuffer(filePath3)) filePath3 = filePath3.toString('utf8');
+      if (Buffer.isBuffer(filePath4)) filePath4 = filePath4.toString('utf8');
+      if (Buffer.isBuffer(filePath5)) filePath5 = filePath5.toString('utf8');
+      if (Buffer.isBuffer(filePath6)) filePath6 = filePath6.toString('utf8');
 
-      ['safety_signs', 'safety_barriers', 'safety_lights', 'safety_boards', 'permissions', 'safety_documentation'].forEach(field => {
-        let filePath = row[field];
-        if (Buffer.isBuffer(filePath)) {
-          filePath = filePath.toString('utf8');
-        }
-        if (filePath) {
-          const paths = filePath.split(',').map(p => p.trim()).filter(Boolean);
-          allFilePaths.push(...paths);
-        }
-      });
+      const filePaths = []
+        .concat(filePath?.split(',') || [])
+        .concat(filePath2?.split(',') || [])
+        .concat(filePath3?.split(',') || [])
+        .concat(filePath4?.split(',') || [])
+        .concat(filePath5?.split(',') || [])
+        .concat(filePath6?.split(',') || []);
 
-      if (allFilePaths.length === 0) {
-        return res.status(404).send('No files to download');
+      // Filter existing files
+      const validFiles = filePaths.filter(p => p && fs.existsSync(path.resolve(p)));
+
+      if (validFiles.length === 0) {
+        return res.status(404).send('No files found on server');
       }
 
-      if (allFilePaths.length === 1) {
-        const absolutePath = path.resolve(allFilePaths[0]);
-        if (!fs.existsSync(absolutePath)) {
-          return res.status(404).send('File not found on server');
-        }
-        return res.download(absolutePath);
+      // If only one file, download it directly
+      if (validFiles.length === 1) {
+        return res.download(path.resolve(validFiles[0]));
       }
 
-      // Multiple files – create a single zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Documents_${fileId}.zip`);
+      // Else zip them
+      res.attachment(`Safety_Files_${fileId}.zip`);
+      const archive = archiver('zip', { zlib: { level: 9 } });
       archive.pipe(res);
 
-      allFilePaths.forEach(p => {
+      validFiles.forEach(p => {
         const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
+        archive.file(absPath, { name: path.basename(p) });
       });
 
       archive.finalize();
