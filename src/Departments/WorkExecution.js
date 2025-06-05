@@ -466,8 +466,10 @@ const handleFileUpload = async (fieldName, files) => {
         return;
       }
   
+      const uploadedFilesArray = formData.asphalt || [];
+  
       const dataToSend = {
-        asphalt: formData.asphalt ? `uploads/${formData.asphalt.filename}` : null,
+        asphalt: uploadedFilesArray.join(","), // ✅ save comma-separated paths
         asphalt_completed: formData.asphalt_completed,
         work_order_id: workOrderId,
       };
@@ -476,7 +478,7 @@ const handleFileUpload = async (fieldName, files) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
-
+  
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -490,6 +492,7 @@ const handleFileUpload = async (fieldName, files) => {
       console.error("Error saving field:", error);
     }
   };
+  
   const handleSaveMilling = async (field, workOrderId) => {
     try {
       if (!workOrderId) {
@@ -497,8 +500,10 @@ const handleFileUpload = async (fieldName, files) => {
         return;
       }
   
+      const uploadedFilesArray = formData.milling || [];
+  
       const dataToSend = {
-        milling: formData.milling ? `uploads/${formData.milling.filename}` : null,
+        milling: uploadedFilesArray.join(","), // ✅ save comma-separated paths
         milling_completed: formData.milling_completed,
         work_order_id: workOrderId,
       };
@@ -507,7 +512,7 @@ const handleFileUpload = async (fieldName, files) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
-
+  
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -528,8 +533,10 @@ const handleFileUpload = async (fieldName, files) => {
         return;
       }
   
+      const uploadedFilesArray = formData.concrete || [];
+  
       const dataToSend = {
-        concrete: formData.concrete ? `uploads/${formData.concrete.filename}` : null,
+        concrete: uploadedFilesArray.join(","), // ✅ save comma-separated paths
         concrete_completed: formData.concrete_completed,
         work_order_id: workOrderId,
       };
@@ -538,7 +545,7 @@ const handleFileUpload = async (fieldName, files) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
-
+  
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -552,6 +559,9 @@ const handleFileUpload = async (fieldName, files) => {
       console.error("Error saving field:", error);
     }
   };
+  
+ 
+  
   
   const handleSaveDeck3 = async (field, workOrderId) => {
     try {
@@ -655,8 +665,10 @@ const handleFileUpload = async (fieldName, files) => {
         return;
       }
   
+      const uploadedFilesArray = formData.sand || [];
+  
       const dataToSend = {
-        sand: formData.sand ? `uploads/${formData.sand.filename}` : null,
+        sand: uploadedFilesArray.join(","), // ✅ save comma-separated paths
         sand_completed: formData.sand_completed,
         work_order_id: workOrderId,
       };
@@ -665,7 +677,7 @@ const handleFileUpload = async (fieldName, files) => {
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
-
+  
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -679,6 +691,8 @@ const handleFileUpload = async (fieldName, files) => {
       console.error("Error saving field:", error);
     }
   };
+  
+  
   const handleSaveBackFilling = async (field, workOrderId) => {
     try {
       if (!workOrderId) {
@@ -710,7 +724,40 @@ const handleFileUpload = async (fieldName, files) => {
       console.error("Error saving field:", error);
     }
   };
-  const handleSaveCableLying = async (field, workOrderId) => {
+  // const handleSaveCableLying = async (field, workOrderId) => {
+  //   try {
+  //     if (!workOrderId) {
+  //       alert("Work Order ID is missing!");
+  //       return;
+  //     }
+  
+  //     const uploadedFilesArray = formData.cable_lying || [];
+  
+  //     const dataToSend = {
+  //       cable_lying: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+  //       cable_lying_completed: formData.cable_lying_completed,
+  //       work_order_id: workOrderId,
+  //     };
+  
+  //     await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
+  
+  //     alert(`${field} saved successfully!`);
+  //     await refreshWorkExeData();
+  
+  //     setFormData((prevData) => ({
+  //       ...prevData,
+  //       [`${field}Completed`]: true,
+  //     }));
+  
+  //     setCompletedTasks((prev) => prev + 1);
+  //     if (completedTasks + 1 === totalTasks) {
+  //       setIsSendEnabled(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving field:", error);
+  //   }
+  // };
+  const handleSaveCableLying = async (field, workOrderId) => { 
     try {
       if (!workOrderId) {
         alert("Work Order ID is missing!");
@@ -718,16 +765,18 @@ const handleFileUpload = async (fieldName, files) => {
       }
   
       const dataToSend = {
-        cable_lying: formData.cable_lying  || null,
+        cable_lying: formData.cable_lying || null,
         cable_lying_completed: formData.cable_lying_completed,
         work_order_id: workOrderId,
       };
   
-      const response = await axios.post("https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying", dataToSend);
+      const response = await axios.post(
+        "https://constructionproject-production.up.railway.app/api/work-execution/save-cable_lying",
+        dataToSend
+      );
   
       alert(`${field} saved successfully!`);
       await refreshWorkExeData();
-
       setFormData((prevData) => ({
         ...prevData,
         [`${field}Completed`]: true,
@@ -741,6 +790,7 @@ const handleFileUpload = async (fieldName, files) => {
       console.error("Error saving field:", error);
     }
   };
+ 
   const handleSaveTrench = async (field, workOrderId) => {
     try {
       if (!workOrderId) {
@@ -796,7 +846,7 @@ const handleFileUpload = async (fieldName, files) => {
 
       {/* Upper Section: Incoming Work Execution Data */}
       <Grid item xs={12} md={5}>
-  <Paper elevation={3} sx={{ padding: "20px", backgroundColor: "#f8f9fa" }}>
+  <Paper elevation={3} sx={{ padding: "20px", backgroundColor: "#f8f9fa",overflow: "auto", maxHeight: "500px" }}>
     <Typography variant="h6">Incoming Work Execution Data</Typography>
     {upperData.length === 0 ? (
       <Typography color="error">No Work Execution coming data available.</Typography>

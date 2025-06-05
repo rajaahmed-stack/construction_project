@@ -516,10 +516,54 @@ router.post('/save-backfilling', (req, res) => {
   });
 });
 
-router.post('/save-cable_lying', (req, res) => {
-  const { cable_lying, cable_lying_completed,  work_order_id } = req.body; // Extract field and value
-  console.log("Received cable_lying:", cable_lying); // Debug: log received file path
+// router.post('/save-cable_lying', (req, res) => {
+//   const { cable_lying, cable_lying_completed,  work_order_id } = req.body; // Extract field and value
+//   console.log("Received cable_lying:", cable_lying); // Debug: log received file path
 
+//   const updateQuery = `
+//     UPDATE work_execution 
+//     SET cable_lying = ?, cable_lying_completed = ? 
+//     WHERE work_order_id = ?
+//   `;
+
+//   const insertQuery = `
+//     INSERT INTO work_execution (work_order_id, cable_lying, cable_lying_completed) 
+//     VALUES (?, ?, ?)
+//   `;
+
+//   db.query(updateQuery, [cable_lying, cable_lying_completed, work_order_id], (err, result) => {
+//     if (err) {
+//       console.error("Update error:", err);
+//       return res.status(500).send("Error during update");
+//     }
+
+//     if (result.affectedRows === 0) {
+//       // No row updated – insert instead
+//       db.query(insertQuery, [work_order_id, cable_lying, cable_lying_completed], (err2, result2) => {
+//         if (err2) {
+//           console.error("Insert error:", err2);
+//           return res.status(500).send("Error during insert");
+//         }
+//         return res.status(200).send("Field inserted successfully");
+//       });
+//     } else {
+//       return res.status(200).send("Field updated successfully");
+//     }
+//   });
+// });
+router.post('/save-cable_lying', (req, res) => {
+  const { cable_lying, cable_lying_completed, work_order_id } = req.body;
+
+  console.log("Received data:", req.body);  // Debug line
+
+  if (!work_order_id) {
+    return res.status(400).send("Missing work_order_id");
+  }
+  let safetySignsStr = cable_lying;
+
+  if (Array.isArray(cable_lying)) {
+    safetySignsStr = cable_lying.join(','); // ✅ store as plain comma-separated
+  }
   const updateQuery = `
     UPDATE work_execution 
     SET cable_lying = ?, cable_lying_completed = ? 
@@ -531,27 +575,27 @@ router.post('/save-cable_lying', (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  db.query(updateQuery, [cable_lying, cable_lying_completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safetySignsStr, cable_lying_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
 
     if (result.affectedRows === 0) {
-      // No row updated – insert instead
-      db.query(insertQuery, [work_order_id, cable_lying, cable_lying_completed], (err2, result2) => {
+      db.query(insertQuery, [work_order_id, safetySignsStr, cable_lying_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
         }
+        console.log("Insert result:", result2);
         return res.status(200).send("Field inserted successfully");
       });
     } else {
+      console.log("Update result:", result);
       return res.status(200).send("Field updated successfully");
     }
   });
 });
-
 router.post('/save-trench', (req, res) => {
   const { trench, trench_completed,  work_order_id } = req.body; // Extract field and value
   console.log("Received trench:", trench); // Debug: log received file path
