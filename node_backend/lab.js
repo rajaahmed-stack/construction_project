@@ -717,60 +717,61 @@ router.put("/update-wedelivery-status", (req, res) => {
 router.get('/workexe_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query(
-    'SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?',
-    [fileId],
-    (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send('Database error');
-      }
-
-      if (results.length === 0) {
-        return res.status(404).send('File not found');
-      }
-
-      const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
-      let allPaths = [];
-
-      // Gather all file paths
-      fields.forEach((field) => {
-        let paths = results[0][field];
-        if (Buffer.isBuffer(paths)) {
-          paths = paths.toString('utf8');
-        }
-        if (paths) {
-          const pathArray = paths.split(',').map(p => p.trim()).filter(p => p);
-          allPaths = allPaths.concat(pathArray);
-        }
-      });
-
-      // Filter out non-existing files
-      const existingFiles = allPaths.filter(p => fs.existsSync(path.resolve(p)));
-
-      if (existingFiles.length === 0) {
-        return res.status(404).send('No valid files found on server.');
-      }
-
-      // If only one file exists, download it directly
-      if (existingFiles.length === 1) {
-        const absolutePath = path.resolve(existingFiles[0]);
-        return res.download(absolutePath);
-      }
-
-      // Multiple files — create zip
-      const archive = archiver('zip', { zlib: { level: 9 } });
-      res.attachment(`Work_Exe_Files_${fileId}.zip`);
-      archive.pipe(res);
-
-      existingFiles.forEach(p => {
-        const absPath = path.resolve(p);
-        archive.file(absPath, { name: path.basename(p) });
-      });
-
-      archive.finalize();
+  db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
     }
-  );
+
+    if (results.length === 0) {
+      return res.status(404).send('File not found');
+    }
+
+    let filePath = results[0].asphalt;
+    let filePath2 = results[0].milling;
+    let filePath3 = results[0].concrete;
+    let filePath4 = results[0].sand;
+    let filePath5 = results[0].cable_lying;
+
+    // Convert buffers
+    if (Buffer.isBuffer(filePath)) filePath = filePath.toString('utf8');
+    if (Buffer.isBuffer(filePath2)) filePath2 = filePath2.toString('utf8');
+    if (Buffer.isBuffer(filePath3)) filePath3 = filePath3.toString('utf8');
+    if (Buffer.isBuffer(filePath4)) filePath4 = filePath4.toString('utf8');
+    if (Buffer.isBuffer(filePath5)) filePath5 = filePath5.toString('utf8');
+
+    const allFiles = [];
+
+    [filePath, filePath2, filePath3, filePath4, filePath5].forEach(files => {
+      if (files) {
+        files.split(',').forEach(p => {
+          const absPath = path.resolve(p.trim());
+          if (fs.existsSync(absPath)) {
+            allFiles.push(absPath);
+          }
+        });
+      }
+    });
+
+    if (allFiles.length === 0) {
+      return res.status(404).send('No files found on server');
+    }
+
+    if (allFiles.length === 1) {
+      return res.download(allFiles[0]);
+    }
+
+    // Multiple files: Create zip once
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    res.attachment(`Work_Exe_Files_${fileId}.zip`);
+    archive.pipe(res);
+
+    allFiles.forEach(file => {
+      archive.file(file, { name: path.basename(file) });
+    });
+
+    archive.finalize();
+  });
 });
 router.get('/lab1_download/:id', (req, res) => {
   const fileId = req.params.id;
