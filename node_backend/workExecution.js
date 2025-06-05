@@ -1243,10 +1243,10 @@ router.get('/safety_download/:id', (req, res) => {
 
     const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
-    const filePaths3 = filePath2.split(',');
-    const filePaths4 = filePath2.split(',');
-    const filePaths5 = filePath2.split(',');
-    const filePaths6 = filePath2.split(',');
+    const filePaths3 = filePath3.split(',');
+    const filePaths4 = filePath4.split(',');
+    const filePaths5 = filePath5.split(',');
+    const filePaths6 = filePath6.split(',');
 
     if (filePaths.length === 1) {
       // Single file
