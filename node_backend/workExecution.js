@@ -1221,193 +1221,44 @@ router.get('/safety_download/:id', (req, res) => {
     let filePath6 = results[0].safety_documentation;
 
     // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
+    [filePath, filePath2, filePath3, filePath4, filePath5, filePath6] = 
+      [filePath, filePath2, filePath3, filePath4, filePath5, filePath6].map(fp =>
+        Buffer.isBuffer(fp) ? fp.toString('utf8') : fp
+      );
+
+    // Combine all file paths into one array
+    const allPaths = [
+      ...filePath.split(','),
+      ...filePath2.split(','),
+      ...filePath3.split(','),
+      ...filePath4.split(','),
+      ...filePath5.split(','),
+      ...filePath6.split(',')
+    ];
+
+    // Filter out empty or invalid entries
+    const existingPaths = allPaths.map(p => p.trim()).filter(p => p && fs.existsSync(path.resolve(p)));
+
+    if (existingPaths.length === 0) {
+      return res.status(404).send('No valid files found on server');
     }
-    if (Buffer.isBuffer(filePath2)) {
-      filePath2 = filePath2.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath3)) {
-      filePath3 = filePath3.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath4)) {
-      filePath4 = filePath4.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath5)) {
-      filePath5 = filePath5.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath6)) {
-      filePath6 = filePath6.toString('utf8');
-    }
-   
 
-    const filePaths = filePath.split(',');
-    const filePaths2 = filePath2.split(',');
-    const filePaths3 = filePath3.split(',');
-    const filePaths4 = filePath4.split(',');
-    const filePaths5 = filePath5.split(',');
-    const filePaths6 = filePath6.split(',');
+    // Create zip archive
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    });
 
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
+    res.attachment(`Safety_Department_${fileId}.zip`);
+    archive.pipe(res);
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
+    existingPaths.forEach(p => {
+      archive.file(path.resolve(p), { name: path.basename(p) });
+    });
 
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths2.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths2[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths3.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths3[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths4.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths4[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths5.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths5[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-      
-    }
-    if (filePaths6.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths6[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-   
+    archive.finalize();
   });
 });
+
 
 
 router.get('/workexe9_download/:id', (req, res) => {
