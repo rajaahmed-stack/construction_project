@@ -716,66 +716,80 @@ router.put("/update-wedelivery-status", (req, res) => {
 // });
 router.get('/workexe_download/:id', (req, res) => {
   const fileId = req.params.id;
+  console.log(`Received download request for work_order_id = ${fileId}`);
 
   db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
-      console.error('Database error:', err);
+      console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
     }
 
     if (results.length === 0) {
+      console.warn('⚠️ No records found for the given ID');
       return res.status(404).send('No record found for this ID');
     }
+
+    console.log('✅ Database record found');
 
     const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
     const allFiles = [];
 
     fields.forEach(field => {
       let value = results[0][field];
-      if (Buffer.isBuffer(value)) value = value.toString('utf8');
+      console.log(`📁 Field ${field}:`, value);
+
+      if (Buffer.isBuffer(value)) {
+        value = value.toString('utf8');
+        console.log(`🔄 Converted buffer to string for ${field}:`, value);
+      }
 
       if (value) {
         const paths = value.split(',');
         paths.forEach(p => {
           const absPath = path.resolve(p.trim());
           if (fs.existsSync(absPath)) {
+            console.log(`✅ File exists: ${absPath}`);
             allFiles.push(absPath);
           } else {
-            console.warn(`File does not exist: ${absPath}`);
+            console.warn(`❌ File does NOT exist: ${absPath}`);
           }
         });
+      } else {
+        console.log(`⚠️ Field ${field} is empty`);
       }
     });
 
     if (allFiles.length === 0) {
+      console.warn('⚠️ No valid files found to send');
       return res.status(404).send('No valid files found on server');
     }
 
     if (allFiles.length === 1) {
-      console.log('Sending single file:', allFiles[0]);
+      console.log('📤 Sending single file download:', allFiles[0]);
       return res.download(allFiles[0]);
     }
 
-    console.log('Creating zip with files:', allFiles);
+    console.log('📦 Creating ZIP archive with files:', allFiles);
 
-    // ZIP multiple files
     const archive = archiver('zip', { zlib: { level: 9 } });
     res.attachment(`Work_Exe_Files_${fileId}.zip`);
+
     archive.pipe(res);
 
     allFiles.forEach(file => {
+      console.log(`➕ Adding to zip: ${file}`);
       archive.file(file, { name: path.basename(file) });
     });
 
     archive.finalize();
 
-    archive.on('error', err => {
-      console.error('Archiver error:', err);
-      res.status(500).send('Error creating ZIP archive');
+    archive.on('end', () => {
+      console.log('✅ ZIP archive successfully created and sent');
     });
 
-    archive.on('end', () => {
-      console.log('ZIP archive finalized successfully');
+    archive.on('error', err => {
+      console.error('❌ Archive error:', err);
+      res.status(500).send('Error creating ZIP archive');
     });
   });
 });
