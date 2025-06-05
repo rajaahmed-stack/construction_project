@@ -23,17 +23,20 @@ db.connect((err) => {
     console.log('Connected to the database');
   }
 });
+const uploadDir = path.resolve('uploads'); // resolves relative to project root
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Ensure this folder exists
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
-// Create the upload object
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
+
 
 
 // Backend route for handling file uploads
@@ -46,11 +49,11 @@ router.post('/upload-workExecution-file/:fieldName', upload.array('file'), (req,
     return res.status(400).send('No files uploaded');
   }
 
-  const filePaths = files.map(file => path.join('uploads', file.filename));
+  const filePaths = files.map(file => `uploads/${file.filename}`);
 
   console.log(`Uploaded files for ${fieldName}:`, filePaths);
 
-  res.json({ filePaths });
+  res.json({ fieldName, filePaths });
 });
 
 
