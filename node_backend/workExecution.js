@@ -1203,221 +1203,68 @@ const UPLOADS_DIR = path.resolve('uploads');
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query('SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    let filePath = results[0].safety_signs;
-    let filePath2 = results[0].safety_barriers;
-    let filePath3 = results[0].safety_lights;
-    let filePath4 = results[0].safety_boards;
-    let filePath5 = results[0].permissions;
-    let filePath6 = results[0].safety_documentation;
-
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath2)) {
-      filePath2 = filePath2.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath3)) {
-      filePath3 = filePath3.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath4)) {
-      filePath4 = filePath4.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath5)) {
-      filePath5 = filePath5.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath6)) {
-      filePath6 = filePath6.toString('utf8');
-    }
-   
-
-    const filePaths = filePath.split(',');
-    const filePaths2 = filePath2.split(',');
-    const filePaths3 = filePath3.split(',');
-    const filePaths4 = filePath4.split(',');
-    const filePaths5 = filePath5.split(',');
-    const filePaths6 = filePath6.split(',');
-
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+  db.query(
+    'SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation FROM safety_department WHERE work_order_id = ?',
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
+      if (results.length === 0) {
+        return res.status(404).send('Record not found');
+      }
 
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
+      const row = results[0];
+      const fields = [
+        'safety_signs',
+        'safety_barriers',
+        'safety_lights',
+        'safety_boards',
+        'permissions',
+        'safety_documentation',
+      ];
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
+      let allFilePaths = [];
+
+      fields.forEach(field => {
+        let value = row[field];
+        if (Buffer.isBuffer(value)) {
+          value = value.toString('utf8');
+        }
+        if (value) {
+          const splitPaths = value.split(',').map(p => p.trim()).filter(p => p);
+          allFilePaths.push(...splitPaths);
         }
       });
 
-      archive.finalize();
-      return; // ✅ ADD THIS
+      // Filter existing files
+      allFilePaths = allFilePaths.filter(p => fs.existsSync(path.resolve(p)));
 
-    }
-    if (filePaths2.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths2[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+      if (allFilePaths.length === 0) {
+        return res.status(404).send('No valid files found on server');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-      return; // ✅ ADD THIS
-
-    }
-    if (filePaths3.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths3[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+      // If only one file, download directly
+      if (allFilePaths.length === 1) {
+        const absolutePath = path.resolve(allFilePaths[0]);
+        return res.download(absolutePath);
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
+      // Else, create a zip of all files
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      res.attachment(`Safety_Files_${fileId}.zip`);
       archive.pipe(res);
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
+      allFilePaths.forEach(file => {
+        const absPath = path.resolve(file);
+        archive.file(absPath, { name: path.basename(file) });
       });
 
       archive.finalize();
-      return; // ✅ ADD THIS
-
     }
-    if (filePaths4.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths4[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-      return; // ✅ ADD THIS
-
-    }
-    if (filePaths5.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths5[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-      return; // ✅ ADD THIS
-
-    }
-    if (filePaths6.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths6[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Safety_Signs_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-      return; // ✅ ADD THIS
-
-    }
-   
-  });
+  );
 });
 
 
