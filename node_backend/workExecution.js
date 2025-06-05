@@ -1202,6 +1202,7 @@ const UPLOADS_DIR = path.resolve('uploads');
 // });
 router.get('/safety_download/:id', (req, res) => {
   const fileId = req.params.id;
+  console.log('Received request for ID:', fileId);
 
   db.query('SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
@@ -1210,6 +1211,7 @@ router.get('/safety_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
+      console.log('No results found');
       return res.status(404).send('File not found');
     }
 
@@ -1220,14 +1222,12 @@ router.get('/safety_download/:id', (req, res) => {
     let filePath5 = results[0].permissions;
     let filePath6 = results[0].safety_documentation;
 
-    // Convert buffer to string if needed
-    [filePath, filePath2, filePath3, filePath4, filePath5, filePath6] = 
-      [filePath, filePath2, filePath3, filePath4, filePath5, filePath6].map(fp =>
-        Buffer.isBuffer(fp) ? fp.toString('utf8') : fp
-      );
+    // Convert buffers to strings
+    [filePath, filePath2, filePath3, filePath4, filePath5, filePath6] = [filePath, filePath2, filePath3, filePath4, filePath5, filePath6].map(fp =>
+      Buffer.isBuffer(fp) ? fp.toString('utf8') : fp
+    );
 
-    // Combine all file paths into one array
-    const allPaths = [
+    const allFiles = [
       ...filePath.split(','),
       ...filePath2.split(','),
       ...filePath3.split(','),
@@ -1236,26 +1236,36 @@ router.get('/safety_download/:id', (req, res) => {
       ...filePath6.split(',')
     ];
 
-    // Filter out empty or invalid entries
-    const existingPaths = allPaths.map(p => p.trim()).filter(p => p && fs.existsSync(path.resolve(p)));
+    const existingFiles = allFiles.filter(p => {
+      const abs = path.resolve(p);
+      const exists = fs.existsSync(abs);
+      if (!exists) console.warn('File does not exist:', abs);
+      return exists;
+    });
 
-    if (existingPaths.length === 0) {
-      return res.status(404).send('No valid files found on server');
+    if (existingFiles.length === 0) {
+      console.log('No valid files to zip');
+      return res.status(404).send('No valid files found');
     }
 
-    // Create zip archive
-    const archive = archiver('zip', {
-      zlib: { level: 9 }
-    });
+    console.log('Zipping files:', existingFiles);
 
-    res.attachment(`Safety_Department_${fileId}.zip`);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    res.attachment(`Safety_Documents_${fileId}.zip`);
     archive.pipe(res);
 
-    existingPaths.forEach(p => {
-      archive.file(path.resolve(p), { name: path.basename(p) });
+    existingFiles.forEach(file => {
+      const absPath = path.resolve(file);
+      archive.file(absPath, { name: path.basename(absPath) });
     });
 
-    archive.finalize();
+    archive.finalize().then(() => {
+      console.log('Archive finalized and response sent');
+    }).catch(err => {
+      console.error('Error finalizing archive:', err);
+      res.status(500).send('Error creating zip');
+    });
   });
 });
 
