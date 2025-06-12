@@ -1688,9 +1688,84 @@ router.get('/workexecute_download/:id', (req, res) => {
   );
 });
 
+// router.get('/lab_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+//   console.log('Download request for lab files with work_order_id:', fileId);
+
+//   db.query('SELECT asphalt, milling FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
+//     if (err) {
+//       console.error('Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       console.warn('No records found for ID:', fileId);
+//       return res.status(404).send('File not found');
+//     }
+
+//     let filePath = results[0].asphalt;
+//     let filePath2 = results[0].milling;
+
+//     // Convert buffer to string if needed
+//     if (Buffer.isBuffer(filePath)) {
+//       filePath = filePath.toString('utf8');
+//       console.log('Converted buffer to string for asphalt:', filePath);
+//     }
+//     if (Buffer.isBuffer(filePath2)) {
+//       filePath2 = filePath2.toString('utf8');
+//       console.log('Converted buffer to string for milling:', filePath2);
+//     }
+
+//     const filePaths = filePath ? filePath.split(',').map(p => p.trim()).filter(p => p) : [];
+//     const filePaths2 = filePath2 ? filePath2.split(',').map(p => p.trim()).filter(p => p) : [];
+
+//     console.log('Parsed asphalt file paths:', filePaths);
+//     console.log('Parsed milling file paths:', filePaths2);
+
+//     const allFilePaths = filePaths.concat(filePaths2);
+
+//     if (allFilePaths.length === 0) {
+//       console.warn('No file paths found in asphalt or milling');
+//       return res.status(404).send('No files available');
+//     }
+
+//     if (allFilePaths.length === 1) {
+//       const absolutePath = path.resolve(allFilePaths[0]);
+//       console.log('Single file download path:', absolutePath);
+
+//       if (!fs.existsSync(absolutePath)) {
+//         console.error('File not found on server:', absolutePath);
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       console.log(`Zipping ${allFilePaths.length} files into one archive`);
+
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`lab_files_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       allFilePaths.forEach((p, index) => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           console.log(`Adding file [${index}]:`, absPath);
+//           archive.file(absPath, { name: path.basename(p) });
+//         } else {
+//           console.warn(`File not found, skipping:`, absPath);
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//   });
+// });
 router.get('/lab_download/:id', (req, res) => {
   const fileId = req.params.id;
-  console.log('Download request for lab files with work_order_id:', fileId);
+  console.log('Download request for work execution files with work_order_id:', fileId);
 
   db.query('SELECT asphalt, milling FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
@@ -1699,63 +1774,47 @@ router.get('/lab_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
-      console.warn('No records found for ID:', fileId);
       return res.status(404).send('File not found');
     }
 
     let filePath = results[0].asphalt;
     let filePath2 = results[0].milling;
 
+
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
-      console.log('Converted buffer to string for asphalt:', filePath);
     }
     if (Buffer.isBuffer(filePath2)) {
       filePath2 = filePath2.toString('utf8');
-      console.log('Converted buffer to string for milling:', filePath2);
     }
 
-    const filePaths = filePath ? filePath.split(',').map(p => p.trim()).filter(p => p) : [];
-    const filePaths2 = filePath2 ? filePath2.split(',').map(p => p.trim()).filter(p => p) : [];
-
-    console.log('Parsed asphalt file paths:', filePaths);
-    console.log('Parsed milling file paths:', filePaths2);
-
+    const filePaths = filePath.split(',');
+    const filePaths2 = filePath.split(',');
     const allFilePaths = filePaths.concat(filePaths2);
 
-    if (allFilePaths.length === 0) {
-      console.warn('No file paths found in asphalt or milling');
-      return res.status(404).send('No files available');
-    }
 
-    if (allFilePaths.length === 1) {
-      const absolutePath = path.resolve(allFilePaths[0]);
-      console.log('Single file download path:', absolutePath);
-
+    if (filePaths.length === 1) {
+      // Single file
+      const absolutePath = path.resolve(filePaths[0]);
       if (!fs.existsSync(absolutePath)) {
-        console.error('File not found on server:', absolutePath);
         return res.status(404).send('File not found on server');
       }
 
       return res.download(absolutePath);
     } else {
-      console.log(`Zipping ${allFilePaths.length} files into one archive`);
-
+      // Multiple files — create a zip
       const archive = archiver('zip', {
         zlib: { level: 9 }
       });
 
-      res.attachment(`lab_files_${fileId}.zip`);
+      res.attachment(`WorkExe_files_${fileId}.zip`);
       archive.pipe(res);
 
-      allFilePaths.forEach((p, index) => {
+      allFilePaths.forEach(p => {
         const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
-          console.log(`Adding file [${index}]:`, absPath);
           archive.file(absPath, { name: path.basename(p) });
-        } else {
-          console.warn(`File not found, skipping:`, absPath);
         }
       });
 
