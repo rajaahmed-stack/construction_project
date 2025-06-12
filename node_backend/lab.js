@@ -1673,30 +1673,41 @@ router.get('/lab_download/:id', (req, res) => {
           filePath = filePath.toString('utf8');
         }
 
-        const paths = filePath
+        const cleanedPaths = filePath
           .split(',')
-          .map(p => p.trim().replace(/^\/app/, '')) // ✅ remove "/app"
+          .map(p => p.trim().replace(/^\/app/, '')) // remove "/app"
           .filter(p => p.length > 0);
 
-        allFiles.push(...paths);
+        allFiles.push(...cleanedPaths);
       }
     });
 
+    // No files at all
     if (allFiles.length === 0) {
       console.warn('⚠️ No file paths found for any column.');
       return res.status(404).send('No files found for this ID');
     }
 
+    // Handle single file
+    if (allFiles.length === 1) {
+      const singleFilePath = path.resolve(allFiles[0]);
+      if (!fs.existsSync(singleFilePath)) {
+        return res.status(404).send('File not found on server');
+      }
+      return res.download(singleFilePath);
+    }
+
+    // Handle multiple files as ZIP
     const archive = archiver('zip', { zlib: { level: 9 } });
     res.attachment(`work_execution_${fileId}.zip`);
     archive.pipe(res);
 
     let filesAdded = false;
 
-    allFiles.forEach(relativePath => {
-      const absPath = path.resolve(relativePath); // Now resolves relative to project root
+    allFiles.forEach(file => {
+      const absPath = path.resolve(file);
       if (fs.existsSync(absPath)) {
-        archive.file(absPath, { name: path.basename(absPath) });
+        archive.file(absPath, { name: path.basename(file) });
         console.log(`✅ Added to ZIP: ${absPath}`);
         filesAdded = true;
       } else {
@@ -1711,6 +1722,5 @@ router.get('/lab_download/:id', (req, res) => {
     archive.finalize();
   });
 });
-
 module.exports = router;
 
