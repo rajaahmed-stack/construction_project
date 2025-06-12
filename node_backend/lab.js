@@ -1687,6 +1687,84 @@ router.get('/workexecute_download/:id', (req, res) => {
     }
   );
 });
+router.get('/workexecute1_download/:id', (req, res) => {
+  const fileId = req.params.id;
+  console.log('Download request received for work_order_id:', fileId);
+
+  db.query(
+    'SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?',
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
+      }
+
+      if (results.length === 0) {
+        console.warn('No record found for ID:', fileId);
+        return res.status(404).send('No data found');
+      }
+
+      const record = results[0];
+      const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
+
+      let allFilePaths = [];
+
+      fields.forEach((field) => {
+        let raw = record[field];
+        console.log(`Raw value for ${field}:`, raw);
+
+        if (Buffer.isBuffer(raw)) {
+          raw = raw.toString('utf8');
+          console.log(`Converted buffer to string for ${field}:`, raw);
+        }
+
+        if (typeof raw === 'string' && raw.trim() !== '') {
+          const paths = raw
+            .split(',')
+            .map((p) => p.trim())
+            .filter((p) => p !== '');
+          console.log(`Parsed paths for ${field}:`, paths);
+          allFilePaths = allFilePaths.concat(paths);
+        }
+      });
+
+      if (allFilePaths.length === 0) {
+        console.warn('No files available to zip');
+        return res.status(404).send('No files available');
+      }
+
+      // Prepare zip file
+      res.attachment(`work_execution_${fileId}.zip`);
+      const archive = archiver('zip', { zlib: { level: 9 } });
+
+      archive.on('error', (err) => {
+        console.error('Archive error:', err);
+        return res.status(500).send({ error: err.message });
+      });
+
+      archive.pipe(res);
+
+      allFilePaths.forEach((filePath, index) => {
+        const relativePath = filePath.startsWith('uploads/')
+          ? filePath.slice('uploads/'.length)
+          : filePath;
+
+        const absPath = path.join(__dirname, 'uploads', relativePath);
+
+        if (fs.existsSync(absPath)) {
+          console.log(`Adding file [${index}]:`, absPath);
+          archive.file(absPath, { name: path.basename(absPath) });
+        } else {
+          console.warn(`File not found, skipping:`, absPath);
+        }
+      });
+
+      archive.finalize();
+    }
+  );
+});
+
 
 router.get('/lab_download/:id', (req, res) => {
   const fileId = req.params.id;
