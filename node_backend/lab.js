@@ -1690,65 +1690,85 @@ router.get('/workexecute_download/:id', (req, res) => {
 
 router.get('/lab_download/:id', (req, res) => {
   const fileId = req.params.id;
+  console.log('Download requested for work_order_id:', fileId);
 
-  db.query('SELECT asphalt, milling  FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    let filePath = results[0].asphalt;
-    let filePath2 = results[0].milling;
-   
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath2)) {
-      filePath2 = filePath2.toString('utf8');
-    }
-    
-   
-   
-
-    const filePaths = filePath.split(',');
-    const filePaths2 = filePath2.split(',');
-    
-
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+  db.query(
+    'SELECT asphalt, milling FROM work_execution WHERE work_order_id = ?',
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
+      if (results.length === 0) {
+        console.warn('No record found for ID:', fileId);
+        return res.status(404).send('File not found');
+      }
 
-      res.attachment(`asphalt_${fileId}.zip`);
-      archive.pipe(res);
+      let filePath = results[0].asphalt;
+      let filePath2 = results[0].milling;
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
+      console.log('Raw asphalt value:', filePath);
+      console.log('Raw milling value:', filePath2);
+
+      // Convert buffer to string if needed
+      if (Buffer.isBuffer(filePath)) {
+        filePath = filePath.toString('utf8');
+        console.log('Converted asphalt buffer to string:', filePath);
+      }
+      if (Buffer.isBuffer(filePath2)) {
+        filePath2 = filePath2.toString('utf8');
+        console.log('Converted milling buffer to string:', filePath2);
+      }
+
+      if (!filePath && !filePath2) {
+        console.warn('No file paths found');
+        return res.status(404).send('No files available');
+      }
+
+      const filePaths = filePath ? filePath.split(',').map(p => p.trim()).filter(p => p !== '') : [];
+      const filePaths2 = filePath2 ? filePath2.split(',').map(p => p.trim()).filter(p => p !== '') : [];
+      const allFilePaths = [...filePaths, ...filePaths2];
+
+      console.log('All parsed file paths:', allFilePaths);
+
+      if (allFilePaths.length === 1) {
+        // Single file
+        const absolutePath = path.resolve(allFilePaths[0]);
+        console.log('Single file absolute path:', absolutePath);
+
+        if (!fs.existsSync(absolutePath)) {
+          console.error('File not found on server:', absolutePath);
+          return res.status(404).send('File not found on server');
         }
-      });
 
-      archive.finalize();
+        return res.download(absolutePath);
+      } else {
+        // Multiple files — create a zip
+        const archive = archiver('zip', {
+          zlib: { level: 9 }
+        });
+
+        const zipName = `lab_files_${fileId}.zip`;
+        console.log(`Zipping ${allFilePaths.length} files as ${zipName}`);
+        res.attachment(zipName);
+        archive.pipe(res);
+
+        allFilePaths.forEach((p, index) => {
+          const absPath = path.resolve(p);
+          if (fs.existsSync(absPath)) {
+            console.log(`Adding file [${index}]:`, absPath);
+            archive.file(absPath, { name: path.basename(p) });
+          } else {
+            console.warn(`File not found, skipping:`, absPath);
+          }
+        });
+
+        archive.finalize();
+      }
     }
-  
-    
-   
-  });
+  );
 });
 
 
