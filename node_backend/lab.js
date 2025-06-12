@@ -1659,7 +1659,7 @@ router.get('/workexecute_download/:id', (req, res) => {
     archive.pipe(res);
 
     allFilePaths.forEach((filePath, index) => {
-      const absPath = path.resolve(filePath);
+      const absPath = path.join(__dirname, filePath);
       if (fs.existsSync(absPath)) {
         console.log(`Adding to zip [${index}]:`, absPath);
         archive.file(absPath, { name: path.basename(absPath) });
