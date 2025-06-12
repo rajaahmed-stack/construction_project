@@ -1654,7 +1654,7 @@ router.get('/lab_download/:id', (req, res) => {
 
   db.query(query, [fileId], (err, results) => {
     if (err) {
-      console.error('Database error:', err);
+      console.error('❌ Database error:', err);
       return res.status(500).send('Database error');
     }
 
@@ -1667,34 +1667,53 @@ router.get('/lab_download/:id', (req, res) => {
 
     columns.forEach(column => {
       let filePath = row[column];
-      if (Buffer.isBuffer(filePath)) {
-        filePath = filePath.toString('utf8');
-      }
+
       if (filePath) {
-        const paths = filePath.split(',').map(p => p.trim()).filter(p => p);
+        if (Buffer.isBuffer(filePath)) {
+          filePath = filePath.toString('utf8');
+        }
+
+        const paths = filePath
+          .split(',')
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
+
         allFiles.push(...paths);
       }
     });
 
     if (allFiles.length === 0) {
+      console.warn('⚠️ No file paths found for any column.');
       return res.status(404).send('No files found for this ID');
     }
 
     // Create and stream zip
     const archive = archiver('zip', { zlib: { level: 9 } });
+
     res.attachment(`work_execution_${fileId}.zip`);
     archive.pipe(res);
+
+    let filesAdded = false;
 
     allFiles.forEach(file => {
       const absPath = path.resolve(file);
       if (fs.existsSync(absPath)) {
-        archive.file(absPath, { name: path.basename(file) });
+        archive.file(absPath, { name: path.basename(absPath) });
+        console.log(`✅ Added to ZIP: ${absPath}`);
+        filesAdded = true;
+      } else {
+        console.warn(`❌ File not found: ${absPath}`);
       }
     });
+
+    if (!filesAdded) {
+      return res.status(404).send('None of the files exist on the server');
+    }
 
     archive.finalize();
   });
 });
+
 
 module.exports = router;
 
