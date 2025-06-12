@@ -1592,65 +1592,60 @@ function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
     });
   });
 }
+function createWorkExecutionZip(workOrderId, res) {
+  db.query(
+    'SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?',
+    [workOrderId],
+    (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
+      }
+
+      if (results.length === 0) {
+        return res.status(404).send('Work order not found');
+      }
+
+      const record = results[0];
+      const fileFields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
+      let allFiles = [];
+
+      for (const field of fileFields) {
+        let files = record[field];
+        if (Buffer.isBuffer(files)) {
+          files = files.toString('utf8');
+        }
+
+        if (typeof files === 'string' && files.trim() !== '') {
+          const paths = files.split(',').map(f => f.trim());
+          allFiles = allFiles.concat(paths);
+        }
+      }
+
+      if (allFiles.length === 0) {
+        return res.status(404).send('No files found to zip');
+      }
+
+      res.attachment(`work_execution_${workOrderId}.zip`);
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      archive.pipe(res);
+
+      allFiles.forEach(file => {
+        const absPath = path.resolve(file);
+        if (fs.existsSync(absPath)) {
+          archive.file(absPath, { name: path.basename(file) });
+        }
+      });
+
+      archive.finalize();
+    }
+  );
+}
 router.get('/workexecute_download/:id', (req, res) => {
-  const fileId = req.params.id;
-
-  db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('Work order not found');
-    }
-
-    const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
-    let allFiles = [];
-
-    fields.forEach(field => {
-      let files = results[0][field];
-
-      if (Buffer.isBuffer(files)) {
-        files = files.toString('utf8');
-      }
-
-      if (typeof files === 'string' && files.trim() !== '') {
-        const splitFiles = files.split(',').map(f => f.trim());
-        allFiles = allFiles.concat(splitFiles);
-      }
-    });
-
-    // If no valid files found
-    if (allFiles.length === 0) {
-      return res.status(404).send('No files found for download');
-    }
-
-    // Single file download
-    if (allFiles.length === 1) {
-      const absPath = path.resolve(allFiles[0]);
-      if (!fs.existsSync(absPath)) {
-        return res.status(404).send('File not found on server');
-      }
-      return res.download(absPath);
-    }
-
-    // Multiple files — create zip
-    const archive = archiver('zip', { zlib: { level: 9 } });
-
-    res.attachment(`work_execution_${fileId}.zip`);
-    archive.pipe(res);
-
-    allFiles.forEach(file => {
-      const absPath = path.resolve(file);
-      if (fs.existsSync(absPath)) {
-        archive.file(absPath, { name: path.basename(file) });
-      }
-    });
-
-    archive.finalize();
-  });
+  const workOrderId = req.params.id;
+  createWorkExecutionZip(workOrderId, res);
 });
+
 
 
 
