@@ -1592,6 +1592,7 @@ function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
     });
   });
 }
+
 router.get('/workexecute_download/:id', (req, res) => {
   const fileId = req.params.id;
   console.log('Download request received for work_order_id:', fileId);
@@ -1639,8 +1640,10 @@ router.get('/workexecute_download/:id', (req, res) => {
         return res.status(404).send('No files available');
       }
 
+      // Single file case
       if (allFilePaths.length === 1) {
-        const singleFilePath = path.resolve(allFilePaths[0]);
+        const singleFileName = path.basename(allFilePaths[0]);
+        const singleFilePath = path.resolve(__dirname, 'uploads', singleFileName);
         console.log('Single file download path:', singleFilePath);
 
         if (!fs.existsSync(singleFilePath)) {
@@ -1651,7 +1654,7 @@ router.get('/workexecute_download/:id', (req, res) => {
         return res.download(singleFilePath);
       }
 
-      // Multiple files - create zip
+      // Multiple files — ZIP
       console.log(`Zipping ${allFilePaths.length} files`);
       res.attachment(`work_execution_${fileId}.zip`);
 
@@ -1659,16 +1662,17 @@ router.get('/workexecute_download/:id', (req, res) => {
 
       archive.on('error', (err) => {
         console.error('Archive error:', err);
-        res.status(500).send({ error: err.message });
+        return res.status(500).send({ error: err.message });
       });
 
       archive.pipe(res);
 
       allFilePaths.forEach((filePath, index) => {
-        const absPath = path.resolve(filePath); // ✅ remove 'uploads' prefix here
+        const fileName = path.basename(filePath); // just filename
+        const absPath = path.resolve(__dirname, 'uploads', fileName); // full path inside uploads
         if (fs.existsSync(absPath)) {
           console.log(`Adding to zip [${index}]:`, absPath);
-          archive.file(absPath, { name: path.basename(absPath) });
+          archive.file(absPath, { name: fileName });
         } else {
           console.warn(`File not found, skipping:`, absPath);
         }
@@ -1678,7 +1682,6 @@ router.get('/workexecute_download/:id', (req, res) => {
     }
   );
 });
-
 
 router.get('/lab_download/:id', (req, res) => {
   const fileId = req.params.id;
