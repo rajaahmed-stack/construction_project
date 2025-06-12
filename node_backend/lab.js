@@ -1771,93 +1771,58 @@ router.get('/workexecute_download/:id', (req, res) => {
   });
 });
 router.get('/lab_download/:id', (req, res) => {
-  const fileId = req.params.id;
-
-  db.query('SELECT asphalt, milling  FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    let filePath = results[0].asphalt;
-    let filePath2 = results[0].milling;
-   
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath2)) {
-      filePath2 = filePath2.toString('utf8');
-    }
-    
-   
-   
-
-    const filePaths = filePath.split(',');
-    const filePaths2 = filePath2.split(',');
-    
-
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+  const workId = req.params.id;
+  // Query both asphalt and milling columns for this record
+  db.query(
+    'SELECT asphalt, milling FROM work_execution WHERE id = ?', 
+    [workId],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Server error');
+      }
+      if (!results.length) {
+        return res.status(404).send('Record not found');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`asphalt_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths2.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths2[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+      const record = results[0];
+      // Collect all file paths from the comma-separated columns
+      let files = [];
+      if (record.asphalt) {
+        files = files.concat(record.asphalt.split(','));
       }
+      if (record.milling) {
+        files = files.concat(record.milling.split(','));
+      }
+      // Remove any empty strings (in case of trailing commas)
+      files = files.filter(p => p && p.trim());
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
+      // Set response headers for zip download
+      res.attachment('lab_files.zip');
+
+      // Create a zip archive and pipe to response
+      const archive = archiver('zip', { zlib: { level: 9 }});
+      archive.on('error', err => {
+        console.error(err);
+        res.status(500).send({ error: err.message });
       });
-
-      res.attachment(`work_exe_${fileId}.zip`);
       archive.pipe(res);
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
+      // Add each file to the archive
+      files.forEach(filePathFromDb => {
+        // Get just the filename (strip off any directory prefix)
+        const fileName = path.basename(filePathFromDb);
+        // Build the actual local path in the uploads folder
+        const localPath = path.join(__dirname, '../uploads', fileName);
+        // Append the file into the zip. The { name: fileName } makes sure 
+        // it appears with that name inside the archive.
+        archive.file(localPath, { name: fileName });
       });
 
+      // Finalize and send the zip
       archive.finalize();
-    }
-    
-   
   });
 });
-
 
 module.exports = router;
 
