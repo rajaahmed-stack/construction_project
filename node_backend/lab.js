@@ -1675,7 +1675,7 @@ router.get('/lab_download/:id', (req, res) => {
 
         const paths = filePath
           .split(',')
-          .map(p => p.trim())
+          .map(p => p.trim().replace(/^\/app/, '')) // ✅ remove "/app"
           .filter(p => p.length > 0);
 
         allFiles.push(...paths);
@@ -1687,16 +1687,14 @@ router.get('/lab_download/:id', (req, res) => {
       return res.status(404).send('No files found for this ID');
     }
 
-    // Create and stream zip
     const archive = archiver('zip', { zlib: { level: 9 } });
-
     res.attachment(`work_execution_${fileId}.zip`);
     archive.pipe(res);
 
     let filesAdded = false;
 
-    allFiles.forEach(file => {
-      const absPath = path.resolve(file);
+    allFiles.forEach(relativePath => {
+      const absPath = path.resolve(relativePath); // Now resolves relative to project root
       if (fs.existsSync(absPath)) {
         archive.file(absPath, { name: path.basename(absPath) });
         console.log(`✅ Added to ZIP: ${absPath}`);
@@ -1713,7 +1711,6 @@ router.get('/lab_download/:id', (req, res) => {
     archive.finalize();
   });
 });
-
 
 module.exports = router;
 
