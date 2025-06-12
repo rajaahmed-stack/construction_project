@@ -1668,8 +1668,11 @@ router.get('/workexecute_download/:id', (req, res) => {
       archive.pipe(res);
 
       allFilePaths.forEach((filePath, index) => {
-        const cleanPath = filePath.replace(/^uploads[\\/]/, ''); // remove leading "uploads/"
-        const absPath = path.join(__dirname, 'uploads', cleanPath); // correct path
+        const relativePath = filePath.startsWith('uploads/')
+          ? filePath.slice('uploads/'.length)
+          : filePath;
+      
+        const absPath = path.join(__dirname, 'uploads', relativePath);
       
         if (fs.existsSync(absPath)) {
           console.log(`Adding to zip [${index}]:`, absPath);
