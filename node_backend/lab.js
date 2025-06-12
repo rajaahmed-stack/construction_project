@@ -1245,6 +1245,7 @@ router.get('/lab9_download/:id', (req, res) => {
 });
 router.get('/lab10_download/:id', (req, res) => {
   const fileId = req.params.id;
+  console.log('Download request for work execution asphlat with work_order_id:', fileId);
 
   db.query('SELECT asphalt FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
@@ -1264,11 +1265,14 @@ router.get('/lab10_download/:id', (req, res) => {
     }
 
     const filePaths = filePath.split(',');
+    console.log('Parsed asphalt file paths:', filePaths);
 
     if (filePaths.length === 1) {
       // Single file
       const absolutePath = path.resolve(filePaths[0]);
       if (!fs.existsSync(absolutePath)) {
+        console.log('Single file paths:', absolutePath);
+
         return res.status(404).send('File not found on server');
       }
 
@@ -1282,9 +1286,11 @@ router.get('/lab10_download/:id', (req, res) => {
       res.attachment(`Asphalt_files_${fileId}.zip`);
       archive.pipe(res);
 
-      filePaths.forEach(p => {
+      filePaths.forEach((p,index) => {
         const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
+          console.log(`Adding file [${index}]:`, absPath);
+
           archive.file(absPath, { name: path.basename(p) });
         }
       });
@@ -1303,6 +1309,7 @@ router.get('/lab11_download/:id', (req, res) => {
     }
 
     if (results.length === 0) {
+      console.warn('No records found for ID:', fileId);
       return res.status(404).send('File not found');
     }
 
@@ -1797,9 +1804,9 @@ router.get('/lab_download/:id', (req, res) => {
     const allFilePaths = filePaths.concat(filePaths2);
     console.log('Parsed both file paths:', allFilePaths);
 
-    if (filePaths.length === 1) {
+    if (allFilePaths.length === 1) {
       // Single file
-      const absolutePath = path.resolve(filePaths[0]);
+      const absolutePath = path.resolve(allFilePaths[0]);
       if (!fs.existsSync(absolutePath)) {
         console.log('Single file download path:', absolutePath);
         return res.status(404).send('File not found on server');
