@@ -1640,7 +1640,7 @@ router.get('/workexecute_download/:id', (req, res) => {
       }
 
       if (allFilePaths.length === 1) {
-        const singleFilePath = path.resolve('uploads', path.basename(allFilePaths[0]));
+        const singleFilePath = path.resolve(allFilePaths[0]);
         console.log('Single file download path:', singleFilePath);
 
         if (!fs.existsSync(singleFilePath)) {
@@ -1665,7 +1665,7 @@ router.get('/workexecute_download/:id', (req, res) => {
       archive.pipe(res);
 
       allFilePaths.forEach((filePath, index) => {
-        const absPath = path.resolve('uploads', path.basename(filePath));
+        const absPath = path.resolve(filePath); // ✅ remove 'uploads' prefix here
         if (fs.existsSync(absPath)) {
           console.log(`Adding to zip [${index}]:`, absPath);
           archive.file(absPath, { name: path.basename(absPath) });
