@@ -1592,10 +1592,12 @@ function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
     });
   });
 }
-function createWorkExecutionZip(workOrderId, res) {
+router.get('/workexecute_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
   db.query(
     'SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?',
-    [workOrderId],
+    [fileId],
     (err, results) => {
       if (err) {
         console.error('Database error:', err);
@@ -1603,50 +1605,46 @@ function createWorkExecutionZip(workOrderId, res) {
       }
 
       if (results.length === 0) {
-        return res.status(404).send('Work order not found');
+        return res.status(404).send('File not found');
       }
 
-      const record = results[0];
-      const fileFields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
-      let allFiles = [];
+      const row = results[0];
 
-      for (const field of fileFields) {
-        let files = record[field];
+      // Convert buffers to strings if needed
+      const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
+      let allFilePaths = [];
+
+      fields.forEach(field => {
+        let files = row[field];
         if (Buffer.isBuffer(files)) {
           files = files.toString('utf8');
         }
-
-        if (typeof files === 'string' && files.trim() !== '') {
-          const paths = files.split(',').map(f => f.trim());
-          allFiles = allFiles.concat(paths);
+        if (files && files.trim() !== '') {
+          const splitPaths = files.split(',').map(f => f.trim());
+          allFilePaths = allFilePaths.concat(splitPaths);
         }
+      });
+
+      if (allFilePaths.length === 0) {
+        return res.status(404).send('No files to download');
       }
 
-      if (allFiles.length === 0) {
-        return res.status(404).send('No files found to zip');
-      }
-
-      res.attachment(`work_execution_${workOrderId}.zip`);
+      // Stream zip to client
+      res.attachment(`work_execution_${fileId}.zip`);
       const archive = archiver('zip', { zlib: { level: 9 } });
       archive.pipe(res);
 
-      allFiles.forEach(file => {
-        const absPath = path.resolve(file);
+      allFilePaths.forEach(p => {
+        const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(file) });
+          archive.file(absPath, { name: path.basename(p) });
         }
       });
 
       archive.finalize();
     }
   );
-}
-router.get('/workexecute_download/:id', (req, res) => {
-  const workOrderId = req.params.id;
-  createWorkExecutionZip(workOrderId, res);
 });
-
-
 
 
 module.exports = router;
