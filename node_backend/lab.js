@@ -1594,8 +1594,88 @@ function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
 }
 router.get('/workexecute_download/:id', (req, res) => {
   const fileId = req.params.id;
+  console.log('Download request received for work_order_id:', fileId);
 
   db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    if (results.length === 0) {
+      console.warn('No record found for ID:', fileId);
+      return res.status(404).send('No data found');
+    }
+
+    const record = results[0];
+    const fields = ['asphalt', 'milling', 'concrete', 'sand', 'cable_lying'];
+
+    let allFilePaths = [];
+
+    fields.forEach(field => {
+      let raw = record[field];
+      console.log(`Raw value for ${field}:`, raw);
+
+      if (Buffer.isBuffer(raw)) {
+        raw = raw.toString('utf8');
+        console.log(`Converted buffer to string for ${field}:`, raw);
+      }
+
+      if (typeof raw === 'string' && raw.trim() !== '') {
+        const paths = raw.split(',').map(p => p.trim()).filter(p => p !== '');
+        console.log(`Parsed paths for ${field}:`, paths);
+        allFilePaths = allFilePaths.concat(paths);
+      }
+    });
+
+    if (allFilePaths.length === 0) {
+      console.warn('No files available to download');
+      return res.status(404).send('No files available');
+    }
+
+    if (allFilePaths.length === 1) {
+      const absolutePath = path.resolve(allFilePaths[0]);
+      console.log('Single file download path:', absolutePath);
+
+      if (!fs.existsSync(absolutePath)) {
+        console.error('File does not exist:', absolutePath);
+        return res.status(404).send('File not found on server');
+      }
+
+      return res.download(absolutePath);
+    }
+
+    // Create zip if multiple files
+    console.log(`Zipping ${allFilePaths.length} files`);
+    res.attachment(`work_execution_${fileId}.zip`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    archive.on('error', (err) => {
+      console.error('Archive error:', err);
+      res.status(500).send({ error: err.message });
+    });
+
+    archive.pipe(res);
+
+    allFilePaths.forEach((filePath, index) => {
+      const absPath = path.resolve(filePath);
+      if (fs.existsSync(absPath)) {
+        console.log(`Adding to zip [${index}]:`, absPath);
+        archive.file(absPath, { name: path.basename(absPath) });
+      } else {
+        console.warn(`File not found, skipping:`, absPath);
+      }
+    });
+
+    archive.finalize();
+  });
+});
+
+router.get('/lab_download/:id', (req, res) => {
+  const fileId = req.params.id;
+
+  db.query('SELECT asphalt, milling  FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
@@ -1607,10 +1687,7 @@ router.get('/workexecute_download/:id', (req, res) => {
 
     let filePath = results[0].asphalt;
     let filePath2 = results[0].milling;
-    let filePath3 = results[0].concrete;
-    let filePath4 = results[0].sand;
-    let filePath5 = results[0].cable_lying;
-
+   
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
       filePath = filePath.toString('utf8');
@@ -1618,23 +1695,13 @@ router.get('/workexecute_download/:id', (req, res) => {
     if (Buffer.isBuffer(filePath2)) {
       filePath2 = filePath2.toString('utf8');
     }
-    if (Buffer.isBuffer(filePath3)) {
-      filePath3 = filePath3.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath4)) {
-      filePath4 = filePath4.toString('utf8');
-    }
-    if (Buffer.isBuffer(filePath5)) {
-      filePath5 = filePath5.toString('utf8');
-    }
+    
    
    
 
     const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
-    const filePaths3 = filePath3.split(',');
-    const filePaths4 = filePath4.split(',');
-    const filePaths5 = filePath5.split(',');
+    
 
     if (filePaths.length === 1) {
       // Single file
@@ -1688,141 +1755,11 @@ router.get('/workexecute_download/:id', (req, res) => {
 
       archive.finalize();
     }
-    if (filePaths3.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths3[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`work_exe_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths4.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths4[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`work_exe_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-    if (filePaths5.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths5[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
-      }
-
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`work_exe_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-      
-    }
+    
    
   });
 });
-router.get('/lab_download/:id', (req, res) => {
-  const workId = req.params.id;
-  // Query both asphalt and milling columns for this record
-  db.query(
-    'SELECT asphalt, milling FROM work_execution WHERE id = ?', 
-    [workId],
-    (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Server error');
-      }
-      if (!results.length) {
-        return res.status(404).send('Record not found');
-      }
 
-      const record = results[0];
-      // Collect all file paths from the comma-separated columns
-      let files = [];
-      if (record.asphalt) {
-        files = files.concat(record.asphalt.split(','));
-      }
-      if (record.milling) {
-        files = files.concat(record.milling.split(','));
-      }
-      // Remove any empty strings (in case of trailing commas)
-      files = files.filter(p => p && p.trim());
-
-      // Set response headers for zip download
-      res.attachment('lab_files.zip');
-
-      // Create a zip archive and pipe to response
-      const archive = archiver('zip', { zlib: { level: 9 }});
-      archive.on('error', err => {
-        console.error(err);
-        res.status(500).send({ error: err.message });
-      });
-      archive.pipe(res);
-
-      // Add each file to the archive
-      files.forEach(filePathFromDb => {
-        // Get just the filename (strip off any directory prefix)
-        const fileName = path.basename(filePathFromDb);
-        // Build the actual local path in the uploads folder
-        const localPath = path.join(__dirname, '../uploads', fileName);
-        // Append the file into the zip. The { name: fileName } makes sure 
-        // it appears with that name inside the archive.
-        archive.file(localPath, { name: fileName });
-      });
-
-      // Finalize and send the zip
-      archive.finalize();
-  });
-});
 
 module.exports = router;
 
