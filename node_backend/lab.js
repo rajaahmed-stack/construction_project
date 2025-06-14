@@ -1798,7 +1798,7 @@ router.get('/lab_download/:id', (req, res) => {
     }
 
     const filePaths = filePath.split(',');
-    const filePaths2 = filePath.split(',');
+    const filePaths2 = filePath2.split(',');
     console.log('Parsed asphalt file paths:', filePaths);
     console.log('Parsed milling file paths:', filePaths2);
     const allFilePaths = filePaths.concat(filePaths2);
