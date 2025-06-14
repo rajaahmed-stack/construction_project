@@ -1774,7 +1774,7 @@ router.get('/lab_download/:id', (req, res) => {
   const fileId = req.params.id;
   console.log('Download request for work execution files with work_order_id:', fileId);
 
-  db.query('SELECT asphalt, milling, concrete FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
+  db.query('SELECT asphalt, milling, concrete, sand, cable_lying FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
@@ -1788,6 +1788,8 @@ router.get('/lab_download/:id', (req, res) => {
     let filePath = results[0].asphalt;
     let filePath2 = results[0].milling;
     let filePath3 = results[0].concrete;
+    let filePath4 = results[0].sand;
+    let filePath5 = results[0].cable_lying;
 
 
     // Convert buffer to string if needed
@@ -1800,17 +1802,25 @@ router.get('/lab_download/:id', (req, res) => {
     if (Buffer.isBuffer(filePath3)) {
       filePath3 = filePath3.toString('utf8');
     }
+    if (Buffer.isBuffer(filePath4)) {
+      filePath4 = filePath4.toString('utf8');
+    }
+    if (Buffer.isBuffer(filePath5)) {
+      filePath5 = filePath5.toString('utf8');
+    }
 
    const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
     const filePaths3 = filePath3.split(',');
+    const filePaths4 = filePath4.split(',');
+    const filePaths5 = filePath5.split(',');
 
     console.log('Parsed asphalt file paths:', filePaths);
     console.log('Parsed milling file paths:', filePaths2);
     console.log('Parsed concrete file paths:', filePaths3);
 
     // Combine all file paths
-    const allFilePaths = filePaths.concat(filePaths2, filePaths3);
+    const allFilePaths = filePaths.concat(filePaths2, filePaths3, filePaths4, filePaths5);
     console.log('Parsed all file paths:', allFilePaths);
 
 
