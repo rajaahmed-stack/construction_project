@@ -1801,18 +1801,18 @@ router.get('/lab_download/:id', (req, res) => {
       filePath3 = filePath3.toString('utf8');
     }
 
-    const filePaths = filePath.split(',');
+   const filePaths = filePath.split(',');
     const filePaths2 = filePath2.split(',');
     const filePaths3 = filePath3.split(',');
-    
+
     console.log('Parsed asphalt file paths:', filePaths);
     console.log('Parsed milling file paths:', filePaths2);
     console.log('Parsed concrete file paths:', filePaths3);
-    
+
     // Combine all file paths
     const allFilePaths = filePaths.concat(filePaths2, filePaths3);
     console.log('Parsed all file paths:', allFilePaths);
-    
+
 
     if (allFilePaths.length === 1) {
       // Single file
