@@ -1770,13 +1770,11 @@ router.get('/workexecute_download/:id', (req, res) => {
 //     }
 //   });
 // });
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads'); // Adjust to match actual location
-
 router.get('/lab_download/:id', (req, res) => {
   const fileId = req.params.id;
   console.log('Download request for work execution files with work_order_id:', fileId);
 
-  db.query('SELECT asphalt, milling FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
+  db.query('SELECT asphalt, milling, concrete FROM work_execution WHERE work_order_id = ?', [fileId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
@@ -1789,6 +1787,8 @@ router.get('/lab_download/:id', (req, res) => {
 
     let filePath = results[0].asphalt;
     let filePath2 = results[0].milling;
+    let filePath3 = results[0].concrete;
+
 
     // Convert buffer to string if needed
     if (Buffer.isBuffer(filePath)) {
@@ -1797,39 +1797,52 @@ router.get('/lab_download/:id', (req, res) => {
     if (Buffer.isBuffer(filePath2)) {
       filePath2 = filePath2.toString('utf8');
     }
+    if (Buffer.isBuffer(filePath3)) {
+      filePath3 = filePath3.toString('utf8');
+    }
 
-    const filePaths = filePath ? filePath.split(',') : [];
-    const filePaths2 = filePath2 ? filePath2.split(',') : [];
+    const filePaths = filePath.split(',');
+    const filePaths2 = filePath2.split(',');
+    const filePaths3 = filePath3.split(',');
+    
     console.log('Parsed asphalt file paths:', filePaths);
     console.log('Parsed milling file paths:', filePaths2);
-
-    const allFilePaths = filePaths.concat(filePaths2);
-    console.log('Parsed both file paths:', allFilePaths);
+    console.log('Parsed concrete file paths:', filePaths3);
+    
+    // Combine all file paths
+    const allFilePaths = filePaths.concat(filePaths2, filePaths3);
+    console.log('Parsed all file paths:', allFilePaths);
+    
 
     if (allFilePaths.length === 1) {
       // Single file
-      const absPath = path.join(UPLOAD_DIR, path.basename(allFilePaths[0]));
-      if (!fs.existsSync(absPath)) {
-        console.warn('Single file download path not found:', absPath);
+      const absolutePath = path.resolve(allFilePaths[0]);
+      if (!fs.existsSync(absolutePath)) {
+        console.log('Single file download path:', absolutePath);
         return res.status(404).send('File not found on server');
       }
 
-      return res.download(absPath);
+      return res.download(absolutePath);
     } else {
-      // Multiple files — create a zip
+      // Multiple files — create a zi
       console.log(`Zipping ${allFilePaths.length} files into one archive`);
 
-      const archive = archiver('zip', { zlib: { level: 9 } });
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
       res.attachment(`WorkExe_files_${fileId}.zip`);
       archive.pipe(res);
 
-      allFilePaths.forEach((relativePath, index) => {
-        const absPath = path.join(UPLOAD_DIR, path.basename(relativePath)); // ensure safe access
+      allFilePaths.forEach((p ,index)=> {
+        const absPath = path.resolve(p);
         if (fs.existsSync(absPath)) {
           console.log(`Adding file [${index}]:`, absPath);
-          archive.file(absPath, { name: path.basename(relativePath) });
-        } else {
+          archive.file(absPath, { name: path.basename(p) });
+        }
+        else{
           console.warn(`File not found, skipping:`, absPath);
+
         }
       });
 
