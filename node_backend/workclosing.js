@@ -1477,52 +1477,92 @@ router.get('/workclosing23_download/:id', (req, res) => {
 router.get('/workclosing24_download/:id', (req, res) => {
   const fileId = req.params.id;
 
-  db.query('SELECT final_closing_certificate FROM permission_closing WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
-    }
+  console.log(`[DOWNLOAD] Requested work_order_id: ${fileId}`);
 
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
-
-    let filePath = results[0].final_closing_certificate;
-
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
-
-    const filePaths = filePath.split(',');
-
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+  db.query(
+    'SELECT final_closing_certificate FROM permission_closing WHERE work_order_id = ?',
+    [fileId],
+    (err, results) => {
+      if (err) {
+        console.error('❌ Database error:', err);
+        return res.status(500).send('Database error');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
+      if (results.length === 0) {
+        console.warn(`⚠️ No record found for work_order_id: ${fileId}`);
+        return res.status(404).send('File not found');
+      }
+
+      let rawField = results[0].final_closing_certificate;
+
+      if (!rawField || !rawField.trim()) {
+        console.warn(`⚠️ No final_closing_certificate paths stored in DB for ID: ${fileId}`);
+        return res.status(404).send('No files available');
+      }
+
+      // Handle Buffer type (sometimes MySQL returns buffers for text)
+      if (Buffer.isBuffer(rawField)) {
+        rawField = rawField.toString('utf8');
+      }
+
+      console.log(`[DB FIELD] Raw final_closing_certificate:`, rawField);
+
+      const relativePaths = rawField
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(p => p.replace(/^uploads[\\/]/, ''));  // Remove leading 'uploads/' if present
+
+      console.log(`[PARSED PATHS]`, relativePaths);
+
+      if (relativePaths.length === 0) {
+        console.warn(`⚠️ No valid file paths after parsing for work_order_id: ${fileId}`);
+        return res.status(404).send('No valid file paths found');
+      }
+
+      // Special case: single file
+      if (relativePaths.length === 1) {
+        const singleFile = relativePaths[0];
+        const absPath = path.join(process.cwd(), 'uploads', singleFile);
+
+        console.log(`[RESOLVE] Single file absolute path:`, absPath);
+
+        if (!fs.existsSync(absPath)) {
+          console.error(`❌ File not found on server:`, absPath);
+          return res.status(404).send('File not found on server');
+        }
+
+        console.log(`[DOWNLOAD] Sending single file for work_order_id: ${fileId}`);
+        return res.download(absPath);
+      }
+
+      // Multiple files — zip archive
+      console.log(`[ZIP] Preparing zip for ${relativePaths.length} files for work_order_id: ${fileId}`);
+      res.attachment(`final_closing_certificate_${fileId}.zip`);
+
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      archive.on('error', (err) => {
+        console.error('❌ Archive error:', err);
+        res.status(500).send('Error creating zip archive');
       });
 
-      res.attachment(`Labtrench_files_${fileId}.zip`);
       archive.pipe(res);
 
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
+      const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+
+      relativePaths.forEach((relPath, index) => {
+        const absFile = path.join(UPLOADS_DIR, relPath);
+        if (fs.existsSync(absFile)) {
+          console.log(`➕ Adding [${index}]:`, absFile);
+          archive.file(absFile, { name: path.basename(absFile) });
+        } else {
+          console.warn(`⚠️ File missing, skipped:`, absFile);
         }
       });
 
       archive.finalize();
     }
-  });
+  );
 });
 router.get('/pclosingfiles_download/:id', (req, res) => {
   const fileId = req.params.id;
