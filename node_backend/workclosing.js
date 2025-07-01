@@ -1601,7 +1601,7 @@ router.get('/pclosingfiles_download/:id', (req, res) => {
 
     allFilePaths.forEach(filePath => {
       const relativeName = filePath.replace(/^uploads[\\/]/, '');
-      const absFile = path.join(__dirname, 'uploads', relativeName);
+      const absFile =  path.resolve('uploads', relativeName);
 
       if (fs.existsSync(absFile)) {
         console.log('Adding to zip:', absFile);
