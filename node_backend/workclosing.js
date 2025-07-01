@@ -1424,106 +1424,97 @@ router.get('/workclosing22_download/:id', (req, res) => {
     }
   });
 });
-router.get('/workclosing23_download/:id', (req, res) => {
+router.get('/pclosingfiles_download/:id', (req, res) => {
   const fileId = req.params.id;
+  console.log('Download request for work_order_id:', fileId);
 
-  db.query('SELECT work_closing_certificate FROM permission_closing WHERE work_order_id = ?', [fileId], (err, results) => {
+  // Query the DB
+  const sql = `
+    SELECT work_closing_certificate, final_closing_certificate
+    FROM permission_closing
+    WHERE work_order_id = ?
+  `;
+
+  db.query(sql, [fileId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).send('Database error');
     }
 
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
+    if (!results.length) {
+      console.warn('No permission_closing record found for:', fileId);
+      return res.status(404).send('No data found for this ID');
     }
 
-    let filePath = results[0].work_closing_certificate;
+    const record = results[0];
+    const fields = ['work_closing_certificate', 'final_closing_certificate'];
+    let allFilePaths = [];
 
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
+    // Extract and parse CSV-style stored paths
+    fields.forEach(field => {
+      let raw = record[field];
+      if (!raw) return;
+
+      if (Buffer.isBuffer(raw)) raw = raw.toString('utf8');
+
+      if (typeof raw === 'string' && raw.trim()) {
+        const parts = raw
+          .split(',')
+          .map(p => p.trim())
+          .filter(Boolean);
+
+        console.log(`Parsed for ${field}:`, parts);
+        allFilePaths = allFilePaths.concat(parts);
+      }
+    });
+
+    if (!allFilePaths.length) {
+      console.warn('No file paths available in DB');
+      return res.status(404).send('No files available to download');
     }
 
-    const filePaths = filePath.split(',');
+    // Single file download
+    if (allFilePaths.length === 1) {
+      const singleFile = path.basename(allFilePaths[0]);
+      const absPath = path.resolve(__dirname, 'uploads', singleFile);
 
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
+      if (!fs.existsSync(absPath)) {
+        console.error('File does not exist:', absPath);
         return res.status(404).send('File not found on server');
       }
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`WorkClosingCertificate_files_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
-  });
-});
-router.get('/workclosing24_download/:id', (req, res) => {
-  const fileId = req.params.id;
-
-  db.query('SELECT final_closing_certificate FROM permission_closing WHERE work_order_id = ?', [fileId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).send('Database error');
+      console.log('Sending single file:', absPath);
+      return res.download(absPath);
     }
 
-    if (results.length === 0) {
-      return res.status(404).send('File not found');
-    }
+    // Multiple files => Zip archive
+    console.log(`Preparing zip for ${allFilePaths.length} files`);
+    res.attachment(`permission_closing_${fileId}.zip`);
 
-    let filePath = results[0].final_closing_certificate;
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', err => {
+      console.error('Archive error:', err);
+      res.status(500).send('Error creating zip archive');
+    });
 
-    // Convert buffer to string if needed
-    if (Buffer.isBuffer(filePath)) {
-      filePath = filePath.toString('utf8');
-    }
+    archive.pipe(res);
 
-    const filePaths = filePath.split(',');
+    allFilePaths.forEach(filePath => {
+      const relativeName = filePath.replace(/^uploads[\\/]/, '');
+      const absFile = path.join(__dirname, 'uploads', relativeName);
 
-    if (filePaths.length === 1) {
-      // Single file
-      const absolutePath = path.resolve(filePaths[0]);
-      if (!fs.existsSync(absolutePath)) {
-        return res.status(404).send('File not found on server');
+      if (fs.existsSync(absFile)) {
+        console.log('Adding to zip:', absFile);
+        archive.file(absFile, { name: path.basename(absFile) });
+      } else {
+        console.warn('File missing, skipped:', absFile);
       }
+    });
 
-      return res.download(absolutePath);
-    } else {
-      // Multiple files — create a zip
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      res.attachment(`Labtrench_files_${fileId}.zip`);
-      archive.pipe(res);
-
-      filePaths.forEach(p => {
-        const absPath = path.resolve(p);
-        if (fs.existsSync(absPath)) {
-          archive.file(absPath, { name: path.basename(p) });
-        }
-      });
-
-      archive.finalize();
-    }
+    archive.finalize();
   });
 });
+
 function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
   router.get(routePath, (req, res) => {
     const fileId = req.params.id;
