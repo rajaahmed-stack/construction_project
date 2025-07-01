@@ -46,7 +46,7 @@ router.use(express.json());
 // Fetch permissionclosing Coming Data
 router.get('/permissionclosing-coming', (req, res) => {
     const query = `
-    SELECT 
+   SELECT 
     lab.work_order_id, 
     lab.permission_number, 
     lab.asphalt AS lab_asphalt, 
@@ -62,38 +62,44 @@ router.get('/permissionclosing-coming', (req, res) => {
     work_execution.cable_lying AS exe_cable_lying,
     work_execution.trench AS exe_trench,
     safety_department.safety_signs,
-      safety_department.safety_barriers,
-      safety_department.safety_lights,
-      safety_department.safety_boards,
-      safety_department.permissions,
-      safety_department.safety_documentation,
+    safety_department.safety_barriers,
+    safety_department.safety_lights,
+    safety_department.safety_boards,
+    safety_department.permissions,
+    safety_department.safety_documentation,
     work_receiving.job_type, 
     work_receiving.file_path, 
     work_receiving.sub_section, 
     survey.survey_file_path, 
     permissions.Document
-    FROM 
-        lab
-    LEFT JOIN 
-        work_receiving 
-        ON lab.work_order_id = work_receiving.work_order_id
-    LEFT JOIN 
-        work_execution 
-        ON lab.work_order_id = work_execution.work_order_id
-    LEFT JOIN 
-        safety_department 
-        ON lab.work_order_id = safety_department.work_order_id
-    LEFT JOIN 
-        survey 
-        ON lab.work_order_id = survey.work_order_id
-    LEFT JOIN 
-        permissions 
-        ON lab.work_order_id = permissions.work_order_id
-    WHERE 
-        lab.work_order_id NOT IN 
-            (SELECT work_order_id FROM permission_closing) 
-        AND work_receiving.current_department IN ('PermissionClosing', 'Invoice', 'Drawing')
-         AND work_receiving.job_type != 'New Meters';
+FROM 
+    lab
+LEFT JOIN 
+    work_receiving 
+    ON lab.work_order_id = work_receiving.work_order_id
+LEFT JOIN 
+    work_execution 
+    ON lab.work_order_id = work_execution.work_order_id
+LEFT JOIN 
+    safety_department 
+    ON lab.work_order_id = safety_department.work_order_id
+LEFT JOIN 
+    survey 
+    ON lab.work_order_id = survey.work_order_id
+LEFT JOIN 
+    permissions 
+    ON lab.work_order_id = permissions.work_order_id
+WHERE 
+    lab.work_order_id NOT IN (SELECT work_order_id FROM permission_closing)
+    AND (
+        work_receiving.current_department IN ('PermissionClosing', 'Invoice', 'Drawing')
+        OR work_receiving.current_department IS NULL
+    )
+    AND (
+        work_receiving.job_type != 'New Meters'
+        OR work_receiving.job_type IS NULL
+    );
+
 
     `;
     db.query(query, (err, results) => {

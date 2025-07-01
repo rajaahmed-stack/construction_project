@@ -174,30 +174,35 @@ const Laboratory = () => {
     
 
 
-    const handleAddData = async (record) => {
-        try {
-          // Prepare the data to be saved
-          const dataToSave = {
-            work_order_id: record.work_order_id,
-            permission_number: record.permission_number,
-          };
-      
-          // Save the data to the backend
-          const response = await axios.post(
-            "https://constructionproject-production.up.railway.app/api/Laboratory/save-Laboratory-workorder",
-            dataToSave
-          );
-      
-          if (response.status === 200) {
-            alert("Data saved successfully!");
-            await refreshWorkExeData(); // Refresh the lower section
-          }
-        } catch (error) {
-          console.error("Error saving data:", error);
-          alert("Failed to save data. Please try again.");
-        }
-      };
-  
+    // ...existing code...
+const handleAddData = async (record) => {
+  try {
+    const dataToSave = {
+      work_order_id: record.work_order_id,
+      permission_number: record.permission_number,
+      asphalt_completed: false,
+      milling_completed: false,
+      concrete_completed: false,
+      sand_completed: false,
+      cable_lying_completed: false,
+      // add other *_completed fields as needed
+    };
+
+    const response = await axios.post(
+      "https://constructionproject-production.up.railway.app/api/Laboratory/save-Laboratory-workorder",
+      dataToSave
+    );
+
+    if (response.status === 200) {
+      alert("Data saved successfully!");
+      await refreshWorkExeData();
+    }
+  } catch (error) {
+    console.error("Error saving data:", error);
+    alert("Failed to save data. Please try again.");
+  }
+};
+// ...existing code...
   // Handle input change
   const handleFormChange = (e) => {
     const { name, value } = e.target;

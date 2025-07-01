@@ -492,139 +492,110 @@ const SafetyDepartment = () => {
             console.error("Error refreshing survey data:", error);
           }
         };
-    // const handleSaveSafetySign = async (field, workOrderId) => { 
-    //   try {
-    //     if (!workOrderId) {
-    //       alert("Work Order ID is missing!");
-    //       return;
-    //     }
+    const handleSaveSafetySign = async (field, workOrderId) => { 
+      try {
+        if (!workOrderId) {
+          alert("Work Order ID is missing!");
+          return;
+        }
     
-    //     const dataToSend = {
-    //       safety_signs: formData.safetySigns || null,
-    //       safety_signs_completed: formData.safetySignsCompleted,
-    //       work_order_id: workOrderId,
-    //     };
+        const dataToSend = {
+          safety_signs: formData.safetySigns || null,
+          safety_signs_completed: formData.safetySignsCompleted,
+          work_order_id: workOrderId,
+        };
     
-    //     const response = await axios.post(
-    //       "https://constructionproject-production.up.railway.app/api/safety/save-safety-signs",
-    //       dataToSend
-    //     );
-    
-    //     alert(`${field} saved successfully!`);
-    //     await refreshSafetyData();
-    //     setFormData((prevData) => ({
-    //       ...prevData,
-    //       [`${field}Completed`]: true,
-    //     }));
-    
-    //     setCompletedTasks((prev) => prev + 1);
-    //     if (completedTasks + 1 === totalTasks) {
-    //       setIsSendEnabled(true);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error saving field:", error);
-    //   }
-    // };
-    const handleSaveSafetySign = async (field, workOrderId) => {
-  try {
-    if (!workOrderId) {
-      alert("Work Order ID is missing!");
-      return;
-    }
+              console.log("[Save] Safety Signs:", dataToSend);
 
-    const dataToSend = {
-      safety_signs: formData.safetySigns || [],
-      safety_signs_completed: formData.safetySignsCompleted || false,
-      work_order_id: workOrderId,
+         await axios.post(
+          "https://constructionproject-production.up.railway.app/api/safety/save-safety-signs",
+          dataToSend
+        );
+    
+        alert(`${field} saved successfully!`);
+        await refreshSafetyData();
+        setFormData((prevData) => ({
+          ...prevData,
+          [`${field}Completed`]: true,
+        }));
+    
+        setCompletedTasks((prev) => prev + 1);
+        if (completedTasks + 1 === totalTasks) {
+          setIsSendEnabled(true);
+        }
+      } catch (error) {
+        console.error("Error saving field:", error);
+      }
     };
-
-    console.log("[Save] Safety Signs:", dataToSend);
-
-    await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-signs", dataToSend);
-
-    alert(`${field} saved successfully!`);
-    await refreshSafetyData();
-
-    setFormData((prev) => ({
-      ...prev,
-      [`${field}Completed`]: true,
-    }));
-
-    setCompletedTasks((prev) => prev + 1);
-    if (completedTasks + 1 === totalTasks) {
-      setIsSendEnabled(true);
-    }
-  } catch (error) {
-    console.error("Error saving Safety Signs:", error);
-  }
-};
-
-    // const handleSaveSafetyBarriers = async (field, workOrderId) => { 
-    //   try {
-    //     if (!workOrderId) {
-    //       alert("Work Order ID is missing!");
-    //       return;
-    //     }
+ 
+    const handleSaveSafetyBarriers = async (field, workOrderId) => { 
+      try {
+        if (!workOrderId) {
+          alert("Work Order ID is missing!");
+          return;
+        }
     
-    //     const dataToSend = {
-    //       safety_barriers: formData.safetyBarriers || null,
-    //       safety_barriers_completed: formData.safetyBarriersCompleted,
-    //       work_order_id: workOrderId,
-    //     };
-    
-    //     const response = await axios.post(
-    //       "https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers",
-    //       dataToSend
-    //     );
-    
-    //     alert(`${field} saved successfully!`);
-    //     await refreshSafetyData();
-    //     setFormData((prevData) => ({
-    //       ...prevData,
-    //       [`${field}Completed`]: true,
-    //     }));
-    
-    //     setCompletedTasks((prev) => prev + 1);
-    //     if (completedTasks + 1 === totalTasks) {
-    //       setIsSendEnabled(true);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error saving field:", error);
-    //   }
-    // };
-    const handleSaveSafetyBarriers = async (field, workOrderId) => {
-  try {
-    if (!workOrderId) {
-      alert("Work Order ID is missing!");
-      return;
-    }
+        const dataToSend = {
+          safety_barriers: formData.safetyBarriers || [],
+          safety_barriers_completed: formData.safetyBarriersCompleted || false,
+          work_order_id: workOrderId,
+        };
+            console.log("[Save] Safety Barriers:", dataToSend);
 
-    const dataToSend = {
-      safety_barriers: formData.safetyBarriers || [],
-      safety_barriers_completed: formData.safetyBarriersCompleted || false,
-      work_order_id: workOrderId,
+    
+         await axios.post(
+          "https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers",
+          dataToSend
+        );
+    
+        alert(`${field} saved successfully!`);
+        await refreshSafetyData();
+        setFormData((prevData) => ({
+          ...prevData,
+          [`${field}Completed`]: true,
+        }));
+    
+        setCompletedTasks((prev) => prev + 1);
+        if (completedTasks + 1 === totalTasks) {
+          setIsSendEnabled(true);
+        }
+      } catch (error) {
+        console.error("Error saving field:", error);
+      }
     };
+//     const handleSaveSafetyBarriers = async (field, workOrderId) => {
+//   try {
+//     if (!workOrderId) {
+//       alert("Work Order ID is missing!");
+//       return;
+//     }
 
-    console.log("[Save] Safety Barriers:", dataToSend);
+//     const dataToSend = {
+//       safety_barriers: formData.safetyBarriers || [],
+//       safety_barriers_completed: formData.safetyBarriersCompleted || false,
+//       work_order_id: workOrderId,
+//     };
 
-    await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers", dataToSend);
+//     console.log("[Save] Safety Barriers:", dataToSend);
 
-    alert(`${field} saved successfully!`);
-    await refreshSafetyData();
+//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers", dataToSend);
 
-    setFormData((prev) => ({
-      ...prev,
-      [`${field}Completed`]: true,
-    }));
+//     alert(`${field} saved successfully!`);
+//     await refreshSafetyData();
 
-    setCompletedTasks((prev) => prev + 1);
-    if (completedTasks + 1 === totalTasks) {
-      setIsSendEnabled(true);
-    }
-  } catch (error) {
-    console.error("Error saving Safety Barriers:", error);
-  }
-};
+//     setFormData((prev) => ({
+//       ...prev,
+//       [`${field}Completed`]: true,
+//     }));
+
+//     setCompletedTasks((prev) => prev + 1);
+//     if (completedTasks + 1 === totalTasks) {
+//       setIsSendEnabled(true);
+//     }
+//   } catch (error) {
+//     console.error("Error saving Safety Barriers:", error);
+//   }
+// };
 
     
   // const handleSaveSafetyLights = async (field, workOrderId) => {
@@ -639,8 +610,9 @@ const SafetyDepartment = () => {
   //       safety_lights_completed: formData.safetyLightsCompleted,
   //       work_order_id: workOrderId,
   //     };
-  
-  //     const response = await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
+  //     console.log("[Save] Safety Lights:", dataToSend);
+
+  //     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
   
   //     alert(`${field} saved successfully!`);
   //     await refreshSafetyData();
@@ -729,178 +701,219 @@ const SafetyDepartment = () => {
   //   }
   // };
   const handleSaveSafetyBoards = async (field, workOrderId) => {
-  try {
-    if (!workOrderId) {
-      alert("Work Order ID is missing!");
-      return;
-    }
-
-    const dataToSend = {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+  
+       const dataToSend = {
       safety_boards: formData.safetyBoards || [],
       safety_board_completed: formData.safetyBoardsCompleted || false,
       work_order_id: workOrderId,
     };
 
-    console.log("[Save] Safety Boards:", dataToSend);
+          console.log("[Save] Safety Boards:", dataToSend);
 
-    await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-boards", dataToSend);
-
-    alert(`${field} saved successfully!`);
-    await refreshSafetyData();
-
-    setFormData((prev) => ({
-      ...prev,
-      [`${field}Completed`]: true,
-    }));
-
-    setCompletedTasks((prev) => prev + 1);
-    if (completedTasks + 1 === totalTasks) {
-      setIsSendEnabled(true);
+  
+      console.log("Payload for Safety Boards:", dataToSend); // Debugging log
+  
+       await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety-boards",
+        dataToSend
+      );
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving Safety Boards:", error);
+      alert("Failed to save Safety Boards. Please try again.");
     }
-  } catch (error) {
-    console.error("Error saving Safety Boards:", error);
-  }
-};
+  };
+//   const handleSaveSafetyBoards = async (field, workOrderId) => {
+//   try {
+//     if (!workOrderId) {
+//       alert("Work Order ID is missing!");
+//       return;
+//     }
 
-  // const handleSaveSafetyDocumentation = async (field, workOrderId) => {
-  //   try {
-  //     if (!workOrderId) {
-  //       alert("Work Order ID is missing!");
-  //       return;
-  //     }
-  
-  //     const dataToSend = {
-  //       safety_documentation: formData.safetyDocumentation ? `uploads/${formData.safetyDocumentation.filename}` : null,
-  //       safety_documentation_completed: true, // Mark as completed
-  //       work_order_id: workOrderId,
-  //     };
-  
-  //     console.log("Payload for Safety Documentation:", dataToSend); // Debugging log
-  
-  //     const response = await axios.post(
-  //       "https://constructionproject-production.up.railway.app/api/safety/save-safety-document",
-  //       dataToSend
-  //     );
-  
-  //     alert(`${field} saved successfully!`);
-  //     await refreshSafetyData();
-  //     setFormData((prevData) => ({
-  //       ...prevData,
-  //       [`${field}Completed`]: true,
-  //     }));
-  
-  //     setCompletedTasks((prev) => prev + 1);
-  //     if (completedTasks + 1 === totalTasks) {
-  //       setIsSendEnabled(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving Safety Documentation:", error);
-  //     alert("Failed to save Safety Documentation. Please try again.");
-  //   }
-  // };
+//     const dataToSend = {
+//       safety_boards: formData.safetyBoards || [],
+//       safety_board_completed: formData.safetyBoardsCompleted || false,
+//       work_order_id: workOrderId,
+//     };
+
+//     console.log("[Save] Safety Boards:", dataToSend);
+
+//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-boards", dataToSend);
+
+//     alert(`${field} saved successfully!`);
+//     await refreshSafetyData();
+
+//     setFormData((prev) => ({
+//       ...prev,
+//       [`${field}Completed`]: true,
+//     }));
+
+//     setCompletedTasks((prev) => prev + 1);
+//     if (completedTasks + 1 === totalTasks) {
+//       setIsSendEnabled(true);
+//     }
+//   } catch (error) {
+//     console.error("Error saving Safety Boards:", error);
+//   }
+// };
+
   const handleSaveSafetyDocumentation = async (field, workOrderId) => {
-  try {
-    if (!workOrderId) {
-      alert("Work Order ID is missing!");
-      return;
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+      const dataToSend = {
+        safety_documentation: formData.safetyDocumentation || [],
+        safety_documentation_completed: formData.safetyDocumentationCompleted || false,
+        work_order_id: workOrderId,
+      };
+  
+      console.log("Payload for Safety Documentation:", dataToSend); // Debugging log
+          console.log("[Save] Safety Documentation:", dataToSend);
+
+  
+       await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety-document",
+        dataToSend
+      );
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving Safety Documentation:", error);
+      alert("Failed to save Safety Documentation. Please try again.");
     }
+  };
+//   const handleSaveSafetyDocumentation = async (field, workOrderId) => {
+//   try {
+//     if (!workOrderId) {
+//       alert("Work Order ID is missing!");
+//       return;
+//     }
 
-    const dataToSend = {
-      safety_documentation: formData.safetyDocumentation || [],
-      safety_documentation_completed: formData.safetyDocumentationCompleted || false,
-      work_order_id: workOrderId,
-    };
+//     const dataToSend = {
+//       safety_documentation: formData.safetyDocumentation || [],
+//       safety_documentation_completed: formData.safetyDocumentationCompleted || false,
+//       work_order_id: workOrderId,
+//     };
 
-    console.log("[Save] Safety Documentation:", dataToSend);
+//     console.log("[Save] Safety Documentation:", dataToSend);
 
-    await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-document", dataToSend);
+//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-document", dataToSend);
 
-    alert(`${field} saved successfully!`);
-    await refreshSafetyData();
+//     alert(`${field} saved successfully!`);
+//     await refreshSafetyData();
 
-    setFormData((prev) => ({
-      ...prev,
-      [`${field}Completed`]: true,
-    }));
+//     setFormData((prev) => ({
+//       ...prev,
+//       [`${field}Completed`]: true,
+//     }));
 
-    setCompletedTasks((prev) => prev + 1);
-    if (completedTasks + 1 === totalTasks) {
-      setIsSendEnabled(true);
-    }
-  } catch (error) {
-    console.error("Error saving Safety Documentation:", error);
-  }
-};
+//     setCompletedTasks((prev) => prev + 1);
+//     if (completedTasks + 1 === totalTasks) {
+//       setIsSendEnabled(true);
+//     }
+//   } catch (error) {
+//     console.error("Error saving Safety Documentation:", error);
+//   }
+// };
 
-  // const handleSaveSafetyPermission = async (field, workOrderId) => {
-  //   try {
-  //     if (!workOrderId) {
-  //       alert("Work Order ID is missing!");
-  //       return;
-  //     }
-  
-  //     const dataToSend = {
-  //       permissions:  formData.safetyDocumentation ? `uploads/${formData.safetyDocumentation.filename}` : null,
-  //       permissions_completed: true, // Mark as completed
-  //       work_order_id: workOrderId,
-  //     };
-  
-  //     console.log("Payload for Safety Permission:", dataToSend); // Debugging log
-  
-  //     const response = await axios.post(
-  //       "https://constructionproject-production.up.railway.app/api/safety/save-safety-permission",
-  //       dataToSend
-  //     );
-  
-  //     alert(`${field} saved successfully!`);
-  //     await refreshSafetyData();
-  //     setFormData((prevData) => ({
-  //       ...prevData,
-  //       [`${field}Completed`]: true,
-  //     }));
-  
-  //     setCompletedTasks((prev) => prev + 1);
-  //     if (completedTasks + 1 === totalTasks) {
-  //       setIsSendEnabled(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving Safety Permission:", error);
-  //     alert("Failed to save Safety Permission. Please try again.");
-  //   }
-  // };
   const handleSaveSafetyPermission = async (field, workOrderId) => {
-  try {
-    if (!workOrderId) {
-      alert("Work Order ID is missing!");
-      return;
-    }
-
-    const dataToSend = {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+  
+       const dataToSend = {
       permissions: formData.safetyPermissions || [],
-      permissions_completed: formData.safetyPermissionsCompleted || false,
+      permissions_completed: formData.permissions_completed || false,
       work_order_id: workOrderId,
     };
+  
+      console.log("Payload for Safety Permission:", dataToSend); // Debugging log
+          console.log("[Save] Safety Permission:", dataToSend);
 
-    console.log("[Save] Safety Permission:", dataToSend);
-
-    await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-permission", dataToSend);
-
-    alert(`${field} saved successfully!`);
-    await refreshSafetyData();
-
-    setFormData((prev) => ({
-      ...prev,
-      [`${field}Completed`]: true,
-    }));
-
-    setCompletedTasks((prev) => prev + 1);
-    if (completedTasks + 1 === totalTasks) {
-      setIsSendEnabled(true);
+       await axios.post(
+        "https://constructionproject-production.up.railway.app/api/safety/save-safety-permission",
+        dataToSend
+      );
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving Safety Permission:", error);
+      alert("Failed to save Safety Permission. Please try again.");
     }
-  } catch (error) {
-    console.error("Error saving Safety Permission:", error);
-  }
-};
+  };
+//   const handleSaveSafetyPermission = async (field, workOrderId) => {
+//   try {
+//     if (!workOrderId) {
+//       alert("Work Order ID is missing!");
+//       return;
+//     }
+
+//     const dataToSend = {
+//       permissions: formData.safetyPermissions || [],
+//       permissions_completed: formData.safetyPermissionsCompleted || false,
+//       work_order_id: workOrderId,
+//     };
+
+//     console.log("[Save] Safety Permission:", dataToSend);
+
+//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-permission", dataToSend);
+
+//     alert(`${field} saved successfully!`);
+//     await refreshSafetyData();
+
+//     setFormData((prev) => ({
+//       ...prev,
+//       [`${field}Completed`]: true,
+//     }));
+
+//     setCompletedTasks((prev) => prev + 1);
+//     if (completedTasks + 1 === totalTasks) {
+//       setIsSendEnabled(true);
+//     }
+//   } catch (error) {
+//     console.error("Error saving Safety Permission:", error);
+//   }
+// };
 
   const showSnackbar = (msg) => {
     setSnackbarMessage(msg);
