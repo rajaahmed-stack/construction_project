@@ -163,10 +163,15 @@ router.post('/upload-and-save-pcdocument', upload.fields([
   console.log(req.body);
 
   const { work_order_id, permission_number, closing_date, penalty_reason, penalty_amount } = req.body;
-  const workClosingCertificate = req.files['work_closing_certificate'] ? req.files['work_closing_certificate'].map(file => file.filename) : null;
-  const finalClosingCertificate = req.files['final_closing_certificate'] ? req.files['final_closing_certificate'].map(file => file.filename) : null;
 
-  // Insert file information and work order details into the database
+  const workClosingCertificate = req.files['work_closing_certificate']
+    ? req.files['work_closing_certificate'].map(file => file.filename).join(',')
+    : null;
+
+  const finalClosingCertificate = req.files['final_closing_certificate']
+    ? req.files['final_closing_certificate'].map(file => file.filename).join(',')
+    : null;
+
   const insertQuery = `
     INSERT INTO permission_closing 
     (work_order_id, permission_number, closing_date, penalty_reason, penalty_amount, work_closing_certificate, final_closing_certificate)
@@ -180,7 +185,6 @@ router.post('/upload-and-save-pcdocument', upload.fields([
       return res.status(500).json({ success: false, message: 'Error saving data to the database' });
     }
 
-    // Update completion status for certificates
     const updateQuery = `
       UPDATE permission_closing
       SET work_closing_certificate_completed = ?, final_closing_certificate_completed = ?
@@ -194,7 +198,6 @@ router.post('/upload-and-save-pcdocument', upload.fields([
         return res.status(500).json({ success: false, message: 'Error updating completion status' });
       }
 
-      // Update current department in work_receiving
       const query = `
         UPDATE work_receiving 
         SET current_department = 'WorkClosing'
