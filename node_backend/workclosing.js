@@ -1576,7 +1576,7 @@ router.get('/pclosingfiles_download/:id', (req, res) => {
     // Single file download
     if (allFilePaths.length === 1) {
       const singleFile = path.basename(allFilePaths[0]);
-      const absPath = path.resolve(__dirname, 'uploads', singleFile);
+      const absPath = path.resolve('uploads', singleFile);
 
       if (!fs.existsSync(absPath)) {
         console.error('File does not exist:', absPath);
