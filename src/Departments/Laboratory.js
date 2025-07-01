@@ -810,7 +810,7 @@ const handleFileUpload = async (fieldName, files) => {
 
       {/* Upper Section: Incoming Work Execution Data */}
       <Grid item xs={12} md={5}>
-  <Paper elevation={3} sx={{ padding: "20px", backgroundColor: "#f8f9fa" }}>
+  <Paper elevation={3} sx={{ padding: "20px", backgroundColor: "#f8f9fa", overflow: "auto", maxHeight: "500px" }}>
     <Typography variant="h6">Incoming Laboratory Data</Typography>
     {upperData.length === 0 ? (
       <Typography color="error">No Laboratory coming data available.</Typography>
@@ -846,12 +846,8 @@ const handleFileUpload = async (fieldName, files) => {
                  { label: "Safety Boards", key: "safety_boards", downloadId: "lab7_download" },
                  { label: "Safety Permissions", key: "permissions", downloadId: "lab8_download" },
                  { label: "Safety Documentation", key: "safety_documentation", downloadId: "lab9_download" },
-                 { label: "Work Exe Asphalt", key: "asphalt", downloadId: "lab10_download" },
-                 { label: "Work Exe Milling", key: "milling", downloadId: "lab11_download" },
-                 { label: "Work Exe Concrete", key: "concrete", downloadId: "lab12_download" },
-                 { label: "Work Exe Sand", key: "sand", downloadId: "lab13_download" },
-                 { label: "Work Exe Cable lying", key: "cable_lying", downloadId: "lab14_download" },
-                 { label: "Work Exe Trench", key: "trench", downloadId: "lab15_download" },
+                 { label: "Work Exe Files",  downloadId: "lab_download" },
+              
                ].map((item, i) => (
                  <Box key={i}>
                    <strong>{item.label}:</strong>{" "}
@@ -991,7 +987,7 @@ const handleFileUpload = async (fieldName, files) => {
                         startIcon={<AddIcon />}
                         disabled={disabled}
                     >
-                        +
+                        
                         <input
                         type="file"
                         hidden
