@@ -52,16 +52,18 @@ const SafetyDepartment = () => {
    const [snackbarMessage, setSnackbarMessage] = useState('');
     const [openSnackbar, setOpenSnackbar] = useState(false);
   const [formData, setFormData] = useState({
-    safetySigns: null,
-    safetySignsCompleted: false,
-    safetyBarriers: null,
-    safetyBarriersCompleted: false,
-    safetyLights: null,
-    safetyLightsCompleted: false,
-    safetyBoards: null,
-    safetyBoardCompleted: false,
-    permissions: null,
-    permissionsCompleted: false,
+    safety_signs: "",
+    safety_signs_completed: false,
+    safety_barriers: "",
+    safety_barriers_completed: false,
+    safety_lights: "",
+    safety_lights_completed: false,
+    safety_boards: "",
+    safety_board_completed: false,
+    permissions: "",
+    permissions_completed: false,
+    safety_documentation: "",
+    safety_documentation_completed: false,
     safetyDocumentation: null,
     safetyDocumentationCompleted: false,
     siteRecheckingDate: "",
@@ -246,150 +248,271 @@ const SafetyDepartment = () => {
   
   
 
-  // const handleFileUpload = async (fieldName, file) => {
-  //   if (!file) {
-  //     alert("Please select a file to upload.");
-  //     return;
-  //   }
-  
-  //   const formData = new FormData();
-  //   formData.append("file", file);
-  
-  //   try {
-  //     const response = await axios.post(
-  //       `https://constructionproject-production.up.railway.app/api/safety/upload-safety-file/${fieldName}`,
-  //       formData,
-  //       {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       }
-  //     );
-  
-  //     if (response.data && response.data.filePath) {
-  //       console.log("File upload response:", response.data);
-  //       setFormData((prevData) => ({
-  //         ...prevData,
-  //         [fieldName]: response.data.filePath, // Store the file path
-  //       }));
-  //     } else {
-  //       alert("File upload failed. Please try again.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error uploading file:", error);
-  //     alert("Failed to upload file. Please try again.");
-  //   }
-  // };
-  
-
-
-  // const handleFileUpload = async (fieldName, files) => {
-  //   if (!files || files.length === 0) return;
-  
-  //   const formDataWithFiles = new FormData();
-  
-  //   for (let i = 0; i < files.length; i++) {
-  //     formDataWithFiles.append("file", files[i]);
-  //   }
-  
-  //   try {
-  //     const response = await axios.post(
-  //       `https://constructionproject-production.up.railway.app/api/safety/upload-safety-files/${fieldName}`,
-  //       formDataWithFiles,
-  //       {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //       }
-  //     );
-  
-  //     console.log("Files upload response:", response.data);
-  
-  //     // Append new file paths to the already uploaded files
-  //     setFormData((prevData) => ({
-  //       ...prevData,
-  //       [fieldName]: [
-  //         ...(prevData[fieldName] || []),
-  //         ...(response.data.filePaths || []),
-  //       ],
-  //     }));
-  
-  //     setUploadedFiles((prev) => ({
-  //       ...prev,
-  //       [fieldName]: [
-  //         ...(prev[fieldName] || []),
-  //         ...(response.data.filePaths || []),
-  //       ],
-  //     }));
-  
-  //     handleTaskCompletion(`${fieldName}Completed`);
-  //   } catch (error) {
-  //     console.error("Error uploading files:", error);
-  //     alert("Failed to upload files. Please try again.");
-  //   }
-  // };
+ 
   const handleFileUpload = async (fieldName, files) => {
   if (!files || files.length === 0) return;
 
   const formDataWithFiles = new FormData();
-  files.forEach(f => formDataWithFiles.append("file", f));
+
+  for (let i = 0; i < files.length; i++) {
+    formDataWithFiles.append("file", files[i]);
+  }
 
   try {
     const response = await axios.post(
       `https://constructionproject-production.up.railway.app/api/safety/upload-safety-files/${fieldName}`,
       formDataWithFiles,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
-    const newPaths = response.data.filePaths || [];
+    console.log("Files upload response:", response.data);
 
-    console.log(`[UPLOAD] Received paths for ${fieldName}:`, newPaths);
-
-    // Save to state
-    setFormData(prev => ({
-      ...prev,
+    // Append new file paths to the already uploaded files
+    setFormData((prevData) => ({
+      ...prevData,
       [fieldName]: [
-  ...(Array.isArray(prev[fieldName]) ? prev[fieldName] : []),
-  ...newPaths
-]
-
+        ...(prevData[fieldName] || []),
+        ...(response.data.filePaths || []),
+      ],
     }));
 
-    setUploadedFiles(prev => ({
+    setUploadedFiles((prev) => ({
       ...prev,
       [fieldName]: [
-  ...(Array.isArray(prev[fieldName]) ? prev[fieldName] : []),
-  ...newPaths
-]
-
+        ...(prev[fieldName] || []),
+        ...(response.data.filePaths || []),
+      ],
     }));
-          handleTaskCompletion(`${fieldName}Completed`);
 
-  } catch (err) {
-    console.error("Upload error:", err);
-    alert("Upload failed.");
+    handleTaskCompletion(`${fieldName}Completed`);
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    alert("Failed to upload files. Please try again.");
   }
 };
 
+
+  const handleTaskCompletion = (fieldName) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [fieldName]: true,
+    }));
+    setCompletedTasks((prev) => prev + 1);
+    if (completedTasks + 1 === totalTasks) {
+      setIsSendEnabled(true);
+    }
+  };
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+  const handleSaveSafetySign = async (field, workOrderId) => {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
   
+      const uploadedFilesArray = formData.safety_signs || [];
   
-    const handleTaskCompletion = (fieldName) => {
+      const dataToSend = {
+        safety_signs: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+        safety_signs_completed: formData.safety_signs_completed,
+        work_order_id: workOrderId,
+      };
+  
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-signs", dataToSend);
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+  
       setFormData((prevData) => ({
         ...prevData,
-        [fieldName]: true,
+        [`${field}Completed`]: true,
       }));
+  
       setCompletedTasks((prev) => prev + 1);
       if (completedTasks + 1 === totalTasks) {
         setIsSendEnabled(true);
       }
-    };
+    } catch (error) {
+      console.error("Error saving field:", error);
+    }
+  };
+  const handleSaveSafetyBarriers = async (field, workOrderId) => {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
   
+      const uploadedFilesArray = formData.safety_barriers || [];
   
-    const handleChange = (e) => {
-      const { name, value } = e.target;
+      const dataToSend = {
+        safety_barriers: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+        safety_barriers_completed: formData.safety_barriers_completed,
+        work_order_id: workOrderId,
+      };
+  
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers", dataToSend);
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+  
       setFormData((prevData) => ({
         ...prevData,
-        [name]: value,
+        [`${field}Completed`]: true,
       }));
-    };
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving field:", error);
+    }
+  };
+  const handleSaveSafetyLights = async (field, workOrderId) => {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+  
+      const uploadedFilesArray = formData.safety_signs || [];
+  
+      const dataToSend = {
+        safety_lights: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+        safety_lights_completed: formData.safety_lights_completed,
+        work_order_id: workOrderId,
+      };
+  
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+  
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving field:", error);
+    }
+  };
+  const handleSaveSafetyBoards = async (field, workOrderId) => {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+  
+      const uploadedFilesArray = formData.safety_boards || [];
+  
+      const dataToSend = {
+        safety_boards: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+        safety_board_completed: formData.safety_board_completed,
+        work_order_id: workOrderId,
+      };
+  
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-boards", dataToSend);
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+  
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving field:", error);
+    }
+  };
+  const handleSaveSafetyDocumentation = async (field, workOrderId) => {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+  
+      const uploadedFilesArray = formData.safety_documentation || [];
+  
+      const dataToSend = {
+        safety_documentation: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+        safety_documentation_completed: formData.safety_documentation_completed,
+        work_order_id: workOrderId,
+      };
+  
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-document", dataToSend);
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+  
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving field:", error);
+    }
+  };
+  const handleSaveSafetyPermission = async (field, workOrderId) => {
+    try {
+      if (!workOrderId) {
+        alert("Work Order ID is missing!");
+        return;
+      }
+  
+      const uploadedFilesArray = formData.permissions || [];
+  
+      const dataToSend = {
+        permissions: uploadedFilesArray.join(","), // ✅ save comma-separated paths
+        permissions_completed: formData.permissions_completed,
+        work_order_id: workOrderId,
+      };
+  
+      await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-permission", dataToSend);
+  
+      alert(`${field} saved successfully!`);
+      await refreshSafetyData();
+  
+      setFormData((prevData) => ({
+        ...prevData,
+        [`${field}Completed`]: true,
+      }));
+  
+      setCompletedTasks((prev) => prev + 1);
+      if (completedTasks + 1 === totalTasks) {
+        setIsSendEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error saving field:", error);
+    }
+  };
     useEffect(() => {
       const { siteRecheckingDate, remarks, safetyPenalties } = formData;
       
@@ -494,429 +617,11 @@ const SafetyDepartment = () => {
             console.error("Error refreshing survey data:", error);
           }
         };
-    const handleSaveSafetySign = async (field, workOrderId) => { 
-      try {
-        if (!workOrderId) {
-          alert("Work Order ID is missing!");
-          return;
-        }
-    
-        const dataToSend = {
-          safety_signs: formData.safetySigns || null,
-          safety_signs_completed: formData.safetySignsCompleted,
-          work_order_id: workOrderId,
-        };
-    
-              console.log("[Save] Safety Signs:", dataToSend);
+  
 
-         await axios.post(
-          "https://constructionproject-production.up.railway.app/api/safety/save-safety-signs",
-          dataToSend
-        );
-    
-        alert(`${field} saved successfully!`);
-        await refreshSafetyData();
-        setFormData((prevData) => ({
-          ...prevData,
-          [`${field}Completed`]: true,
-        }));
-    
-        setCompletedTasks((prev) => prev + 1);
-        if (completedTasks + 1 === totalTasks) {
-          setIsSendEnabled(true);
-        }
-      } catch (error) {
-        console.error("Error saving field:", error);
-      }
-    };
+
+  
  
-    const handleSaveSafetyBarriers = async (field, workOrderId) => { 
-      try {
-        if (!workOrderId) {
-          alert("Work Order ID is missing!");
-          return;
-        }
-    
-        const dataToSend = {
-          safety_barriers: formData.safetyBarriers || [],
-          safety_barriers_completed: formData.safetyBarriersCompleted || false,
-          work_order_id: workOrderId,
-        };
-            console.log("[Save] Safety Barriers:", dataToSend);
-
-    
-         await axios.post(
-          "https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers",
-          dataToSend
-        );
-    
-        alert(`${field} saved successfully!`);
-        await refreshSafetyData();
-        setFormData((prevData) => ({
-          ...prevData,
-          [`${field}Completed`]: true,
-        }));
-    
-        setCompletedTasks((prev) => prev + 1);
-        if (completedTasks + 1 === totalTasks) {
-          setIsSendEnabled(true);
-        }
-      } catch (error) {
-        console.error("Error saving field:", error);
-      }
-    };
-//     const handleSaveSafetyBarriers = async (field, workOrderId) => {
-//   try {
-//     if (!workOrderId) {
-//       alert("Work Order ID is missing!");
-//       return;
-//     }
-
-//     const dataToSend = {
-//       safety_barriers: formData.safetyBarriers || [],
-//       safety_barriers_completed: formData.safetyBarriersCompleted || false,
-//       work_order_id: workOrderId,
-//     };
-
-//     console.log("[Save] Safety Barriers:", dataToSend);
-
-//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-barriers", dataToSend);
-
-//     alert(`${field} saved successfully!`);
-//     await refreshSafetyData();
-
-//     setFormData((prev) => ({
-//       ...prev,
-//       [`${field}Completed`]: true,
-//     }));
-
-//     setCompletedTasks((prev) => prev + 1);
-//     if (completedTasks + 1 === totalTasks) {
-//       setIsSendEnabled(true);
-//     }
-//   } catch (error) {
-//     console.error("Error saving Safety Barriers:", error);
-//   }
-// };
-
-    
-  // const handleSaveSafetyLights = async (field, workOrderId) => {
-  //   try {
-  //     if (!workOrderId) {
-  //       alert("Work Order ID is missing!");
-  //       return;
-  //     }
-  
-  //     const dataToSend = {
-  //       safety_lights: formData.safetyLights ? `uploads/${formData.safetyLights.filename}` : null,
-  //       safety_lights_completed: formData.safetyLightsCompleted,
-  //       work_order_id: workOrderId,
-  //     };
-  //     console.log("[Save] Safety Lights:", dataToSend);
-
-  //     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
-  
-  //     alert(`${field} saved successfully!`);
-  //     await refreshSafetyData();
-  //     setFormData((prevData) => ({
-  //       ...prevData,
-  //       [`${field}Completed`]: true,
-  //     }));
-  
-  //     setCompletedTasks((prev) => prev + 1);
-  //     if (completedTasks + 1 === totalTasks) {
-  //       setIsSendEnabled(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving field:", error);
-  //   }
-  // };
-  const handleSaveSafetyLights = async (field, workOrderId) => {
-  try {
-    if (!workOrderId) {
-      alert("Work Order ID is missing!");
-      return;
-    }
-
-    const dataToSend = {
-      safety_lights: formData.safetyLights || [],
-      safety_lights_completed: formData.safetyLightsCompleted || false,
-      work_order_id: workOrderId,
-    };
-
-    console.log("[Save] Safety Lights:", dataToSend);
-
-    await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-lights", dataToSend);
-
-    alert(`${field} saved successfully!`);
-    await refreshSafetyData();
-
-    setFormData((prev) => ({
-      ...prev,
-      [`${field}Completed`]: true,
-    }));
-
-    setCompletedTasks((prev) => prev + 1);
-    if (completedTasks + 1 === totalTasks) {
-      setIsSendEnabled(true);
-    }
-  } catch (error) {
-    console.error("Error saving Safety Lights:", error);
-  }
-};
-
-  
-  // const handleSaveSafetyBoards = async (field, workOrderId) => {
-  //   try {
-  //     if (!workOrderId) {
-  //       alert("Work Order ID is missing!");
-  //       return;
-  //     }
-  
-  //     const dataToSend = {
-  //       safety_boards: formData.safetyBoards ? `uploads/${formData.safetyBoards.filename}` : null,
-  //       safety_board_completed: true, // Mark as completed
-  //       work_order_id: workOrderId,
-  //     };
-  
-  //     console.log("Payload for Safety Boards:", dataToSend); // Debugging log
-  
-  //     const response = await axios.post(
-  //       "https://constructionproject-production.up.railway.app/api/safety/save-safety-boards",
-  //       dataToSend
-  //     );
-  
-  //     alert(`${field} saved successfully!`);
-  //     await refreshSafetyData();
-  //     setFormData((prevData) => ({
-  //       ...prevData,
-  //       [`${field}Completed`]: true,
-  //     }));
-  
-  //     setCompletedTasks((prev) => prev + 1);
-  //     if (completedTasks + 1 === totalTasks) {
-  //       setIsSendEnabled(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving Safety Boards:", error);
-  //     alert("Failed to save Safety Boards. Please try again.");
-  //   }
-  // };
-  const handleSaveSafetyBoards = async (field, workOrderId) => {
-    try {
-      if (!workOrderId) {
-        alert("Work Order ID is missing!");
-        return;
-      }
-  
-       const dataToSend = {
-      safety_boards: formData.safetyBoards || [],
-      safety_board_completed: formData.safetyBoardsCompleted || false,
-      work_order_id: workOrderId,
-    };
-
-          console.log("[Save] Safety Boards:", dataToSend);
-
-  
-      console.log("Payload for Safety Boards:", dataToSend); // Debugging log
-  
-       await axios.post(
-        "https://constructionproject-production.up.railway.app/api/safety/save-safety-boards",
-        dataToSend
-      );
-  
-      alert(`${field} saved successfully!`);
-      await refreshSafetyData();
-      setFormData((prevData) => ({
-        ...prevData,
-        [`${field}Completed`]: true,
-      }));
-  
-      setCompletedTasks((prev) => prev + 1);
-      if (completedTasks + 1 === totalTasks) {
-        setIsSendEnabled(true);
-      }
-    } catch (error) {
-      console.error("Error saving Safety Boards:", error);
-      alert("Failed to save Safety Boards. Please try again.");
-    }
-  };
-//   const handleSaveSafetyBoards = async (field, workOrderId) => {
-//   try {
-//     if (!workOrderId) {
-//       alert("Work Order ID is missing!");
-//       return;
-//     }
-
-//     const dataToSend = {
-//       safety_boards: formData.safetyBoards || [],
-//       safety_board_completed: formData.safetyBoardsCompleted || false,
-//       work_order_id: workOrderId,
-//     };
-
-//     console.log("[Save] Safety Boards:", dataToSend);
-
-//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-boards", dataToSend);
-
-//     alert(`${field} saved successfully!`);
-//     await refreshSafetyData();
-
-//     setFormData((prev) => ({
-//       ...prev,
-//       [`${field}Completed`]: true,
-//     }));
-
-//     setCompletedTasks((prev) => prev + 1);
-//     if (completedTasks + 1 === totalTasks) {
-//       setIsSendEnabled(true);
-//     }
-//   } catch (error) {
-//     console.error("Error saving Safety Boards:", error);
-//   }
-// };
-
-  const handleSaveSafetyDocumentation = async (field, workOrderId) => {
-    try {
-      if (!workOrderId) {
-        alert("Work Order ID is missing!");
-        return;
-      }
-      const dataToSend = {
-        safety_documentation: formData.safetyDocumentation || [],
-        safety_documentation_completed: formData.safetyDocumentationCompleted || false,
-        work_order_id: workOrderId,
-      };
-  
-      console.log("Payload for Safety Documentation:", dataToSend); // Debugging log
-          console.log("[Save] Safety Documentation:", dataToSend);
-
-  
-       await axios.post(
-        "https://constructionproject-production.up.railway.app/api/safety/save-safety-document",
-        dataToSend
-      );
-  
-      alert(`${field} saved successfully!`);
-      await refreshSafetyData();
-      setFormData((prevData) => ({
-        ...prevData,
-        [`${field}Completed`]: true,
-      }));
-  
-      setCompletedTasks((prev) => prev + 1);
-      if (completedTasks + 1 === totalTasks) {
-        setIsSendEnabled(true);
-      }
-    } catch (error) {
-      console.error("Error saving Safety Documentation:", error);
-      alert("Failed to save Safety Documentation. Please try again.");
-    }
-  };
-//   const handleSaveSafetyDocumentation = async (field, workOrderId) => {
-//   try {
-//     if (!workOrderId) {
-//       alert("Work Order ID is missing!");
-//       return;
-//     }
-
-//     const dataToSend = {
-//       safety_documentation: formData.safetyDocumentation || [],
-//       safety_documentation_completed: formData.safetyDocumentationCompleted || false,
-//       work_order_id: workOrderId,
-//     };
-
-//     console.log("[Save] Safety Documentation:", dataToSend);
-
-//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-document", dataToSend);
-
-//     alert(`${field} saved successfully!`);
-//     await refreshSafetyData();
-
-//     setFormData((prev) => ({
-//       ...prev,
-//       [`${field}Completed`]: true,
-//     }));
-
-//     setCompletedTasks((prev) => prev + 1);
-//     if (completedTasks + 1 === totalTasks) {
-//       setIsSendEnabled(true);
-//     }
-//   } catch (error) {
-//     console.error("Error saving Safety Documentation:", error);
-//   }
-// };
-
-  const handleSaveSafetyPermission = async (field, workOrderId) => {
-    try {
-      if (!workOrderId) {
-        alert("Work Order ID is missing!");
-        return;
-      }
-  
-       const dataToSend = {
-      permissions: formData.safetyPermissions || [],
-      permissions_completed: formData.permissions_completed || false,
-      work_order_id: workOrderId,
-    };
-  
-      console.log("Payload for Safety Permission:", dataToSend); // Debugging log
-          console.log("[Save] Safety Permission:", dataToSend);
-
-       await axios.post(
-        "https://constructionproject-production.up.railway.app/api/safety/save-safety-permission",
-        dataToSend
-      );
-  
-      alert(`${field} saved successfully!`);
-      await refreshSafetyData();
-      setFormData((prevData) => ({
-        ...prevData,
-        [`${field}Completed`]: true,
-      }));
-  
-      setCompletedTasks((prev) => prev + 1);
-      if (completedTasks + 1 === totalTasks) {
-        setIsSendEnabled(true);
-      }
-    } catch (error) {
-      console.error("Error saving Safety Permission:", error);
-      alert("Failed to save Safety Permission. Please try again.");
-    }
-  };
-//   const handleSaveSafetyPermission = async (field, workOrderId) => {
-//   try {
-//     if (!workOrderId) {
-//       alert("Work Order ID is missing!");
-//       return;
-//     }
-
-//     const dataToSend = {
-//       permissions: formData.safetyPermissions || [],
-//       permissions_completed: formData.safetyPermissionsCompleted || false,
-//       work_order_id: workOrderId,
-//     };
-
-//     console.log("[Save] Safety Permission:", dataToSend);
-
-//     await axios.post("https://constructionproject-production.up.railway.app/api/safety/save-safety-permission", dataToSend);
-
-//     alert(`${field} saved successfully!`);
-//     await refreshSafetyData();
-
-//     setFormData((prev) => ({
-//       ...prev,
-//       [`${field}Completed`]: true,
-//     }));
-
-//     setCompletedTasks((prev) => prev + 1);
-//     if (completedTasks + 1 === totalTasks) {
-//       setIsSendEnabled(true);
-//     }
-//   } catch (error) {
-//     console.error("Error saving Safety Permission:", error);
-//   }
-// };
-
   const showSnackbar = (msg) => {
     setSnackbarMessage(msg);
     setOpenSnackbar(true);
@@ -1061,22 +766,22 @@ return (
                 <Grid container spacing={2} sx={{ marginTop: "10px" }}>
                   {[
                     ...(record.safety_signs_completed !== 1 
-                      ? [{ label: "Safety Signs", handler: handleSaveSafetySign, key: "safetySigns", disabled: record.safety_signs_completed || record.safety_signs }]
+                      ? [{ label: "Safety Signs", handler: handleSaveSafetySign, key: "safety_signs", disabled: record.safety_signs_completed || record.safety_signs }]
                       : []),
                     ...(record.safety_barriers_completed !==1 
-                      ? [{ label: "Barriers", handler: handleSaveSafetyBarriers, key: "safetyBarriers", disabled: record.safety_barriers_completed || record.safety_barriers }]
+                      ? [{ label: "Barriers", handler: handleSaveSafetyBarriers, key: "safety_barriers", disabled: record.safety_barriers_completed || record.safety_barriers }]
                       : []),
                     ...(record.safety_lights_completed !==1
-                      ?[{ label: "Lights", handler: handleSaveSafetyLights, key: "safetyLights", disabled: record.safety_lights_completed || record.safety_lights }]
+                      ?[{ label: "Lights", handler: handleSaveSafetyLights, key: "safety_lights", disabled: record.safety_lights_completed || record.safety_lights }]
                       :[]),
                     ...(record.safety_board_completed !==1
-                      ?[{ label: "Boards", handler: handleSaveSafetyBoards, key: "safetyBoards", disabled: record.safety_board_completed || record.safety_boards }]
+                      ?[{ label: "Boards", handler: handleSaveSafetyBoards, key: "safety_boards", disabled: record.safety_board_completed || record.safety_boards }]
                       :[]),
                     ...(record.safety_documentation_completed !==1
-                      ?[{ label: "Safety Documentation", handler: handleSaveSafetyDocumentation, key: "safetyDocumentation", disabled: record.safety_documentation_completed || record.safety_documentation }]
+                      ?[{ label: "Safety Documentation", handler: handleSaveSafetyDocumentation, key: "safety_documentation", disabled: record.safety_documentation_completed || record.safety_documentation }]
                       :[]),
                     ...(record.permissions_completed !==1
-                      ?[{ label: "Safety Permission", handler: handleSaveSafetyPermission, key: "safetyPermission", disabled: record.permissions_completed || record.permissions }]
+                      ?[{ label: "Safety Permission", handler: handleSaveSafetyPermission, key: "permissions", disabled: record.permissions_completed || record.permissions }]
                       :[]),
                   ].map(({ label, handler, key, disabled }) => (
                     <Grid item xs={6} key={key}>

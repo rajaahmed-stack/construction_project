@@ -27,31 +27,38 @@ db.connect((err) => {
   }
 });
 router.use(express.json());
-// Ensure uploads directory exists
-const uploadDir = path.resolve('uploads');
+const uploadDir = path.resolve('uploads'); // resolves relative to project root
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-// Multer storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
 });
+
 const upload = multer({ storage });
+
 
 
 // Backend route for handling file uploads
 router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) => {
   const files = req.files;
   const fieldName = req.params.fieldName;
-  if (!files) {
-    console.log("No file uploaded!");
-    return res.status(400).send('No file uploaded');
+
+  if (!files || files.length === 0) {
+    console.log("No files uploaded!");
+    return res.status(400).send('No files uploaded');
   }
+
   const filePaths = files.map(file => `uploads/${file.filename}`);
-  console.log(`[UPLOAD] ${fieldName}:`, filePaths);
+
+  console.log(`Uploaded files for ${fieldName}:`, filePaths);
+
   res.json({ fieldName, filePaths });
 });
-
 
 // Fetch Safety Coming Data
 router.get('/safety-coming', (req, res) => {
@@ -227,292 +234,219 @@ router.post('/save-safety-workorder', (req, res) => {
 
 
 
-// Save individual safety field data
-// router.post('/save-safety-signs', (req, res) => {
-//   const { safety_signs, safety_signs_completed, work_order_id } = req.body;
 
-//   console.log("Received data:", req.body);  // Debug line
 
-//   if (!work_order_id) {
-//     return res.status(400).send("Missing work_order_id");
-//   }
-//   let safetySignsStr = safety_signs;
+router.post('/save-safety-signs', (req, res) => {
+  const { safety_signs, safety_signs_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_signs:", safety_signs); // Debug: log received file path
 
-//   if (Array.isArray(safety_signs)) {
-//     safetySignsStr = safety_signs.join(','); // ✅ store as plain comma-separated
-//   }
-//   const updateQuery = `
-//     UPDATE safety_department 
-//     SET safety_signs = ?, safety_signs_completed = ? 
-//     WHERE work_order_id = ?
-//   `;
+  const updateQuery = `
+    UPDATE safety_department 
+    SET safety_signs = ?, safety_signs_completed = ? 
+    WHERE work_order_id = ?
+  `;
 
-//   const insertQuery = `
-//     INSERT INTO safety_department (work_order_id, safety_signs, safety_signs_completed) 
-//     VALUES (?, ?, ?)
-//   `;
+  const insertQuery = `
+    INSERT INTO safety_department (work_order_id, safety_signs, safety_signs_completed) 
+    VALUES (?, ?, ?)
+  `;
 
-//   db.query(updateQuery, [safetySignsStr, safety_signs_completed, work_order_id], (err, result) => {
-//     if (err) {
-//       console.error("Update error:", err);
-//       return res.status(500).send("Error during update");
-//     }
-
-//     if (result.affectedRows === 0) {
-//       db.query(insertQuery, [work_order_id, safetySignsStr, safety_signs_completed], (err2, result2) => {
-//         if (err2) {
-//           console.error("Insert error:", err2);
-//           return res.status(500).send("Error during insert");
-//         }
-//         console.log("Insert result:", result2);
-//         return res.status(200).send("Field inserted successfully");
-//       });
-//     } else {
-//       console.log("Update result:", result);
-//       return res.status(200).send("Field updated successfully");
-//     }
-//   });
-// });
-
-// router.post('/save-safety-barriers', (req, res) => {
-//   const { safety_barriers, safety_barriers_completed,  work_order_id } = req.body; // Extract field and value
-//   console.log("Received safety_barriers:", safety_barriers); // Debug: log received file path
-
-//   let safetyBarriers = safety_barriers;
-//   if (Array.isArray(safety_barriers)) {
-//     safetyBarriers = safety_barriers.join(','); // ✅ store as plain comma-separated
-//   }
-//   const updateQuery = `
-//     UPDATE safety_department 
-//     SET safety_barriers = ?, safety_barriers_completed = ? 
-//     WHERE work_order_id = ?
-//   `;
-
-//   const insertQuery = `
-//     INSERT INTO safety_department (work_order_id, safety_barriers, safety_barriers_completed) 
-//     VALUES (?, ?, ?)
-//   `;
-
-//   db.query(updateQuery, [safetyBarriers, safety_barriers_completed, work_order_id], (err, result) => {
-//     if (err) {
-//       console.error("Update error:", err);
-//       return res.status(500).send("Error during update");
-//     }
-
-//     if (result.affectedRows === 0) {
-//       // No row updated – insert instead
-//       db.query(insertQuery, [work_order_id, safetyBarriers, safety_barriers_completed], (err2, result2) => {
-//         if (err2) {
-//           console.error("Insert error:", err2);
-//           return res.status(500).send("Error during insert");
-//         }
-//         return res.status(200).send("Field inserted successfully");
-//       });
-//     } else {
-//       return res.status(200).send("Field updated successfully");
-//     }
-//   });
-// });
-// router.post('/save-safety-lights', (req, res) => {
-//   const { safety_lights, safety_lights_completed,  work_order_id } = req.body; // Extract field and value
-//   console.log("Received safety_lights:", safety_lights); // Debug: log received file path
-//   let safetylights = safety_lights;
-//   if (Array.isArray(safety_lights)) {
-//     safetylights = safety_lights.join(','); // ✅ store as plain comma-separated
-//   }
-//   const updateQuery = `
-//     UPDATE safety_department 
-//     SET safety_lights = ?, safety_lights_completed = ? 
-//     WHERE work_order_id = ?
-//   `;
-
-//   const insertQuery = `
-//     INSERT INTO safety_department (work_order_id, safety_lights, safety_lights_completed) 
-//     VALUES (?, ?, ?)
-//   `;
-
-//   db.query(updateQuery, [safetylights, safety_lights_completed, work_order_id], (err, result) => {
-//     if (err) {
-//       console.error("Update error:", err);
-//       return res.status(500).send("Error during update");
-//     }
-
-//     if (result.affectedRows === 0) {
-//       // No row updated – insert instead
-//       db.query(insertQuery, [work_order_id, safetylights, safety_lights_completed], (err2, result2) => {
-//         if (err2) {
-//           console.error("Insert error:", err2);
-//           return res.status(500).send("Error during insert");
-//         }
-//         return res.status(200).send("Field inserted successfully");
-//       });
-//     } else {
-//       return res.status(200).send("Field updated successfully");
-//     }
-//   });
-// });
-// router.post('/save-safety-boards', (req, res) => {
-//   const { safety_boards, safety_board_completed,  work_order_id } = req.body; // Extract field and value
-//   console.log("Received safety_boards:", safety_boards); // Debug: log received file path
-
-//   let safetyBoards = safety_boards;
-
-//   if (Array.isArray(safety_boards)) {
-//     safetyBoards = safety_boards.join(','); // ✅ store as plain comma-separated
-//   }
-//   const updateQuery = `
-//     UPDATE safety_department 
-//     SET safety_boards = ?, safety_board_completed = ? 
-//     WHERE work_order_id = ?
-//   `;
-
-//   const insertQuery = `
-//     INSERT INTO safety_department (work_order_id, safety_boards, safety_board_completed) 
-//     VALUES (?, ?, ?)
-//   `;
-
-//   db.query(updateQuery, [safetyBoards, safety_board_completed, work_order_id], (err, result) => {
-//     if (err) {
-//       console.error("Update error:", err);
-//       return res.status(500).send("Error during update");
-//     }
-
-//     if (result.affectedRows === 0) {
-//       // No row updated – insert instead
-//       db.query(insertQuery, [work_order_id, safetyBoards, safety_board_completed], (err2, result2) => {
-//         if (err2) {
-//           console.error("Insert error:", err2);
-//           return res.status(500).send("Error during insert");
-//         }
-//         return res.status(200).send("Field inserted successfully");
-//       });
-//     } else {
-//       return res.status(200).send("Field updated successfully");
-//     }
-//   });
-// });
-// router.post('/save-safety-document', (req, res) => {
-//   const { safety_documentation, safety_documentation_completed,  work_order_id } = req.body; // Extract field and value
-//   console.log("Received safety_documentation:", safety_documentation); // Debug: log received file path
-
-//   let safetyDocument = safety_documentation;
-
-//   if (Array.isArray(safety_documentation)) {
-//     safetyDocument = safety_documentation.join(','); // ✅ store as plain comma-separated
-//   }
-//   const updateQuery = `
-//     UPDATE safety_department 
-//     SET safety_documentation = ?, safety_documentation_completed = ? 
-//     WHERE work_order_id = ?
-//   `;
-
-//   const insertQuery = `
-//     INSERT INTO safety_department (work_order_id, safety_documentation, safety_documentation_completed) 
-//     VALUES (?, ?, ?)
-//   `;
-
-//   db.query(updateQuery, [safetyDocument, safety_documentation_completed, work_order_id], (err, result) => {
-//     if (err) {
-//       console.error("Update error:", err);
-//       return res.status(500).send("Error during update");
-//     }
-
-//     if (result.affectedRows === 0) {
-//       // No row updated – insert instead
-//       db.query(insertQuery, [work_order_id, safetyDocument, safety_documentation_completed], (err2, result2) => {
-//         if (err2) {
-//           console.error("Insert error:", err2);
-//           return res.status(500).send("Error during insert");
-//         }
-//         return res.status(200).send("Field inserted successfully");
-//       });
-//     } else {
-//       return res.status(200).send("Field updated successfully");
-//     }
-//   });
-// });
-// router.post('/save-safety-permission', (req, res) => {
-//   const { permissions, permissions_completed,  work_order_id } = req.body; // Extract field and value
-//   console.log("Received permissions:", permissions); // Debug: log received file path
-
-//   let permis = permissions;
-//   if (Array.isArray(permissions)) {
-//     permis = permissions.join(','); // ✅ store as plain comma-separated
-//   }
-//   const updateQuery = `
-//     UPDATE safety_department 
-//     SET permissions = ?, permissions_completed = ? 
-//     WHERE work_order_id = ?
-//   `;
-
-//   const insertQuery = `
-//     INSERT INTO safety_department (work_order_id, permissions, permissions_completed) 
-//     VALUES (?, ?, ?)
-//   `;
-
-//   db.query(updateQuery, [permis, permissions_completed, work_order_id], (err, result) => {
-//     if (err) {
-//       console.error("Update error:", err);
-//       return res.status(500).send("Error during update");
-//     }
-
-//     if (result.affectedRows === 0) {
-//       // No row updated – insert instead
-//       db.query(insertQuery, [work_order_id, permis, permissions_completed], (err2, result2) => {
-//         if (err2) {
-//           console.error("Insert error:", err2);
-//           return res.status(500).send("Error during insert");
-//         }
-//         return res.status(200).send("Field inserted successfully");
-//       });
-//     } else {
-//       return res.status(200).send("Field updated successfully");
-//     }
-//   });
-// });
-function saveSafetyField(req, res, field, completedField) {
-  const { work_order_id } = req.body;
-  let value = req.body[field];
-  const completed = req.body[completedField];
-
-  if (!work_order_id) return res.status(400).send("Missing work_order_id");
-
-  if (Array.isArray(value)) value = value.join(',');
-
-  console.log(`[SAVE] work_order_id=${work_order_id} ${field}=${value}`);
-
-  const updateQuery = `UPDATE safety_department SET ${field}=?, ${completedField}=? WHERE work_order_id=?`;
-  const insertQuery = `INSERT INTO safety_department (work_order_id, ${field}, ${completedField}) VALUES (?,?,?)`;
-
-  db.query(updateQuery, [value, completed, work_order_id], (err, result) => {
+  db.query(updateQuery, [safety_signs, safety_signs_completed, work_order_id], (err, result) => {
     if (err) {
       console.error("Update error:", err);
       return res.status(500).send("Error during update");
     }
+
     if (result.affectedRows === 0) {
-      console.log("No row updated, inserting...");
-      db.query(insertQuery, [work_order_id, value, completed], (err2, result2) => {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, safety_signs, safety_signs_completed], (err2, result2) => {
         if (err2) {
           console.error("Insert error:", err2);
           return res.status(500).send("Error during insert");
         }
-        console.log("Inserted successfully.");
-        res.status(200).send("Field inserted successfully");
+        return res.status(200).send("Field inserted successfully");
       });
     } else {
-      console.log("Updated successfully.");
-      res.status(200).send("Field updated successfully");
+      return res.status(200).send("Field updated successfully");
     }
   });
-}
+});
+router.post('/save-safety-barriers', (req, res) => {
+  const { safety_barriers, safety_barriers_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_barriers:", safety_barriers); // Debug: log received file path
 
-// Individual save routes
-router.post('/save-safety-signs', (req, res) => saveSafetyField(req, res, 'safety_signs', 'safety_signs_completed'));
-router.post('/save-safety-barriers', (req, res) => saveSafetyField(req, res, 'safety_barriers', 'safety_barriers_completed'));
-router.post('/save-safety-lights', (req, res) => saveSafetyField(req, res, 'safety_lights', 'safety_lights_completed'));
-router.post('/save-safety-boards', (req, res) => saveSafetyField(req, res, 'safety_boards', 'safety_board_completed'));
-router.post('/save-safety-document', (req, res) => saveSafetyField(req, res, 'safety_documentation', 'safety_documentation_completed'));
-router.post('/save-safety-permission', (req, res) => saveSafetyField(req, res, 'permissions', 'permissions_completed'));
+  const updateQuery = `
+    UPDATE safety_department 
+    SET safety_barriers = ?, safety_barriers_completed = ? 
+    WHERE work_order_id = ?
+  `;
+
+  const insertQuery = `
+    INSERT INTO safety_department (work_order_id, safety_barriers, safety_barriers_completed) 
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(updateQuery, [safety_barriers, safety_barriers_completed, work_order_id], (err, result) => {
+    if (err) {
+      console.error("Update error:", err);
+      return res.status(500).send("Error during update");
+    }
+
+    if (result.affectedRows === 0) {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, safety_barriers, safety_barriers_completed], (err2, result2) => {
+        if (err2) {
+          console.error("Insert error:", err2);
+          return res.status(500).send("Error during insert");
+        }
+        return res.status(200).send("Field inserted successfully");
+      });
+    } else {
+      return res.status(200).send("Field updated successfully");
+    }
+  });
+});
+router.post('/save-safety-lights', (req, res) => {
+  const { safety_lights, safety_lights_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_lights:", safety_lights); // Debug: log received file path
+
+  const updateQuery = `
+    UPDATE safety_department 
+    SET safety_lights = ?, safety_lights_completed = ? 
+    WHERE work_order_id = ?
+  `;
+
+  const insertQuery = `
+    INSERT INTO safety_department (work_order_id, safety_lights, safety_lights_completed) 
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(updateQuery, [safety_lights, safety_lights_completed, work_order_id], (err, result) => {
+    if (err) {
+      console.error("Update error:", err);
+      return res.status(500).send("Error during update");
+    }
+
+    if (result.affectedRows === 0) {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, safety_lights, safety_lights_completed], (err2, result2) => {
+        if (err2) {
+          console.error("Insert error:", err2);
+          return res.status(500).send("Error during insert");
+        }
+        return res.status(200).send("Field inserted successfully");
+      });
+    } else {
+      return res.status(200).send("Field updated successfully");
+    }
+  });
+});
+router.post('/save-safety-boards', (req, res) => {
+  const { safety_boards, safety_board_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_boards:", safety_boards); // Debug: log received file path
+
+  const updateQuery = `
+    UPDATE safety_department 
+    SET safety_boards = ?, safety_board_completed = ? 
+    WHERE work_order_id = ?
+  `;
+
+  const insertQuery = `
+    INSERT INTO safety_department (work_order_id, safety_boards, safety_board_completed) 
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(updateQuery, [safety_boards, safety_board_completed, work_order_id], (err, result) => {
+    if (err) {
+      console.error("Update error:", err);
+      return res.status(500).send("Error during update");
+    }
+
+    if (result.affectedRows === 0) {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, safety_boards, safety_board_completed], (err2, result2) => {
+        if (err2) {
+          console.error("Insert error:", err2);
+          return res.status(500).send("Error during insert");
+        }
+        return res.status(200).send("Field inserted successfully");
+      });
+    } else {
+      return res.status(200).send("Field updated successfully");
+    }
+  });
+});
+router.post('/save-safety-document', (req, res) => {
+  const { safety_documentation, safety_documentation_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_documentation:", safety_documentation); // Debug: log received file path
+
+  const updateQuery = `
+    UPDATE safety_department 
+    SET safety_documentation = ?, safety_documentation_completed = ? 
+    WHERE work_order_id = ?
+  `;
+
+  const insertQuery = `
+    INSERT INTO safety_department (work_order_id, safety_documentation, safety_documentation_completed) 
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(updateQuery, [safety_documentation, safety_documentation_completed, work_order_id], (err, result) => {
+    if (err) {
+      console.error("Update error:", err);
+      return res.status(500).send("Error during update");
+    }
+
+    if (result.affectedRows === 0) {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, safety_documentation, safety_documentation_completed], (err2, result2) => {
+        if (err2) {
+          console.error("Insert error:", err2);
+          return res.status(500).send("Error during insert");
+        }
+        return res.status(200).send("Field inserted successfully");
+      });
+    } else {
+      return res.status(200).send("Field updated successfully");
+    }
+  });
+});
+router.post('/save-safety-permission', (req, res) => {
+  const { safety_permissions, permissions_completed,  work_order_id } = req.body; // Extract field and value
+  console.log("Received safety_permissions:", safety_permissions); // Debug: log received file path
+
+  const updateQuery = `
+    UPDATE safety_department 
+    SET safety_permissions = ?, permissions_completed = ? 
+    WHERE work_order_id = ?
+  `;
+
+  const insertQuery = `
+    INSERT INTO safety_department (work_order_id, safety_permissions, permissions_completed) 
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(updateQuery, [safety_permissions, permissions_completed, work_order_id], (err, result) => {
+    if (err) {
+      console.error("Update error:", err);
+      return res.status(500).send("Error during update");
+    }
+
+    if (result.affectedRows === 0) {
+      // No row updated – insert instead
+      db.query(insertQuery, [work_order_id, safety_permissions, permissions_completed], (err2, result2) => {
+        if (err2) {
+          console.error("Insert error:", err2);
+          return res.status(500).send("Error during insert");
+        }
+        return res.status(200).send("Field inserted successfully");
+      });
+    } else {
+      return res.status(200).send("Field updated successfully");
+    }
+  });
+});
+
 
 router.put("/update-sdelivery-status", (req, res) => {
   const { work_order_id, delivery_status } = req.body;
@@ -545,54 +479,6 @@ router.put("/update-sdelivery-status", (req, res) => {
     res.json({ message: "Delivery status updated successfully", affectedRows: result.affectedRows });
   });
 });
-// router.get('/Safety_download/:id', async (req, res) => {
-//   console.log('Safety download API triggered');
-
-//   const fileId = req.params.id;
-
-//   // Query the database for the file path
-//   db.query(
-//     `SELECT file_path FROM work_receiving WHERE work_order_id = ?
-//      UNION 
-//      SELECT survey_file_path FROM survey WHERE work_order_id = ?
-//      UNION 
-//      SELECT Document FROM permissions WHERE work_order_id = ?`,
-//     [fileId, fileId, fileId], // Ensure correct parameter mapping
-//     (err, results) => {
-//       if (err) {
-//         console.error('Database error:', err);
-//         return res.status(500).send('Database error');
-//       }
-
-//       if (!results.length) {
-//         return res.status(404).send('File not found');
-//       }
-
-//       let filePath = results[0].file_path || results[0].survey_file_path || results[0].Document;
-
-//       if (!filePath) {
-//         return res.status(404).send('File not found');
-//       }
-
-//       // Convert Buffer to String if necessary
-//       if (Buffer.isBuffer(filePath)) {
-//         filePath = filePath.toString('utf8');
-//       }
-
-//       // Ensure the file path is correct
-//       const absolutePath = path.resolve(__dirname, '..', filePath);
-
-//       console.log(`Downloading file from: ${absolutePath}`);
-
-//       res.download(absolutePath, (err) => {
-//         if (err) {
-//           console.error('Error sending file:', err);
-//           return res.status(500).send('Error downloading file');
-//         }
-//       });
-//     }
-//   );
-// });
 
 router.get('/Safety1_download/:id', (req, res) => {
   const fileId = req.params.id;
