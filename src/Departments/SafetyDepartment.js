@@ -347,17 +347,19 @@ const SafetyDepartment = () => {
     setFormData(prev => ({
       ...prev,
       [fieldName]: [
-        ...(prev[fieldName] || []),
-        ...newPaths
-      ]
+  ...(Array.isArray(prev[fieldName]) ? prev[fieldName] : []),
+  ...newPaths
+]
+
     }));
 
     setUploadedFiles(prev => ({
       ...prev,
       [fieldName]: [
-        ...(prev[fieldName] || []),
-        ...newPaths
-      ]
+  ...(Array.isArray(prev[fieldName]) ? prev[fieldName] : []),
+  ...newPaths
+]
+
     }));
           handleTaskCompletion(`${fieldName}Completed`);
 
