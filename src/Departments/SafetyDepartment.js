@@ -337,7 +337,7 @@ const SafetyDepartment = () => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [`${field}Completed`]: true,
+        [`${field}_completed`]: true,
       }));
   
       setCompletedTasks((prev) => prev + 1);
@@ -370,7 +370,7 @@ const SafetyDepartment = () => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [`${field}Completed`]: true,
+        [`${field}_completed`]: true,
       }));
   
       setCompletedTasks((prev) => prev + 1);
@@ -403,7 +403,7 @@ const SafetyDepartment = () => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [`${field}Completed`]: true,
+        [`${field}_completed`]: true,
       }));
   
       setCompletedTasks((prev) => prev + 1);
@@ -436,7 +436,7 @@ const SafetyDepartment = () => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [`${field}Completed`]: true,
+        [`${field}_completed`]: true,
       }));
   
       setCompletedTasks((prev) => prev + 1);
@@ -469,7 +469,7 @@ const SafetyDepartment = () => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [`${field}Completed`]: true,
+        [`${field}_completed`]: true,
       }));
   
       setCompletedTasks((prev) => prev + 1);
@@ -502,7 +502,7 @@ const SafetyDepartment = () => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [`${field}Completed`]: true,
+        [`${field}_completed`]: true,
       }));
   
       setCompletedTasks((prev) => prev + 1);

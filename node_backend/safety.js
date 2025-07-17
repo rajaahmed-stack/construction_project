@@ -238,7 +238,9 @@ router.post('/save-safety-workorder', (req, res) => {
 
 router.post('/save-safety-signs', (req, res) => {
   const { safety_signs, safety_signs_completed,  work_order_id } = req.body; // Extract field and value
-  console.log("Received safety_signs:", safety_signs); // Debug: log received file path
+  console.log("Received safety_signs:", safety_signs);
+  console.log("Received safety_signs_completed:", safety_signs_completed);
+  console.log("Received work_order_id:", work_order_id);
 
   const updateQuery = `
     UPDATE safety_department 
