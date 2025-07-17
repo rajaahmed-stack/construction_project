@@ -47,18 +47,53 @@ const upload = multer({ storage });
 router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) => {
   const files = req.files;
   const fieldName = req.params.fieldName;
+  const work_order_id = req.body.work_order_id; // Ensure this comes from the frontend
 
   if (!files || files.length === 0) {
     console.log("No files uploaded!");
     return res.status(400).send('No files uploaded');
   }
 
-  const filePaths = files.map(file => `uploads/${file.filename}`);
+  if (!work_order_id) {
+    return res.status(400).send('Missing work_order_id');
+  }
 
-  console.log(`Uploaded files for ${fieldName}:`, filePaths);
+  const filePaths = files.map(file => `uploads/${file.filename}`).join(',');
 
-  res.json({ fieldName, filePaths });
+  // Define field and corresponding flag
+  const fieldMapping = {
+    safety_signs: 'safety_signs_completed',
+    safety_barriers: 'safety_barriers_completed',
+    safety_lights: 'safety_lights_completed',
+    safety_boards: 'safety_board_completed',
+    safety_documentation: 'safety_documentation_completed',
+    safety_permissions: 'permissions_completed'
+  };
+
+  const completedField = fieldMapping[fieldName];
+  if (!completedField) {
+    return res.status(400).send('Invalid field name');
+  }
+
+  const updateQuery = `
+    UPDATE safety_department 
+    SET ?? = ?, ?? = 1 
+    WHERE work_order_id = ?
+  `;
+
+  db.query(updateQuery, [fieldName, filePaths, completedField, work_order_id], (err, result) => {
+    if (err) {
+      console.error('Error updating database:', err);
+      return res.status(500).send('Failed to update database');
+    }
+
+    console.log(`Updated ${fieldName} and ${completedField} for ${work_order_id}`);
+    res.json({ fieldName, filePaths, updated: true });
+  });
 });
+
+
+
 
 // Fetch Safety Coming Data
 router.get('/safety-coming', (req, res) => {
