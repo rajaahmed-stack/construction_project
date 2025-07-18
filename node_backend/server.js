@@ -82,12 +82,14 @@ const createDbConnection = async () => {
 
 // Health check route
 app.get('/health', async (req, res) => {
+  if (!isReady) {
+    return res.status(503).json({ status: 'starting', message: 'App is initializing' });
+  }
   try {
-    if (!db) throw new Error("Database not ready yet");
     await db.query('SELECT 1');
     res.status(200).json({ status: 'healthy', database: 'connected', uptime: process.uptime() });
   } catch (err) {
-    res.status(500).json({ status: 'unhealthy', database: 'disconnected', error: err.message });
+    res.status(500).json({ status: 'unhealthy', error: err.message });
   }
 });
 
@@ -170,12 +172,15 @@ createDbConnection().then(pool => {
     isReady = true;
     clearTimeout(startupTimeout);
   });
+}).catch(err => {
+  console.error('❌ Failed to connect to database:', err);
+  process.exit(1);
 });
 
 // Timeout if DB is not ready
 const startupTimeout = setTimeout(() => {
   if (!isReady) {
-    console.error('Startup timed out');
+    console.error('❌ Startup timed out');
     process.exit(1);
   }
 }, 25000);
