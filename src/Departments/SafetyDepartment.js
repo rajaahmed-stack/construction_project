@@ -12,6 +12,7 @@ import "../styles/safety.css";
 import CloseIcon from '@mui/icons-material/Close'; // Make sure this is imported
 
 
+
 const processSafetyData = (data) => {
   const today = new Date();
   return data.map((record) => {
@@ -249,52 +250,44 @@ const SafetyDepartment = () => {
   
 
  
-  const handleFileUpload = async (fieldName, files) => {
+const handleFileUpload = async (fieldName, files, workOrderId) => {
   if (!files || files.length === 0) return;
 
-  const formDataWithFiles = new FormData();
+  const formData = new FormData();
+  
+  // Append each file with the field name 'file' (singular)
+  Array.from(files).forEach(file => {
+    formData.append('file', file); // Changed from 'files' to 'file'
+  });
 
-  for (let i = 0; i < files.length; i++) {
-    formDataWithFiles.append("file", files[i]);
-  }
+  // Include work_order_id in the body
+  formData.append('work_order_id', workOrderId);
 
   try {
     const response = await axios.post(
       `https://constructionproject-production.up.railway.app/api/safety/upload-safety-files/${fieldName}`,
-      formDataWithFiles,
+      formData,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
-        },
+          'Content-Type': 'multipart/form-data',
+        }
       }
     );
 
-    console.log("Files upload response:", response.data);
-
-    // Append new file paths to the already uploaded files
-    setFormData((prevData) => ({
-      ...prevData,
-      [fieldName]: [
-        ...(prevData[fieldName] || []),
-        ...(response.data.filePaths || []),
-      ],
-    }));
-
-    setUploadedFiles((prev) => ({
+    console.log("Upload successful:", response.data);
+    // Handle successful upload...
+    setUploadedFiles(prev => ({
       ...prev,
-      [fieldName]: [
-        ...(prev[fieldName] || []),
-        ...(response.data.filePaths || []),
-      ],
+      [fieldName]: [...(prev[fieldName] || []), ...response.data.filePaths]
     }));
-
-    handleTaskCompletion(`${fieldName}Completed`);
+    
   } catch (error) {
-    console.error("Error uploading files:", error);
-    alert("Failed to upload files. Please try again.");
+    console.error("Upload error:", error);
+    setSnackbarMessage(`Upload failed: ${error.response?.data?.message || error.message}`);
+    setOpenSnackbar(true);
+    // Handle error...
   }
 };
-
 
   const handleTaskCompletion = (fieldName) => {
     setFormData((prevData) => ({
@@ -797,7 +790,7 @@ return (
                           type="file"
                           hidden
                           multiple
-                          onChange={(e) => handleFileUpload(key, e.target.files)}
+                          onChange={(e) => handleFileUpload(key, e.target.files, record.work_order_id)}
                         />
                       </Button>
 
