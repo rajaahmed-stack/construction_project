@@ -1,9 +1,10 @@
 {
   "name": "node_backend",
   "version": "1.0.0",
-  "description": "Backend server for file upload and user authentication",
+  "description": "",
   "main": "server.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "keywords": [],
@@ -20,11 +21,11 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.2",
     "mysql2": "^3.14.0",
+    "node_backend": "file:",
     "nodemailer": "^6.10.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pdfkit": "^0.17.1",
-    "uuid": "^11.1.0",
-    "wait-on": "^8.0.3"
+    "uuid": "^11.1.0"
   }
 }

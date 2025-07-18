@@ -1165,6 +1165,332 @@ router.get('/workexe8_download/:id', (req, res) => {
 });
 
 
+/**
+ * Route: /safety_download/:field/:id
+ * Example: /safety_download/safety_signs/123
+ */
+
+
+const { v4: uuidv4 } = require('uuid'); // for temp file naming
+
+const UPLOADS_DIR = path.resolve('uploads');
+
+// router.get('/safety_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+
+//   const safetyFields = [
+//     'safety_signs',
+//     'safety_barriers',
+//     'safety_lights',
+//     'safety_boards',
+//     'permissions'
+//   ];
+
+//   const query = `SELECT ${safetyFields.join(', ')} FROM safety_department WHERE work_order_id = ?`;
+
+//   db.query(query, [fileId], (err, results) => {
+//     if (err) {
+//       console.error('❌ Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).send('No safety data found');
+//     }
+
+//     const record = results[0];
+
+//     let combinedPaths = safetyFields.map(field => {
+//       let value = record[field];
+//       if (Buffer.isBuffer(value)) value = value.toString('utf8');
+//       return value;
+//     }).filter(Boolean).join(',');
+
+//     const filePaths = combinedPaths
+//       .split(',')
+//       .map(p => p && p.trim())
+//       .filter(p => typeof p === 'string' && p !== '' && p.toLowerCase() !== 'undefined');
+
+//     if (filePaths.length === 0) {
+//       return res.status(404).send('No valid file paths found');
+//     }
+
+//     const absPaths = filePaths.map(p => {
+//       // Remove leading "uploads/" if present, then resolve
+//       p = p.replace(/^uploads[\\/]/, '').trim();
+//       return path.resolve(UPLOADS_DIR, p);
+//     });
+
+//     const existingFiles = absPaths.filter(p => {
+//       const exists = fs.existsSync(p);
+//       if (!exists) console.warn(`⚠️ File missing: ${p}`);
+//       return exists;
+//     });
+
+//     if (existingFiles.length === 0) {
+//       return res.status(404).send('No existing files found on server');
+//     }
+
+//     if (existingFiles.length === 1) {
+//       return res.download(existingFiles[0]);
+//     }
+
+//     // Multiple files — zip and send
+//     const archive = archiver('zip', { zlib: { level: 9 } });
+//     res.attachment(`safety_files_${fileId}.zip`);
+//     archive.pipe(res);
+
+//     existingFiles.forEach(file => {
+//       archive.file(file, { name: path.basename(file) });
+//     });
+
+//     archive.finalize();
+//   });
+// });
+// router.get('/safety_download/:id', (req, res) => {
+//   const fileId = req.params.id;
+
+//   db.query('SELECT safety_signs, safety_barriers, safety_lights, safety_boards, permissions, safety_documentation FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+//     if (err) {
+//       console.error('Database error:', err);
+//       return res.status(500).send('Database error');
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).send('File not found');
+//     }
+
+//     let filePath = results[0].safety_signs;
+//     let filePath2 = results[0].safety_barriers;
+//     let filePath3 = results[0].safety_lights;
+//     let filePath4 = results[0].safety_boards;
+//     let filePath5 = results[0].permissions;
+//     let filePath6 = results[0].safety_documentation;
+
+//     // Convert buffer to string if needed
+//     if (Buffer.isBuffer(filePath)) {
+//       filePath = filePath.toString('utf8');
+//     }
+//     if (Buffer.isBuffer(filePath2)) {
+//       filePath2 = filePath2.toString('utf8');
+//     }
+//     if (Buffer.isBuffer(filePath3)) {
+//       filePath3 = filePath3.toString('utf8');
+//     }
+//     if (Buffer.isBuffer(filePath4)) {
+//       filePath4 = filePath4.toString('utf8');
+//     }
+//     if (Buffer.isBuffer(filePath5)) {
+//       filePath5 = filePath5.toString('utf8');
+//     }
+//     if (Buffer.isBuffer(filePath6)) {
+//       filePath6 = filePath6.toString('utf8');
+//     }
+   
+
+//     const filePaths = filePath.split(',');
+//     const filePaths2 = filePath2.split(',');
+//     const filePaths3 = filePath3.split(',');
+//     const filePaths4 = filePath4.split(',');
+//     const filePaths5 = filePath5.split(',');
+//     const filePaths6 = filePath6.split(',');
+
+//     if (filePaths.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safety_Signs_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//     if (filePaths2.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths2[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safety_Signs_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//     if (filePaths3.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths3[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safety_Signs_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//     if (filePaths4.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths4[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safety_Signs_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+//     if (filePaths5.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths5[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safety_Signs_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+      
+//     }
+//     if (filePaths6.length === 1) {
+//       // Single file
+//       const absolutePath = path.resolve(filePaths6[0]);
+//       if (!fs.existsSync(absolutePath)) {
+//         return res.status(404).send('File not found on server');
+//       }
+
+//       return res.download(absolutePath);
+//     } else {
+//       // Multiple files — create a zip
+//       const archive = archiver('zip', {
+//         zlib: { level: 9 }
+//       });
+
+//       res.attachment(`Safety_Signs_${fileId}.zip`);
+//       archive.pipe(res);
+
+//       filePaths.forEach(p => {
+//         const absPath = path.resolve(p);
+//         if (fs.existsSync(absPath)) {
+//           archive.file(absPath, { name: path.basename(p) });
+//         }
+//       });
+
+//       archive.finalize();
+//     }
+   
+//   });
+// });
+router.get('/safety_download/:id', (req, res) => {
+  const fileId = req.params.id;
+  db.query('SELECT * FROM safety_department WHERE work_order_id = ?', [fileId], (err, results) => {
+    if (err) {
+      console.error('DB error:', err);
+      return res.status(500).send('Database error');
+    }
+    if (results.length === 0) return res.status(404).send('Record not found');
+    const row = results[0];
+
+    const fields = [
+      'safety_signs', 'safety_barriers', 'safety_lights',
+      'safety_boards', 'permissions', 'safety_documentation'
+    ];
+
+    const allPaths = [];
+    fields.forEach(field => {
+      let val = row[field];
+      if (Buffer.isBuffer(val)) val = val.toString();
+      if (val) allPaths.push(...val.split(',').map(p => p.trim()).filter(Boolean));
+    });
+
+    if (allPaths.length === 0) return res.status(404).send('No files to download');
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    res.attachment(`Safety_Files_${fileId}.zip`);
+    archive.pipe(res);
+    allPaths.forEach(p => {
+      const abs = path.resolve(p);
+      if (fs.existsSync(abs)) archive.file(abs, { name: path.basename(p) });
+    });
+    archive.finalize();
+  });
+});
+
+
 
 router.get('/workexe9_download/:id', (req, res) => {
   const fileId = req.params.id;
@@ -1216,6 +1542,50 @@ router.get('/workexe9_download/:id', (req, res) => {
     }
   });
 });
+
+function setupDownloadRoute(router, routePath, dbQuery, columnName, zipPrefix) {
+  router.get(routePath, (req, res) => {
+    const fileId = req.params.id;
+
+    db.query(dbQuery, [fileId], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
+      }
+
+      if (results.length === 0) {
+        return res.status(404).send('File not found');
+      }
+
+      let filePath = results[0][columnName];
+
+      if (Buffer.isBuffer(filePath)) {
+        filePath = filePath.toString('utf8');
+      }
+
+      const filePaths = filePath.split(',');
+
+      if (filePaths.length === 1) {
+        const absolutePath = path.resolve(filePaths[0]);
+        if (!fs.existsSync(absolutePath)) {
+          return res.status(404).send('File not found on server');
+        }
+        return res.download(absolutePath);
+      } else {
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        res.attachment(`${zipPrefix}_${fileId}.zip`);
+        archive.pipe(res);
+        filePaths.forEach(p => {
+          const absPath = path.resolve(p);
+          if (fs.existsSync(absPath)) {
+            archive.file(absPath, { name: path.basename(p) });
+          }
+        });
+        archive.finalize();
+      }
+    });
+  });
+}
 
 
 
