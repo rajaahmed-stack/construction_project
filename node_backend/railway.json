@@ -5,7 +5,7 @@
     }
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "node server.js & npx wait-on http://localhost:5000/health",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 60
   }
