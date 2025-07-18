@@ -49,13 +49,19 @@ router.post('/upload-safety-files/:fieldName', upload.array('file'), (req, res) 
   const fieldName = req.params.fieldName;
   const work_order_id = req.body.work_order_id; // Ensure this comes from the frontend
 
-  if (!files || files.length === 0) {
-    console.log("No files uploaded!");
-    return res.status(400).send('No files uploaded');
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ 
+      success: false,
+      message: "No files were uploaded",
+      required: "At least one file with field name 'file'"
+    });
   }
 
-  if (!work_order_id) {
-    return res.status(400).send('Missing work_order_id');
+  if (!req.body.work_order_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing work_order_id in request body"
+    });
   }
 
   const filePaths = files.map(file => `uploads/${file.filename}`).join(',');
