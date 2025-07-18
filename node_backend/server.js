@@ -10,6 +10,9 @@ const nodemailer = require('nodemailer');
 const archiver = require('archiver');
 const bcrypt = require('bcryptjs');
 
+console.log("🟢 server.js started loading...");
+
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -167,6 +170,7 @@ app.use('/api/usermanagement', require('./usermanagement'));
 // Startup only after DB is ready
 createDbConnection().then(pool => {
   db = pool;
+  console.log("🟢 Starting server on port", port);
   app.listen(port, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${port}`);
     isReady = true;
@@ -174,6 +178,7 @@ createDbConnection().then(pool => {
   });
 }).catch(err => {
   console.error('❌ Failed to connect to database:', err);
+  console.error("❌ DB connection failed:", err.message);
   process.exit(1);
 });
 
