@@ -1,16 +1,28 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise'); // Use promise-based API
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const router = express.Router();
-const archiver = require('archiver'); // Ensure archiver is imported
+const archiver = require('archiver');
+
 
 const app = express();
-const port = 5000;
+const port =  process.env.PORT || 5000;
+
+
+// Error handlers - must be first middleware
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
+});
 
 
 // Middleware
@@ -41,26 +53,32 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }));
 
-// MySQL connection
-const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST || 'shinkansen.proxy.rlwy.net',
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || 'XjSGGFPPsszznJyxanyHBVzUeppoFkKn',
-  database: process.env.MYSQL_DATABASE || 'railway',
-  port: process.env.MYSQL_PORT || '44942'
+// Database connection with retries
+const createDbConnection = async () => {
+  const db = mysql.createPool({
+    host: process.env.MYSQL_HOST || 'shinkansen.proxy.rlwy.net',
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || 'XjSGGFPPsszznJyxanyHBVzUeppoFkKn',
+    database: process.env.MYSQL_DATABASE || 'railway',
+    port: process.env.MYSQL_PORT || '44942',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
 
-});
-
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to database:', err);
-  } else {
-    console.log('Database connected: railway');
+  try {
+    await db.getConnection();
+    console.log('Database connected');
+    return db;
+  } catch (err) {
+    console.error('Database connection failed:', err);
+    process.exit(1);
   }
-});
+};
 
-// Ensure uploads directory exists
+const db = createDbConnection();
+
+
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {

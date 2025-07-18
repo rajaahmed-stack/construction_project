@@ -1,0 +1,11 @@
+{
+  "build": {
+    "nixpacks": {
+      "buildImage": "node:18"
+    }
+  },
+  "deploy": {
+    "startCommand": "node server.js",
+    "healthcheckPath": "/health"
+  }
+}
