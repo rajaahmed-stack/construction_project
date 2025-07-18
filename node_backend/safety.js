@@ -8,6 +8,9 @@ const bodyParser = require('body-parser');
 const archiver = require('archiver');
 
 
+console.log("✅ safety.js loaded");
+
+
 // MySQL Database Connection
 const db = mysql.createConnection({
   host: process.env.MYSQL_HOST || 'shinkansen.proxy.rlwy.net',

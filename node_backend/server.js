@@ -81,17 +81,17 @@ const createDbConnection = async () => {
 };
 
 // Health check route
-app.get('/health', async (req, res) => {
-  if (!isReady) {
-    return res.status(503).json({ status: 'starting', message: 'App is initializing' });
-  }
-  try {
-    await db.query('SELECT 1');
-    res.status(200).json({ status: 'healthy', database: 'connected', uptime: process.uptime() });
-  } catch (err) {
-    res.status(500).json({ status: 'unhealthy', error: err.message });
-  }
-});
+// app.get('/health', async (req, res) => {
+//   if (!isReady) {
+//     return res.status(503).json({ status: 'starting', message: 'App is initializing' });
+//   }
+//   try {
+//     await db.query('SELECT 1');
+//     res.status(200).json({ status: 'healthy', database: 'connected', uptime: process.uptime() });
+//   } catch (err) {
+//     res.status(500).json({ status: 'unhealthy', error: err.message });
+//   }
+// });
 
 // Temporary simple health check for fast response
 app.get('/simple-health', (req, res) => {
@@ -99,54 +99,54 @@ app.get('/simple-health', (req, res) => {
 });
 
 // Email API
-app.post('/api/send-email', (req, res) => {
-  const { to, subject, text } = req.body;
-  sendEmail(to, subject, text);
-  res.status(200).send('Email request received');
-});
+// app.post('/api/send-email', (req, res) => {
+//   const { to, subject, text } = req.body;
+//   sendEmail(to, subject, text);
+//   res.status(200).send('Email request received');
+// });
 
-// Register user
-app.post('/api/usermanagement/save_users', async (req, res) => {
-  const { name, email, password, username } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const query = 'INSERT INTO users (name, email, password, department) VALUES (?, ?, ?, ?)';
+// // Register user
+// app.post('/api/usermanagement/save_users', async (req, res) => {
+//   const { name, email, password, username } = req.body;
+//   const hashedPassword = await bcrypt.hash(password, 10);
+//   const query = 'INSERT INTO users (name, email, password, department) VALUES (?, ?, ?, ?)';
 
-  db.query(query, [name, email, hashedPassword, username], (err) => {
-    if (err) return res.status(500).send('Server error');
-    sendEmail(email, 'User Registration', `Username: ${username}\nPassword: ${password}`);
-    res.send('User registered');
-  });
-});
+//   db.query(query, [name, email, hashedPassword, username], (err) => {
+//     if (err) return res.status(500).send('Server error');
+//     sendEmail(email, 'User Registration', `Username: ${username}\nPassword: ${password}`);
+//     res.send('User registered');
+//   });
+// });
 
-// Update user
-app.put('/api/users/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const query = 'UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?';
+// // Update user
+// app.put('/api/users/:id', async (req, res) => {
+//   const { id } = req.params;
+//   const { name, email, password } = req.body;
+//   const hashedPassword = await bcrypt.hash(password, 10);
+//   const query = 'UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?';
 
-  db.query(query, [name, email, hashedPassword, id], (err) => {
-    if (err) return res.status(500).send('Server error');
-    res.send('User updated successfully');
-  });
-});
+//   db.query(query, [name, email, hashedPassword, id], (err) => {
+//     if (err) return res.status(500).send('Server error');
+//     res.send('User updated successfully');
+//   });
+// });
 
-// Delete user
-app.delete('/api/delete-users/:id', (req, res) => {
-  const { id } = req.params;
-  db.query('DELETE FROM users WHERE id = ?', [id], (err) => {
-    if (err) return res.status(500).send('Server error');
-    res.send('User deleted successfully');
-  });
-});
+// // Delete user
+// app.delete('/api/delete-users/:id', (req, res) => {
+//   const { id } = req.params;
+//   db.query('DELETE FROM users WHERE id = ?', [id], (err) => {
+//     if (err) return res.status(500).send('Server error');
+//     res.send('User deleted successfully');
+//   });
+// });
 
-// Get all users
-app.get('/api/users', (req, res) => {
-  db.query('SELECT * FROM users', (err, results) => {
-    if (err) return res.status(500).send('Error fetching users');
-    res.json(results);
-  });
-});
+// // Get all users
+// app.get('/api/users', (req, res) => {
+//   db.query('SELECT * FROM users', (err, results) => {
+//     if (err) return res.status(500).send('Error fetching users');
+//     res.json(results);
+//   });
+// });
 
 // Import and use modular routes
 app.use('/api/survey', require('./survey'));
